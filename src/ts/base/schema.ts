@@ -587,3 +587,6 @@ export type XWorkTask = {
   // 办事的定义
   instance: XWorkInstance | undefined;
 } & Xbase;
+
+// 页面设计
+export * from "./pageSchema";
