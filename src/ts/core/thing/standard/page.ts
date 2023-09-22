@@ -2,7 +2,12 @@ import { schema } from '@/ts/base';
 import { IStandardFileInfo, StandardFileInfo } from '../fileinfo';
 import { IDirectory } from '../directory';
 
-export interface IPageTemplate extends IStandardFileInfo<schema.XPageTemplate> {}
+export interface IPageTemplate extends IStandardFileInfo<schema.XPageTemplate> {
+  /** 设置数据 */
+  setContent(data: string): Promise<void>;
+  /** 获取数据 */
+  getContent(): string;
+}
 
 export class PageTemplate
   extends StandardFileInfo<schema.XPageTemplate>
@@ -22,5 +27,12 @@ export class PageTemplate
       return await super.moveTo(destination.id, destination.resource.templateColl);
     }
     return false;
+  }
+  async setContent(data: string): Promise<void> {
+    this.metadata.data = data;
+    await super.update(this.metadata);
+  }
+  getContent(): string {
+    return this.metadata.data;
   }
 }
