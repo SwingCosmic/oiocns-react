@@ -16,7 +16,7 @@ export interface FCInit<P extends {}, C = any> extends FCOptions<P> {
 export function defineFC<P extends {}, C = any>(component: Readonly<FCInit<P, C>>): FC<P> {
   const render: any = component.render;
   const options = omit(component, ["render"]);
-  for (const p of Object.keys(options)) {
+  for (const p of Object.keys(options) as (keyof typeof options)[]) {
     render[p] = options[p];
   }
   return render;

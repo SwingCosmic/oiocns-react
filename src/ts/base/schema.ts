@@ -1,3 +1,5 @@
+import { PageTemplate } from "./pageModel";
+
 export type Xbase = {
   // 雪花ID
   id: string;
@@ -588,5 +590,5 @@ export type XWorkTask = {
   instance: XWorkInstance | undefined;
 } & Xbase;
 
-// 页面设计
-export * from "./pageSchema";
+
+export type XPageTemplate<T extends string = string> = XStandard & PageTemplate<T>;

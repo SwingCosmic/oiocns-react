@@ -1110,3 +1110,6 @@ export type SchemaType = {
   properties: Record<string, object>;
   column: 1 | 2 | 3;
 };
+
+// 页面设计
+export * from "./pageModel";

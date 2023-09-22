@@ -1,4 +1,6 @@
+import { Dictionary } from "lodash";
+import { FC } from "react";
 
-const elements = import.meta.glob("./elements/**/*.tsx", { eager: true });
+const elements: Dictionary<FC<any>> = import.meta.glob("./elements/**/*.tsx", { eager: true });
 
 console.log(elements)
