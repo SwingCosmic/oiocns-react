@@ -13,13 +13,13 @@ export class PageTemplate
   }
   async copy(destination: IDirectory): Promise<boolean> {
     if (this.allowCopy(destination)) {
-      return await super.copyTo(destination.id, destination.resource.propertyColl);
+      return await super.copyTo(destination.id, destination.resource.templateColl);
     }
     return false;
   }
   async move(destination: IDirectory): Promise<boolean> {
     if (this.allowMove(destination)) {
-      return await super.moveTo(destination.id, destination.resource.propertyColl);
+      return await super.moveTo(destination.id, destination.resource.templateColl);
     }
     return false;
   }
