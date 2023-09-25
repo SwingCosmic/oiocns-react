@@ -11,13 +11,13 @@ export interface ViewerProps {
 
 export function ViewerHost(props: ViewerProps) {
 
-  const ctx = useSignal<PageContext<"design">>({
-    view: new ViewManager("design", props.page)
+  const ctx = useSignal<PageContext<"view">>({
+    view: new ViewManager("view", props.page)
   });
 
   return (
     <ViewerPageContext.Provider value={ctx.current}>
-      <div className="page-host--view">
+      <div className="page-host--view" style={{height: "100%",width: "100%"}}>
 
 
       </div>      

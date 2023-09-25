@@ -33,6 +33,9 @@ export type TypeMeta = PrimitiveTypeMeta<PrimitiveType> | ArrayTypeMeta | Object
 export interface ElementMeta {
   /** 定义属性的类型 */
   props: Dictionary<TypeMeta>;
+  /** 组件中文名 */
+  label: string;
+  
 }
 
 /**

@@ -2,6 +2,7 @@ import FullScreenModal from '@/executor/tools/fullScreen';
 import { IPageTemplate } from '@/ts/core/thing/standard/page';
 import React from 'react';
 import Content from './widgets/content';
+import { ViewerHost } from '@/components/PageBuilder/view/ViewerHost';
 
 interface IProps {
   current: IPageTemplate;
@@ -19,7 +20,7 @@ const TemplateModal: React.FC<IProps> = ({ current, finished }) => {
       destroyOnClose
       title={'页面模板配置'}
       onCancel={() => finished()}
-      children={<Content current={current} />}
+      children={<ViewerHost page={current.metadata}/>}
     />
   );
 };

@@ -1,8 +1,6 @@
 
 import React from "react";
 import { defineElement } from "./defineElement";
-import { ExistTypeMeta } from "../core/ElementMeta";
-import { PageElement } from "../core/PageElement";
 
 
 export default defineElement({
@@ -20,13 +18,8 @@ export default defineElement({
   displayName: "Root",
   meta: {
     props: {
-      children: {
-        type: "array",
-        elementType: {
-          type: "type",
-          typeName: "PageElement"
-        } as ExistTypeMeta<PageElement>
-      }
-    }
+
+    },
+    label: "模板根元素",
   }
 })

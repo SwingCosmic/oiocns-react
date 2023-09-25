@@ -3,8 +3,12 @@ import { FC, ReactNode } from 'react';
 import { PageContext } from '../render/ViewContext';
 import { HostMode } from '../render/ViewHost';
 import { ElementMeta, ExtractMetaToType } from '../core/ElementMeta';
+import { PageElement } from '../core/PageElement';
+import { HTMLAttributes } from 'react';
 
-
+type WithCommonProps<P extends {}> = P 
+  & Pick<HTMLAttributes<any>, "className" | "style"> 
+  & Pick<PageElement, "children">;
 
 export interface ElementOptions<M extends ElementMeta, P extends {}> extends FCOptions<P> {
   /** 组件名称，必填 */
@@ -14,7 +18,7 @@ export interface ElementOptions<M extends ElementMeta, P extends {}> extends FCO
 }
 
 export interface ElementInit<M extends ElementMeta, P extends {}> extends ElementOptions<M, P> {
-  render(this: undefined, props: P, context: PageContext<HostMode>): ReactNode;
+  render(this: undefined, props: WithCommonProps<P>, context: PageContext<HostMode>): ReactNode;
 }
 
 export type ElementFC<M extends ElementMeta = ElementMeta, P extends {} = {}> = FC<P> & ElementOptions<M, P>;

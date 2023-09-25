@@ -17,9 +17,9 @@ export function useSignal<T>(initialValue: NonFunction<T> | (() => NonFunction<T
     }
     return useRef(initialValue);
   }
-
+  const v = createSignal(initialValue);
   // 永不重新计算
-  return useMemo(() => createSignal(initialValue), []);
+  return useMemo(() => v, []);
 }
 
 
