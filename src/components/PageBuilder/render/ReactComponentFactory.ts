@@ -38,6 +38,17 @@ export function mergeProps(e: PageElement) {
 
 
 export default class ReactComponentFactory implements IComponentFactory<ComponentType, Render> {
+
+  private _rootRender: Render;
+
+  get rootRender() {
+    return this._rootRender;
+  }
+
+  constructor(rootRender: Render) {
+    this._rootRender = rootRender;
+  }
+
   readonly componentDefinitions = new Map<string, ComponentType>();
 
   registerComponent<T extends ComponentType>(name: string, component: T) {
@@ -49,8 +60,6 @@ export default class ReactComponentFactory implements IComponentFactory<Componen
       this.registerComponent(name, component);
     }
   }
-
-
 
 
   readonly renderDefinitions = new WeakMap<ComponentType, Render>();
