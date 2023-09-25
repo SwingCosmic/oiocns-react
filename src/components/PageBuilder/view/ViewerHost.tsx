@@ -15,11 +15,15 @@ export function ViewerHost(props: ViewerProps) {
     view: new ViewManager("view", props.page)
   });
 
+  const RootRender = ctx.current.view.components.rootRender as any;
+  
   return (
     <ViewerPageContext.Provider value={ctx.current}>
       <div className="page-host--view" style={{height: "100%",width: "100%"}}>
+        <RootRender 
+          element={props.page.rootElement}>
 
-
+        </RootRender>
       </div>      
     </ViewerPageContext.Provider>
   );

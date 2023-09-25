@@ -38,7 +38,7 @@ function scanComponents(): PageBuilderStaticContext {
   }
 
 
-  const componentFactory = new ComponentFactory(root);
+  const componentFactory = new ComponentFactory();
   componentFactory.registerComponents(elements);
 
 

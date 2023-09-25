@@ -1,3 +1,4 @@
+import ElementTreeManager from "@/components/PageBuilder/core/ElementTreeManager";
 import SchemaForm from "@/components/SchemaForm";
 import { schema } from "@/ts/base";
 import { IDirectory } from "@/ts/core";
@@ -90,6 +91,7 @@ const PageTemplateForm: React.FC<IProps> = ({ formType, current, finished }) => 
         switch (formType) {
           case 'newPageTemplate': {
             values.typeName = '页面模板';
+            values.rootElement = ElementTreeManager.createRoot();
             let directory = current as IDirectory;
             let request = await directory.createTemplate(values);
             finished(request as IPageTemplate);

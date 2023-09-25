@@ -18,17 +18,21 @@ export default class ElementTreeManager {
 
   readonly factory!: ElementFactory;
 
+  static createRoot(): PageElement {
+    return {
+      id: "$root",
+      kind: "Root",
+      name: "模板根节点",
+      children: [],
+      props: {}
+    }
+  }
+
   constructor(factory: ElementFactory, root?: PageElement) {
     this.factory = factory;
 
     if (!root) {
-      root = {
-        id: "$root",
-        kind: "Root",
-        name: "模板根节点",
-        children: [],
-        props: {}
-      };
+      root = ElementTreeManager.createRoot();
     }
 
     this.root = root;

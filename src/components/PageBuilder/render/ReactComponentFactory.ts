@@ -33,20 +33,16 @@ export function mergeProps(e: PageElement) {
   );
   props.style = style;
 
+  props.children = e.children;
+
   return props;
 }
 
 
 export default class ReactComponentFactory implements IComponentFactory<ComponentType, Render> {
 
-  private _rootRender: Render;
-
   get rootRender() {
-    return this._rootRender;
-  }
-
-  constructor(rootRender: Render) {
-    this._rootRender = rootRender;
+    return this.getComponentRender("Root");
   }
 
   readonly componentDefinitions = new Map<string, ComponentType>();
