@@ -1,7 +1,7 @@
 
 
 export type PrimitiveType = "string" | "number" | "boolean" | "date";
-export type ComplexType = "array" | "object";
+export type ComplexType = "array" | "object" | "type";
 export type DataType = PrimitiveType | ComplexType;
 
 
@@ -23,7 +23,12 @@ export interface ObjectTypeMeta extends TypeMetaBase<"object"> {
   properties: Dictionary<TypeMeta>;
 }
 
-export type TypeMeta = PrimitiveTypeMeta<PrimitiveType> | ArrayTypeMeta | ObjectTypeMeta;
+// @ts-ignore
+export interface ExistTypeMeta<T> extends TypeMetaBase<"type"> {
+  typeName: string;
+}
+
+export type TypeMeta = PrimitiveTypeMeta<PrimitiveType> | ArrayTypeMeta | ObjectTypeMeta | ExistTypeMeta<any>;
 
 export interface ElementMeta {
   /** 定义属性的类型 */
@@ -42,6 +47,7 @@ export type ExtractToType<T extends TypeMeta> =
   T extends ObjectTypeMeta ? {
     [P in keyof T["properties"]]: ExtractToType<T["properties"][P]>
   } : 
+  T extends ExistTypeMeta<infer R> ? R :
   any;
 
 

@@ -14,11 +14,13 @@ export interface ElementOptions<M extends ElementMeta, P extends {}> extends FCO
 }
 
 export interface ElementInit<M extends ElementMeta, P extends {}> extends ElementOptions<M, P> {
-  render(this: never, props: P, context: PageContext<HostMode>): ReactNode;
+  render(this: undefined, props: P, context: PageContext<HostMode>): ReactNode;
 }
+
+export type ElementFC<M extends ElementMeta = ElementMeta, P extends {} = {}> = FC<P> & ElementOptions<M, P>;
 
 export function defineElement<M extends ElementMeta, P extends {} = ExtractMetaToType<M>>(
   component: Readonly<ElementInit<M, P>>,
-): FC<P> & ElementOptions<M, P> {
+): ElementFC<M, P> {
   return defineFC(component as any) as any;
 }
