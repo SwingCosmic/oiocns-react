@@ -8,22 +8,22 @@ export interface PageBuilderStaticContext {
   elements: ElementFactory;
 }
 
-const moduleExports: Dictionary<FC<any>> = import.meta.glob("./elements/**/*.tsx", { eager: true });
+const moduleExports: Dictionary<{default: FC<any>}> = import.meta.glob("./elements/**/*.tsx", { eager: true });
 
 console.log(moduleExports);
 debugger
 const elements: Dictionary<FC<any>> = {};
 let root: FC<any> | null = null;
 for (const [path, _exports] of Object.entries(moduleExports)) {
-  let name = _exports.displayName;
+  let name = _exports.default.displayName;
   if (!name) {
     console.warn(`组件 ${path} 未定义名称，已默认赋值文件名`);
     name = /([A-Za-z0-9_])\.tsx$/.exec(path)?.[1] ?? path;
   }
-  elements[name] = _exports;
+  elements[name] = _exports.default;
 
   if (name == "Root") {
-    root = _exports;
+    root = _exports.default;
   }
 }
 
