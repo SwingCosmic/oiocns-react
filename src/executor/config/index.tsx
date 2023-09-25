@@ -21,6 +21,7 @@ const entityMap: any = {
   事项配置: 'WorkConfig',
   实体配置: 'ThingConfig',
   迁移配置: 'TransferConfig',
+  页面模板: 'PageTemplate',
   报表: 'Report',
 };
 
@@ -30,6 +31,7 @@ interface IProps {
   finished: () => void;
 }
 const ConfigExecutor: React.FC<IProps> = ({ cmd, args, finished }) => {
+  console.log(cmd, args);
   switch (cmd) {
     case 'open':
       if (Object.keys(entityMap).includes(args[0].typeName)) {
