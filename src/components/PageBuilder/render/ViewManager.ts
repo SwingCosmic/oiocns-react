@@ -5,7 +5,7 @@ import ReactComponentFactory from "./ReactComponentFactory";
 import { HostMode, IViewHost } from "../core/IViewHost";
 import staticContext from "..";
 
-export default class ViewManager<T extends HostMode> implements IViewHost<T> {
+export default class ViewManager<T extends HostMode> implements IViewHost<T, ReactComponentFactory> {
   readonly mode: T;
   treeManager: ElementTreeManager;
   components: ReactComponentFactory;

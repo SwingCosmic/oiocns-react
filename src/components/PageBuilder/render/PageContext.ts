@@ -1,4 +1,4 @@
-import { createContext, useContext } from "react";
+import { createContext } from "react";
 import { HostMode } from "../core/IViewHost";
 import type ViewManager from "./ViewManager";
 

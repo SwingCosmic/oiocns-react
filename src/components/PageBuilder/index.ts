@@ -1,16 +1,12 @@
 import ElementFactory from "./core/ElementFactory";
 import { ElementMeta } from "./core/ElementMeta";
+import { PageBuilderStaticContext } from "./core/IViewHost";
 import { ElementFC } from "./elements/defineElement";
-import ComponentFactory from "./render/ReactComponentFactory";
+import ReactComponentFactory from "./render/ReactComponentFactory";
 import { FC } from "react";
 
 
-export interface PageBuilderStaticContext {
-  components: ComponentFactory;
-  elements: ElementFactory;
-}
-
-function scanComponents(): PageBuilderStaticContext {
+function scanComponents(): PageBuilderStaticContext<ReactComponentFactory> {
   const moduleExports: Dictionary<{ default: ElementFC }> = import.meta.glob("./elements/**/*.tsx", { eager: true });
 
   console.log(moduleExports);
@@ -38,7 +34,7 @@ function scanComponents(): PageBuilderStaticContext {
   }
 
 
-  const componentFactory = new ComponentFactory();
+  const componentFactory = new ReactComponentFactory();
   componentFactory.registerComponents(elements);
 
 
