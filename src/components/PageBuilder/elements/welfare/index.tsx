@@ -1,11 +1,18 @@
+import {
+  AiOutlineCheck,
+  AiOutlinePlusSquare,
+  AiOutlineRead,
+  AiOutlineShoppingCart,
+} from '@/icons/ai';
 import { kernel } from '@/ts/base';
+import { FieldModel } from '@/ts/base/model';
 import { IForm } from '@/ts/core';
+import { ShareIdSet } from '@/ts/core/public/entity';
 import {
   Badge,
   Button,
   Card,
   Col,
-  Divider,
   Image,
   Modal,
   Pagination,
@@ -15,23 +22,18 @@ import {
 } from 'antd';
 import Meta from 'antd/lib/card/Meta';
 import React, { useEffect, useRef, useState } from 'react';
-import { ExistTypeMeta } from '../../core/ElementMeta';
 import { defineElement } from '../defineElement';
 import cls from './index.module.less';
 import Asset from '/img/asset.png';
-import {
-  AiOutlineCheck,
-  AiOutlinePlusSquare,
-  AiOutlineRead,
-  AiOutlineShoppingCart,
-} from '@/icons/ai';
-import { FieldModel } from '@/ts/base/model';
 
 interface IProps {
   current: IForm;
 }
 
 const Welfare: React.FC<IProps> = ({ current }) => {
+  if (!current) {
+    return <></>;
+  }
   const [notInit, setNotInit] = useState<boolean>(true);
   const all = useRef<any[]>([]);
   const search = useRef<FieldModel[]>([]);
@@ -184,16 +186,16 @@ const Welfare: React.FC<IProps> = ({ current }) => {
 
 export default defineElement({
   render(props) {
-    return <Welfare current={props.current} />;
+    const form = ShareIdSet.get(props.formId + '*') as IForm;
+    return <Welfare current={form} />;
   },
   displayName: 'Welfare',
   meta: {
     props: {
-      current: {
-        type: 'type',
-        typeName: 'iForm',
-      } as ExistTypeMeta<IForm>,
+      formId: {
+        type: 'string',
+      },
     },
-    label: '公益仓',
+    label: '公物仓',
   },
 });
