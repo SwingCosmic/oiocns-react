@@ -5,4 +5,6 @@ export interface IComponentFactory<TComponent, TRender> {
   registerComponents(components: Dictionary<TComponent>): void;
 
   getComponentRender(name: string): TRender;
+
+  readonly rootRender: TRender;
 }
