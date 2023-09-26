@@ -1,10 +1,12 @@
 
-import React from "react";
+import React, { useContext } from "react";
 import { defineElement } from "./defineElement";
+import { ViewerPageContext } from "../view/PageContext";
 
 
 export default defineElement({
-  render(props, ctx) {
+  render(props) {
+    const ctx = useContext(ViewerPageContext);
     return <div className="root">
       {
         props.children.map(c => {

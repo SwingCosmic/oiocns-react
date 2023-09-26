@@ -7,7 +7,8 @@ export default defineFC({
       <div>{props.name}</div>
     );
   },
+  displayName: "Test",
   defaultProps: {
-    name: "default name"
+    name: "test"
   }
 })
