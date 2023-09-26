@@ -1,6 +1,6 @@
 import { getUuid } from "@/utils/tools";
 import { ElementInit } from "./ElementTreeManager";
-import { PageElement } from "@/components/PageBuilder/core/PageElement";
+import { PageElement } from "./PageElement";
 import { ElementMeta } from "./ElementMeta";
 
 export default class ElementFactory {
@@ -19,6 +19,7 @@ export default class ElementFactory {
       ...params
     } as any;
     e.props ||= {};
+    e.children ||= [];
     return e;
   }
 }
