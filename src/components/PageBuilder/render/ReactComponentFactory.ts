@@ -2,7 +2,7 @@ import { PageElement } from "@/components/PageBuilder/core/PageElement";
 import _ from "lodash";
 import { ComponentType, FC, createElement as h, useContext } from "react";
 import { IComponentFactory } from "../core/IComponentFactory";
-import { ViewerPageContext } from "../view/PageContext";
+import { PageContext } from "./PageContext";
 
 export interface ElementRenderProps {
   readonly element: PageElement;

@@ -2,7 +2,7 @@ import { PageTemplate } from "@/ts/base/pageModel";
 import ElementFactory from "../core/ElementFactory";
 import ElementTreeManager from "../core/ElementTreeManager";
 import ReactComponentFactory from "./ReactComponentFactory";
-import { HostMode, IViewHost } from "./ViewHost";
+import { HostMode, IViewHost } from "../core/IViewHost";
 import staticContext from "..";
 
 export default class ViewManager<T extends HostMode> implements IViewHost<T> {

@@ -1,5 +1,5 @@
 import { PageBuilderStaticContext } from "..";
-import ElementTreeManager from "../core/ElementTreeManager";
+import ElementTreeManager from "./ElementTreeManager";
 
 export type HostMode = "design" | "view";
 

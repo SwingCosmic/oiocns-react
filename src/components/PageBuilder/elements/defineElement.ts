@@ -1,11 +1,11 @@
 import { FCOptions, defineFC } from '@/utils/react/fc';
 import { FC, ReactNode, useContext } from 'react';
-import { PageContext } from '../render/ViewContext';
-import { HostMode } from '../render/ViewHost';
+import { IPageContext } from '../render/PageContext';
+import { HostMode } from '../core/IViewHost';
 import { ElementMeta, ExtractMetaToType } from '../core/ElementMeta';
 import { PageElement } from '../core/PageElement';
 import { HTMLAttributes } from 'react';
-import { ViewerPageContext } from '../view/PageContext';
+import { PageContext } from '../render/PageContext';
 
 type WithCommonProps<P extends {}> = P 
   & Pick<HTMLAttributes<any>, "className" | "style"> 
@@ -19,7 +19,7 @@ export interface ElementOptions<M extends ElementMeta, P extends {}> extends FCO
 }
 
 export interface ElementInit<M extends ElementMeta, P extends {}> extends ElementOptions<M, P> {
-  render(this: void, props: WithCommonProps<P>, context: PageContext<HostMode>): ReactNode;
+  render(this: void, props: WithCommonProps<P>, context: IPageContext<HostMode>): ReactNode;
 }
 
 export type ElementFC<M extends ElementMeta = ElementMeta, P extends {} = {}> = FC<P> & ElementOptions<M, P>;
@@ -30,7 +30,7 @@ export function defineElement<M extends ElementMeta, P extends {} = ExtractMetaT
   const originRender = component.render;
   // Hook组件定义的渲染函数，自动注入context
   (component.render as any) = (props: WithCommonProps<P>) => {
-    const ctx = useContext(ViewerPageContext);
+    const ctx = useContext(PageContext);
     return originRender(props, ctx);
   }
   return defineFC(component as any) as any;
