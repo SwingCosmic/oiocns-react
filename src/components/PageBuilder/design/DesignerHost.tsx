@@ -7,6 +7,8 @@ import ViewManager from '../render/ViewManager';
 import { PageContext } from '../render/PageContext';
 import Coder from './context';
 
+import css from "./designer.module.less";
+
 export interface DesignerProps {
   current: IPageTemplate;
 }
@@ -19,14 +21,18 @@ export function DesignerHost({ current }: DesignerProps) {
   const RootRender = ctx.current.view.components.rootRender as any;
   const [meta, setMeta] = useState(current.metadata);
   return (
-    <>
-      <Button onClick={() => setMeta(current.metadata)}>刷新</Button>
-      <Coder current={current} />
-      <PageContext.Provider value={ctx.current}>
-        <div className="page-host--view" style={{ height: '100%', width: '100%' }}>
-          <RootRender element={meta.rootElement}></RootRender>
-        </div>
-      </PageContext.Provider>
-    </>
+    <div className={css.pageHostDesign}>
+      <div className={css.top}>
+        <Button onClick={() => setMeta(current.metadata)}>刷新</Button>
+      </div>
+      <div className={css.content}>
+        <Coder current={current} />
+        <PageContext.Provider value={ctx.current}>
+          <div className="o-page-host">
+            <RootRender element={meta.rootElement}></RootRender>
+          </div>
+        </PageContext.Provider>        
+      </div>
+    </div>
   );
 }
