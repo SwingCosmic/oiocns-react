@@ -1,7 +1,7 @@
 import { useSignal } from '@/hooks/useSignal';
 import { IPageTemplate } from '@/ts/core/thing/standard/page';
 import { Button, message } from 'antd';
-import React, { useRef, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { IPageContext } from '../render/PageContext';
 import ViewManager from '../render/ViewManager';
 import { PageContext } from '../render/PageContext';
@@ -20,16 +20,25 @@ export function DesignerHost({ current }: DesignerProps) {
 
   const RootRender = ctx.current.view.components.rootRender as any;
   const [meta, setMeta] = useState(current.metadata);
-  const contentRef = useRef<string>('[]');
+  const content = useRef<string>(
+    JSON.stringify(current.metadata.rootElement.children, null, 2),
+  );
+  useEffect(() => {
+    const id = current.subscribe(() => {
+      setMeta(current.metadata);
+    });
+    return () => {
+      current.unsubscribe(id);
+    };
+  });
   return (
     <div className={css.pageHostDesign}>
       <div className={css.top}>
         <Button
           onClick={() => {
             try {
-              current.metadata.rootElement.children = JSON.parse(contentRef.current);
+              current.metadata.rootElement.children = JSON.parse(content.current);
               current.update(current.metadata);
-              setMeta(current.metadata);
             } catch (error) {
               message.error('JSON 格式错误！');
             }
@@ -38,7 +47,7 @@ export function DesignerHost({ current }: DesignerProps) {
         </Button>
       </div>
       <div className={css.content}>
-        <Coder current={current} onChange={(data) => (contentRef.current = data)} />
+        <Coder current={content.current} onChange={(data) => (content.current = data)} />
         <PageContext.Provider value={ctx.current}>
           <div className="page-host--view" style={{ height: '100%', width: '100%' }}>
             <RootRender element={meta.rootElement}></RootRender>

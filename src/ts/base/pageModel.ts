@@ -2,7 +2,6 @@
 
 export interface IPageTemplate<T extends string> {
   kind: T;
-  data: string;
   // 其他属性通过模块补充增加
 }
 
