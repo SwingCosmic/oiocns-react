@@ -1,4 +1,4 @@
-import { DesignerHost } from '@/components/PageBuilder/design/DesignerHost';
+import { ViewerHost } from '@/components/PageBuilder/view/ViewerHost';
 import FullScreenModal from '@/executor/tools/fullScreen';
 import { IPageTemplate } from '@/ts/core/thing/standard/page';
 import React from 'react';
@@ -8,7 +8,7 @@ interface IProps {
   finished: () => void;
 }
 
-const TemplateModal: React.FC<IProps> = ({ current, finished }) => {
+const TemplateView: React.FC<IProps> = ({ current, finished }) => {
   return (
     <FullScreenModal
       open
@@ -17,11 +17,11 @@ const TemplateModal: React.FC<IProps> = ({ current, finished }) => {
       width={'80vw'}
       bodyHeight={'80vh'}
       destroyOnClose
-      title={'页面配置'}
+      title={'页面预览'}
       onCancel={() => finished()}
-      children={<DesignerHost current={current} />}
+      children={<ViewerHost current={current} />}
     />
   );
 };
 
-export default TemplateModal;
+export default TemplateView;

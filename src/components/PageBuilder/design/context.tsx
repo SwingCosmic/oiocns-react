@@ -5,25 +5,17 @@ import React from 'react';
 
 interface IProps {
   current: IPageTemplate;
+  onChange: (content: string) => void;
 }
 
-const Coder: React.FC<IProps> = ({ current }) => {
+const Coder: React.FC<IProps> = ({ current, onChange }) => {
   return (
     <CodeMirror
       style={{ marginTop: 10 }}
       height={'200px'}
       value={current.metadata.data}
       extensions={[json()]}
-      onChange={(value) => {
-        current.metadata.data = value;
-        try {
-          const children = JSON.parse(current.metadata.data);
-          current.metadata.rootElement.children = children;
-        } catch (error) {
-          console.log(error);
-        }
-        current.update(current.metadata);
-      }}
+      onChange={onChange}
     />
   );
 };

@@ -1,10 +1,8 @@
 import { useSignal } from '@/hooks/useSignal';
 import { IPageTemplate } from '@/ts/core/thing/standard/page';
-import { Button } from 'antd';
-import React, { useState } from 'react';
-import { IPageContext } from '../render/PageContext';
+import React from 'react';
+import { IPageContext, PageContext } from '../render/PageContext';
 import ViewManager from '../render/ViewManager';
-import { PageContext } from '../render/PageContext';
 
 export interface ViewerProps {
   current: IPageTemplate;
