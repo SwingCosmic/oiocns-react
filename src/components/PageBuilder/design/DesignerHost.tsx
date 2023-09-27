@@ -13,15 +13,20 @@ export interface DesignerProps {
 }
 
 export function DesignerHost({ current }: DesignerProps) {
-  const ctx = useSimpleSignal<DesignContext>({
-    view: new DesignerManager('design', current),
-  });
+  const design = { view: new DesignerManager('design', current) };
+  const ctx = useSimpleSignal<DesignContext>(design);
   const RootRender = ctx.current.view.components.rootRender as any;
   return (
     <PageContext.Provider value={ctx.current}>
       <div className={css.pageHostDesign}>
         <div className={css.top}>
-          <Button onClick={() => ctx.current.view.update()}>更新数据</Button>
+          <Button
+            onClick={() => {
+              ctx.current.view.update();
+              ctx.current = design;
+            }}>
+            更新数据
+          </Button>
         </div>
         <div className={css.content}>
           <Coder />
