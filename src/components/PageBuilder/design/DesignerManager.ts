@@ -1,5 +1,5 @@
 import { PageElement } from "../core/PageElement";
-import HostManagerBase from "../render/ViewManager";
+import HostManagerBase from "../render/HostManager";
 
 export default class DesignerManager extends HostManagerBase<"design"> {
  

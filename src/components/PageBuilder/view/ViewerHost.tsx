@@ -2,7 +2,7 @@ import { useSimpleSignal } from '@/hooks/useSignal';
 import { IPageTemplate } from '@/ts/core/thing/standard/page';
 import React from 'react';
 import { IPageContext, PageContext } from '../render/PageContext';
-import HostManagerBase from '../render/ViewManager';
+import HostManagerBase from '../render/HostManager';
 
 export interface ViewerProps {
   current: IPageTemplate;

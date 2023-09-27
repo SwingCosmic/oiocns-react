@@ -3,7 +3,7 @@ import { IPageTemplate } from '@/ts/core/thing/standard/page';
 import { Button, message } from 'antd';
 import React, { useEffect, useRef, useState } from 'react';
 import { IPageContext } from '../render/PageContext';
-import HostManagerBase from '../render/ViewManager';
+import HostManagerBase from '../render/HostManager';
 import { PageContext } from '../render/PageContext';
 import Coder from './context';
 
