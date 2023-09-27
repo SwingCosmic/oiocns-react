@@ -34,14 +34,5 @@ export default class HostManagerBase<T extends HostMode> implements IViewHost<T,
   get rootElement(): Readonly<PageElement> {
     return this.treeManager.root;
   }
-  
-  /** 获取或设置根元素的子元素 */
-  get rootChildren(): readonly PageElement[] {
-    return this.treeManager.root.children;
-  }
-  set rootChildren(v: PageElement[]) {
-    this.treeManager.root.children = v;
-    this.treeManager.changeParent(v, this.treeManager.root.id);
-  }
 
 }

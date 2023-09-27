@@ -3,6 +3,9 @@ import HostManagerBase from "../render/HostManager";
 
 export default class DesignerManager extends HostManagerBase<"design"> {
  
+  async update() {
+    return await this.pageInfo.update(this.pageInfo.metadata);
+  }
   
   /** 获取或设置根元素的子元素 */
   get rootChildren(): readonly PageElement[] {

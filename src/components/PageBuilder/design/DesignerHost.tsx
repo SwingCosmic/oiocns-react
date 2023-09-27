@@ -1,44 +1,30 @@
 import { useSimpleSignal } from '@/hooks/useSignal';
 import { IPageTemplate } from '@/ts/core/thing/standard/page';
 import { Button, message } from 'antd';
-import React, { useEffect, useRef, useState } from 'react';
-import { IPageContext } from '../render/PageContext';
-import HostManagerBase from '../render/HostManager';
-import { PageContext } from '../render/PageContext';
+import React from 'react';
+import { DesignContext, PageContext } from '../render/PageContext';
 import Coder from './context';
 
 import css from './designer.module.less';
+import DesignerManager from './DesignerManager';
 
 export interface DesignerProps {
   current: IPageTemplate;
 }
 
 export function DesignerHost({ current }: DesignerProps) {
-  const ctx = useSimpleSignal<IPageContext<'design'>>({
-    view: new HostManagerBase('design', current),
+  const ctx = useSimpleSignal<DesignContext>({
+    view: new DesignerManager('design', current),
   });
 
   const RootRender = ctx.current.view.components.rootRender as any;
-  const [meta, setMeta] = useState(current.metadata);
-  const content = useRef<string>(
-    JSON.stringify(current.metadata.rootElement.children, null, 2),
-  );
-  useEffect(() => {
-    const id = current.subscribe(() => {
-      setMeta(current.metadata);
-    });
-    return () => {
-      current.unsubscribe(id);
-    };
-  });
   return (
     <div className={css.pageHostDesign}>
       <div className={css.top}>
         <Button
           onClick={() => {
             try {
-              current.metadata.rootElement.children = JSON.parse(content.current);
-              current.update(current.metadata);
+              ctx.current.view.update();
             } catch (error) {
               message.error('JSON 格式错误！');
             }
@@ -47,10 +33,10 @@ export function DesignerHost({ current }: DesignerProps) {
         </Button>
       </div>
       <div className={css.content}>
-        <Coder current={content.current} onChange={(data) => (content.current = data)} />
+        <Coder />
         <PageContext.Provider value={ctx.current}>
           <div className="o-page-host">
-            <RootRender element={meta.rootElement}></RootRender>
+            <RootRender element={ctx.current.view.rootElement}></RootRender>
           </div>
         </PageContext.Provider>
       </div>
