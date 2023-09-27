@@ -16,30 +16,20 @@ export function DesignerHost({ current }: DesignerProps) {
   const ctx = useSimpleSignal<DesignContext>({
     view: new DesignerManager('design', current),
   });
-
   const RootRender = ctx.current.view.components.rootRender as any;
   return (
-    <div className={css.pageHostDesign}>
-      <div className={css.top}>
-        <Button
-          onClick={() => {
-            try {
-              ctx.current.view.update();
-            } catch (error) {
-              message.error('JSON 格式错误！');
-            }
-          }}>
-          确认
-        </Button>
-      </div>
-      <div className={css.content}>
-        <Coder />
-        <PageContext.Provider value={ctx.current}>
+    <PageContext.Provider value={ctx.current}>
+      <div className={css.pageHostDesign}>
+        <div className={css.top}>
+          <Button onClick={() => ctx.current.view.update()}>更新数据</Button>
+        </div>
+        <div className={css.content}>
+          <Coder />
           <div className="o-page-host">
             <RootRender element={ctx.current.view.rootElement}></RootRender>
           </div>
-        </PageContext.Provider>
+        </div>
       </div>
-    </div>
+    </PageContext.Provider>
   );
 }

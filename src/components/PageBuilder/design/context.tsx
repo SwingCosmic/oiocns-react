@@ -22,7 +22,7 @@ const Coder: React.FC<IProps> = () => {
             message.error('JSON 格式错误！');
           }
         }}>
-        确认
+        刷新
       </Button>
       <CodeMirror
         style={{ marginTop: 10 }}
