@@ -8,3 +8,5 @@ interface IProps {
 const MetaCard: React.FC<IProps> = ({ anything }) => {
   return <></>;
 };
+
+export default MetaCard;
