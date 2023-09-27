@@ -7,7 +7,8 @@ import staticContext from "..";
 import { PageElement } from "../core/PageElement";
 import { IPageTemplate } from "@/ts/core/thing/standard/page";
 
-export default class HostManagerBase<T extends HostMode> implements IViewHost<T, ReactComponentFactory> {
+export default class HostManagerBase<T extends HostMode> 
+  implements IViewHost<T, ReactComponentFactory>, EventTarget {
   readonly mode: T;
   treeManager: ElementTreeManager;
   components: ReactComponentFactory;
@@ -16,6 +17,7 @@ export default class HostManagerBase<T extends HostMode> implements IViewHost<T,
   readonly pageInfo: IPageTemplate;
 
   constructor(mode: T, pageFile: IPageTemplate) {
+    console.info("create HostManager")
     this.mode = mode;
     this.pageInfo = pageFile;
 
@@ -34,5 +36,20 @@ export default class HostManagerBase<T extends HostMode> implements IViewHost<T,
   get rootElement(): Readonly<PageElement> {
     return this.treeManager.root;
   }
+
+  //#region EventTarget
+
+  protected _event = new EventTarget();
+  addEventListener(type: string, callback: EventListenerOrEventListenerObject | null): void {
+    this._event.addEventListener(type, callback);
+  }
+  dispatchEvent(event: Event): boolean {
+    return this._event.dispatchEvent(event);
+  }
+  removeEventListener(type: string, callback: EventListenerOrEventListenerObject | null): void {
+    this._event.removeEventListener(type, callback);
+  }
+
+  //#endregion
 
 }

@@ -18,24 +18,29 @@ export function useSignal<T>(initialValue: NonFunction<T>) {
  * @param isRef 是否为ref（不影响渲染）
  * @returns 返回的状态
  */
-export function useSimpleSignal<T>(initialValue: NonFunction<T> | (() => NonFunction<T>), isRef = false) {
+export function useSimpleSignal<T>(initialValue: NonFunction<T> | (() => NonFunction<T>), isRef = false): MutableRefObject<T> {
   if (isRef) {
-    if (typeof initialValue === "function") {
-      initialValue = (initialValue as Function)() as NonFunction<T>;
+    const ref = useRef<NonFunction<T>>(null!);
+    if (ref.current == null) {
+      if (typeof initialValue === "function") {
+        initialValue = (initialValue as Function)() as NonFunction<T>;
+      }    
+      ref.current = initialValue;  
     }
-    return useRef(initialValue);
+
+    return ref;
   }
   const v = createSimpleSignal(initialValue);
   // 永不重新计算
-  return useMemo(() => v, []);
+  return useMemo(() => v as any, []);
 }
 
 
-function createSimpleSignal<T>(initialValue: T | (() => T)): MutableRefObject<T> {
+function createSimpleSignal<T>(initialValue: T | (() => T)) {
   let [state, setState] = useState(initialValue);
   const s = {
     __value: state,
-  } as any;
+  } ;
   Object.defineProperty(s, "current", {
     get() {
       return s.__value;

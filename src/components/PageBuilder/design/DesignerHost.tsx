@@ -15,12 +15,18 @@ export interface DesignerProps {
 
 
 export function DesignerHost({ current }: DesignerProps) {
-  const design = { view: new DesignerManager('design', current) };
-  const ctx = useSimpleSignal<DesignContext>(design);
+  const design = () => ({ view: new DesignerManager('design', current) });
+  const ctx = useSimpleSignal<DesignContext>(design, true);
+
+
   const RootRender = ctx.current.view.components.rootRender as any;
 
   const [activeKey, setActiveKey] = useState("code");
+  const [changeToken, setChangeToken] = useState(true);
 
+  ctx.current.view.onNodeChange = () => {
+    setChangeToken(v => !v);
+  };
   
   function renderTabs(): Tab[] {
     return [
@@ -44,8 +50,8 @@ export function DesignerHost({ current }: DesignerProps) {
         <div className={css.top}>
           <Button
             onClick={() => {
+              // ctx.current = design;
               ctx.current.view.update();
-              ctx.current = design;
             }}>
             更新数据
           </Button>
@@ -59,7 +65,7 @@ export function DesignerHost({ current }: DesignerProps) {
             </Tabs>
           </div>
           
-          <div className="o-page-host" style={{ flex: 2 }}>
+          <div className="o-page-host" style={{ flex: 2 }} data-token={changeToken}>
             <RootRender element={ctx.current.view.rootElement} />
           </div>
 
