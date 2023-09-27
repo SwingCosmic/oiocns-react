@@ -4,15 +4,17 @@ import { Button, message } from 'antd';
 import React, { useContext, useState } from 'react';
 import { DesignContext, PageContext } from '../render/PageContext';
 
-interface IProps {}
+interface IProps {
 
-const Coder: React.FC<IProps> = () => {
+}
+
+const Coder: React.FC<IProps> = ({}) => {
   const ctx = useContext<DesignContext>(PageContext as any);
   const [data, setData] = useState<string>(
     JSON.stringify(ctx.view.rootChildren, null, 2),
   );
   return (
-    <>
+    <div>
       <Button
         onClick={() => {
           try {
@@ -22,17 +24,17 @@ const Coder: React.FC<IProps> = () => {
             message.error('JSON 格式错误！');
           }
         }}>
-        刷新
+        应用
       </Button>
       <CodeMirror
         style={{ marginTop: 10 }}
-        width={'250px'}
-        height={'400px'}
+        width={'100%'}
+        height={'70vh'}
         value={data}
         extensions={[json()]}
         onChange={setData}
       />
-    </>
+    </div>
   );
 };
 

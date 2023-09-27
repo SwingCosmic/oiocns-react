@@ -8,7 +8,7 @@ import { FC } from "react";
 import "./common.less";
 
 function scanComponents(): PageBuilderStaticContext<ReactComponentFactory> {
-  const moduleExports: Dictionary<{ default: ElementFC }> = import.meta.glob("./elements/**/*.tsx", { eager: true });
+  const moduleExports: Dictionary<{ default?: ElementFC }> = import.meta.glob("./elements/**/*.tsx", { eager: true });
 
   console.log(moduleExports);
 
@@ -17,10 +17,19 @@ function scanComponents(): PageBuilderStaticContext<ReactComponentFactory> {
   let root: FC | null = null;
   
   for (const [path, _exports] of Object.entries(moduleExports)) {
+    if (!_exports.default) {
+      console.warn(`模块 ${path} 没有默认导出`);
+      continue;
+    }
     let name = _exports.default.displayName;
     if (!name) {
+      let match = /\/([A-Za-z0-9_])\.tsx$/.exec(path);
+      if (!match) {
+        console.info(`模块 ${path} 已被跳过`);
+        continue;
+      } 
       console.warn(`组件 ${path} 未定义名称，已默认赋值文件名`);
-      name = /([A-Za-z0-9_])\.tsx$/.exec(path)?.[1] ?? path;
+      name = match[1];
     }
     elements[name] = _exports.default;
     metas[name] = _exports.default.meta;
