@@ -7,7 +7,7 @@ import ViewManager from '../render/ViewManager';
 import { PageContext } from '../render/PageContext';
 import Coder from './context';
 
-import css from "./designer.module.less";
+import css from './designer.module.less';
 
 export interface DesignerProps {
   current: IPageTemplate;
@@ -22,25 +22,28 @@ export function DesignerHost({ current }: DesignerProps) {
   const [meta, setMeta] = useState(current.metadata);
   const contentRef = useRef<string>('[]');
   return (
-    <>
-      <Button
-        onClick={() => {
-          try {
-            current.metadata.rootElement.children = JSON.parse(contentRef.current);
-            current.update(current.metadata);
-            setMeta(current.metadata);
-          } catch (error) {
-            message.error('JSON 格式错误！');
-          }
-        }}>
-        确认
-      </Button>
+    <div className={css.pageHostDesign}>
+      <div className={css.top}>
+        <Button
+          onClick={() => {
+            try {
+              current.metadata.rootElement.children = JSON.parse(contentRef.current);
+              current.update(current.metadata);
+              setMeta(current.metadata);
+            } catch (error) {
+              message.error('JSON 格式错误！');
+            }
+          }}>
+          确认
+        </Button>
+      </div>
+      <div className={css.content}></div>
       <Coder current={current} onChange={(data) => (contentRef.current = data)} />
       <PageContext.Provider value={ctx.current}>
         <div className="page-host--view" style={{ height: '100%', width: '100%' }}>
           <RootRender element={meta.rootElement}></RootRender>
         </div>
       </PageContext.Provider>
-    </>
+    </div>
   );
 }
