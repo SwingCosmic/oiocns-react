@@ -52,6 +52,18 @@ export default class ElementTreeManager {
       }
     }
   }
+
+  /** 批量修改元素的直接上级，不处理子级 */
+  changeParent(elements: PageElement[], parentId: string) {
+    for (const e of elements) {
+      Object.defineProperty(e, "parentId", {
+        value: parentId,
+        configurable: true,
+        enumerable: false
+      });
+      this.allElements[e.id] = e;
+    }
+  }
   
 
   createElement<E extends PageElement>(kind: E["kind"], name: string, parentId?: string, params: ElementInit<E> = {}): PageElementView {

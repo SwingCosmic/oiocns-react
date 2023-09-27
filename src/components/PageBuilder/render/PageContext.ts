@@ -1,6 +1,6 @@
 import { createContext } from "react";
 import { HostMode } from "../core/IViewHost";
-import type ViewManager from "./ViewManager";
+import type HostManagerBase from "./ViewManager";
 
 
 export const PageContext = createContext<IPageContext<HostMode>>({
@@ -8,5 +8,5 @@ export const PageContext = createContext<IPageContext<HostMode>>({
 });
 
 export interface IPageContext<T extends HostMode> {
-  view: ViewManager<T>;
+  view: HostManagerBase<T>;
 }

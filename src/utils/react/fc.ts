@@ -1,5 +1,6 @@
+import _ from "lodash";
 import { omit } from "lodash";
-import { FC, ReactNode } from "react";
+import { Dispatch, FC, ReactNode, SetStateAction, useState } from "react";
 
 
 export type FCOptions<P extends {}> = Pick<FC<P>, "contextTypes" | "defaultProps" | "displayName" | "propTypes">;
@@ -20,4 +21,19 @@ export function defineFC<P extends {}, C = any>(component: Readonly<FCInit<P, C>
     render[p] = options[p];
   }
   return render;
+}
+
+type ModelEvent<E extends string, V> = {
+  [K in E as `on${Capitalize<K>}`]: (value: V) => void;
+};
+type ModelProp<P extends string, V> = {
+  [K in P]: V;
+};
+
+export function withModel<P extends string, E extends string, S>(state: [S, Dispatch<SetStateAction<S>>], prop: P, event: E) 
+  : ModelProp<P, S> & ModelEvent<E, S> {
+  return {
+    [prop]: state[0],
+    [`on${_.capitalize(event)}`]: (v: S) => state[1](_ => v),
+  } as any;
 }

@@ -1,8 +1,16 @@
 
 import { useState, useRef, MutableRefObject, useMemo } from "react";
-
+import { useSignal as createSignal, useComputed } from "@preact/signals-react";
 
 type NonFunction<T> = T extends (...args: any[]) => any ? never : T;
+
+
+export function useSignal<T>(initialValue: NonFunction<T>) {
+  if (typeof initialValue === "function") {
+    initialValue = (initialValue as Function)() as NonFunction<T>;
+  }
+  return createSignal(initialValue);
+}
 
 /**
  * 创建一个可读写的状态，可以选择是否影响渲染
@@ -10,20 +18,20 @@ type NonFunction<T> = T extends (...args: any[]) => any ? never : T;
  * @param isRef 是否为ref（不影响渲染）
  * @returns 返回的状态
  */
-export function useSignal<T>(initialValue: NonFunction<T> | (() => NonFunction<T>), isRef = false) {
+export function useSimpleSignal<T>(initialValue: NonFunction<T> | (() => NonFunction<T>), isRef = false) {
   if (isRef) {
     if (typeof initialValue === "function") {
       initialValue = (initialValue as Function)() as NonFunction<T>;
     }
     return useRef(initialValue);
   }
-  const v = createSignal(initialValue);
+  const v = createSimpleSignal(initialValue);
   // 永不重新计算
   return useMemo(() => v, []);
 }
 
 
-function createSignal<T>(initialValue: T | (() => T)): MutableRefObject<T> {
+function createSimpleSignal<T>(initialValue: T | (() => T)): MutableRefObject<T> {
   let [state, setState] = useState(initialValue);
   const s = {
     __value: state,

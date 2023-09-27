@@ -1,16 +1,16 @@
-import { useSignal } from '@/hooks/useSignal';
+import { useSimpleSignal } from '@/hooks/useSignal';
 import { IPageTemplate } from '@/ts/core/thing/standard/page';
 import React from 'react';
 import { IPageContext, PageContext } from '../render/PageContext';
-import ViewManager from '../render/ViewManager';
+import HostManagerBase from '../render/ViewManager';
 
 export interface ViewerProps {
   current: IPageTemplate;
 }
 
 export function ViewerHost({ current }: ViewerProps) {
-  const ctx = useSignal<IPageContext<'view'>>({
-    view: new ViewManager('view', current.metadata),
+  const ctx = useSimpleSignal<IPageContext<'view'>>({
+    view: new HostManagerBase('view', current),
   });
 
   const RootRender = ctx.current.view.components.rootRender as any;
