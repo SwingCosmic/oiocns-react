@@ -5,6 +5,7 @@ import { ElementFC } from "./elements/defineElement";
 import ReactComponentFactory from "./render/ReactComponentFactory";
 import { FC } from "react";
 
+import "./common.less";
 
 function scanComponents(): PageBuilderStaticContext<ReactComponentFactory> {
   const moduleExports: Dictionary<{ default: ElementFC }> = import.meta.glob("./elements/**/*.tsx", { eager: true });

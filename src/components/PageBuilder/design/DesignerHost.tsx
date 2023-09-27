@@ -7,6 +7,8 @@ import ViewManager from '../render/ViewManager';
 import { PageContext } from '../render/PageContext';
 import Coder from './context';
 
+import css from "./designer.module.less";
+
 export interface DesignerProps {
   current: IPageTemplate;
 }
