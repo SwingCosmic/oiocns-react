@@ -37,13 +37,14 @@ export function DesignerHost({ current }: DesignerProps) {
           确认
         </Button>
       </div>
-      <div className={css.content}></div>
-      <Coder current={current} onChange={(data) => (contentRef.current = data)} />
-      <PageContext.Provider value={ctx.current}>
-        <div className="page-host--view" style={{ height: '100%', width: '100%' }}>
-          <RootRender element={meta.rootElement}></RootRender>
-        </div>
-      </PageContext.Provider>
+      <div className={css.content}>
+        <Coder current={current} onChange={(data) => (contentRef.current = data)} />
+        <PageContext.Provider value={ctx.current}>
+          <div className="page-host--view" style={{ height: '100%', width: '100%' }}>
+            <RootRender element={meta.rootElement}></RootRender>
+          </div>
+        </PageContext.Provider>
+      </div>
     </div>
   );
 }
