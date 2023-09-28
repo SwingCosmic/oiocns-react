@@ -49,6 +49,8 @@ export interface IMessage {
   mentions: string[];
   /** 引用 */
   cite: IMessage | undefined;
+  /** 转发 */
+  forward: IMessage[];
   /** 标签信息 */
   labels: IMessageLabel[];
   /** 消息类型 */
@@ -88,6 +90,11 @@ export class Message implements IMessage {
       if (content.cite) {
         this.cite = new Message(content.cite, _chat);
       }
+      if (content.forward) {
+        content.forward.map((item: model.ChatMessageType) => {
+          this.forward.push(new Message(item, _chat));
+        });
+      }
     } else {
       this._msgBody = txt;
     }
@@ -97,6 +104,7 @@ export class Message implements IMessage {
     });
   }
   cite: IMessage | undefined;
+  forward: IMessage[] = [];
   mentions: string[] = [];
   user: IPerson;
   _chat: ISession;
@@ -183,10 +191,13 @@ export class Message implements IMessage {
     }
     switch (this.msgType) {
       case MessageType.Text:
+      case MessageType.Notify:
       case MessageType.Recall:
         return `${header}${this.msgBody.substring(0, 50)}`;
       case MessageType.Voice:
         return `${header}[${MessageType.Voice}]`;
+      case MessageType.Forward:
+        return `${this.forward.length}条转发信息`
     }
     const file: model.FileItemShare = parseAvatar(this.msgBody);
     if (file) {

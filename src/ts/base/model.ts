@@ -1,5 +1,6 @@
 import {
   XApplication,
+  XAuthority,
   Xbase,
   XDirectory,
   XForm,
@@ -39,6 +40,8 @@ export type DataNotityType = {
   data: any;
   // 通知的用户
   targetId: string;
+  // 被操作方Id
+  subTargetId?: string;
   // 是否忽略自己
   ignoreSelf: boolean;
   // 忽略的连接ID
@@ -777,18 +780,34 @@ export type IdentityMessageModel = {
 };
 
 export type TargetOperateModel = {
+  // 操作方式
   operate: string;
+  // 操作对象
   target: XTarget;
+  // 被操作对象
   subTarget?: XTarget;
+  // 操作人
   operater: XTarget;
 };
 
 export type IdentityOperateModel = {
+  // 操作方式
   operate: string;
+  // 操作人
   operater: XTarget;
+  // 操作的身份
   identity: XIdentity;
-  station?: XTarget;
+  // 操作的组织对象
   subTarget?: XTarget;
+};
+
+export type AuthorityOperateModel = {
+  // 操作方式
+  operate: string;
+  // 操作人
+  operater: XTarget;
+  // 操作的职权
+  authority: XAuthority;
 };
 /**
  * 文件系统项分享数据
@@ -956,6 +975,24 @@ export const badRequest = (
   return { success: false, msg: msg, code: code, data: false };
 };
 
+// 节点
+export type Node = {
+  // 主键
+  id: string;
+  // 编码
+  code: string;
+  // 名称
+  name: string;
+  // 类型
+  typeName: string;
+  // 前置脚本
+  preScripts?: string;
+  // 后置脚本
+  postScripts?: string;
+  // 状态
+  status?: NStatus;
+};
+
 // 边
 export type Edge = {
   // 主键
@@ -966,6 +1003,40 @@ export type Edge = {
   end: string;
 };
 
+// 请求
+export type Request = {
+  data: HttpRequestType;
+} & Node;
+
+// 表格
+export type Tables = { formIds: string[]; file?: FileItemModel } & Node;
+
+// 页
+export type Sheet<T> = {
+  // 名称
+  name: string;
+  // 表头行数
+  headers: number;
+  // 列信息
+  columns: Column[];
+  // 数据
+  data: T[];
+};
+
+/**
+ * 列字段
+ */
+export interface Column {
+  // 字段名称
+  title: string;
+  // 标识符
+  dataIndex: string;
+  // 类型
+  valueType: string;
+  // 是否隐藏
+  hide?: boolean;
+}
+
 // 映射
 export type Mapping = {
   // 源
@@ -973,16 +1044,36 @@ export type Mapping = {
   // 目标
   target: string;
   // 映射
-  mappings: Mapping[];
+  mappings: SubMapping[];
+} & Node;
+
+// 子映射
+export type SubMapping = {
+  // 源对象
+  source: string;
+  // 目标对象
+  target: string;
+  // 子映射
+  mappings?: SubMapping[];
 };
 
 // 存储
 export type Store = {
-  // 表单 ID
-  formId: string;
-  // 目录 ID
+  // 存储目录
   directoryId: string;
-};
+  // 办事
+  workId: string;
+  // 表单
+  formIds: string[];
+  // 是否直接存入平台
+  directIs: boolean;
+} & Node;
+
+// 子配置
+export type SubTransfer = {
+  // 子配置 ID
+  nextId: string;
+} & Node;
 
 // 选择
 export type Selection = {
@@ -992,7 +1083,7 @@ export type Selection = {
   key: string;
   // 表单 ID
   formId: string;
-};
+} & Node;
 
 // 环境
 export type Environment = {
@@ -1010,60 +1101,37 @@ export type Script = {
 };
 
 // 图状态
-export type GraphStatus = 'Editable' | 'Viewable' | 'Running';
+export type GStatus = 'Editable' | 'Viewable' | 'Running' | 'Completed' | 'Error';
+
+// 图事件
+export type GEvent = 'EditRun' | 'ViewRun' | 'Throw' | 'Completed';
 
 // 节点状态
-export type NodeStatus = 'Completed' | 'Error' | GraphStatus;
+export type NStatus = GStatus;
+
+// 节点事件
+export type NEvent = '';
 
 // 节点类型
-export type NodeType = '请求' | '链接' | '映射' | '存储';
-
-// 事件
-export type Event = 'Edit' | 'View' | 'Run' | 'Completed' | 'Error';
+export type NodeType = '表单' | '表格' | '请求' | '子图' | '映射' | '存储';
 
 // 脚本位置
 export type Pos = 'pre' | 'post';
 
-// 节点
-export type Node<T> = {
-  // 主键
-  id: string;
-  // 编码
-  code: string;
-  // 名称
-  name: string;
-  // 类型
-  typeName: string;
-  // 前置脚本
-  preScripts: Script[];
-  // 后置脚本
-  postScripts: Script[];
-  // 数据（请求、子链接、映射、存储）
-  data: T;
-};
-
-// 运行时
-export type RunNode<T> = NodeStatus & Node<T>;
-
-// 请求节点
-export type RequestNode = Node<HttpRequestType>;
-
-// 链接节点
-export type LinkNode = Node<string>;
-
-// 脚本节点
-export type ScriptNode = Node<Script>;
-
-// 映射节点
-export type MappingNode = Node<Mapping>;
-
-// 存储节点
-export type StoreNode = Node<Store>;
-
 // 键值对
 export type KeyValue = { [key: string]: string | undefined };
 
-// 链接
+// 状态转移
+export type Shift<T, S> = {
+  // 开始
+  start: S;
+  // 事件
+  event: T;
+  // 结束
+  end: S;
+};
+
+// 迁移配置
 export type Transfer = {
   // 目录
   directoryId: string;
@@ -1072,12 +1140,36 @@ export type Transfer = {
   // 当前环境
   curEnv?: string;
   // 节点集合
-  nodes: Node<any>[];
+  nodes: Node[];
   // 边集合
   edges: Edge[];
   // 图数据
   graph: any;
+  // 是否自循环
+  isSelfCirculation: boolean;
+  // 退出循环脚本
+  judge: string;
 } & XStandard;
+
+// 任务
+export type Task = {
+  // 唯一标识
+  id: string;
+  // 当前状态
+  status: GStatus;
+  // 环境
+  env?: Environment;
+  // 节点
+  nodes: Node[];
+  // 边
+  edges: Edge[];
+  // 图数据
+  graph: any;
+  // 开始时间
+  startTime: Date;
+  // 结束时间
+  endTime?: Date;
+};
 
 export type SettingWidget = {
   /** 按钮生成的 schema 的 key 值 */
@@ -1113,3 +1205,26 @@ export type SchemaType = {
 
 // 页面设计
 export * from "./pageModel";
+
+export type DiskInfoType = {
+  // 状态
+  ok: number;
+  // 文件数量
+  files: number;
+  // 对象数量
+  objects: number;
+  // 集合数量
+  collections: number;
+  // 文件的总大小
+  fileSize: number;
+  // 数据的总大小
+  dataSize: number;
+  // 数据占用磁盘的总大小
+  totalSize: number;
+  // 文件系统挂载磁盘已使用大小
+  fsUsedSize: number;
+  // 文件系统挂载磁盘的总大小
+  fsTotalSize: number;
+  // 查询时间
+  getTime: string;
+}
