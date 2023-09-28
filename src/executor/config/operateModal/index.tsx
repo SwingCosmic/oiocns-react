@@ -8,7 +8,7 @@ import WorkModal from './workModal';
 import orgCtrl from '@/ts/controller';
 import LabelsModal from './labelsModal';
 import ReportModal from './reportModal';
-import TransferModal from '../transferModal/linkEditor';
+import { TransferModal } from '../transferModal';
 import TemplateModal from '../templateModal';
 
 interface IProps {

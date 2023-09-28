@@ -10,7 +10,7 @@ import PropertyForm from './propertyForm';
 import TargetForm from './targetForm';
 import LabelsForm from './labelsForm';
 import RenameForm from './renameForm';
-import LinkForm from './linkForm';
+import TransferForm from './transferForm';
 import PageTemplateForm from './templateForm';
 
 interface IProps {
@@ -70,16 +70,13 @@ const EntityForm: React.FC<IProps> = ({ cmd, entity, finished }) => {
           finished={reloadFinish}
         />
       );
-    case 'newWorkConfig':
-    case 'updateWorkConfig':
-    case 'remarkWorkConfig':
-    case 'newThingConfig':
-    case 'updateThingConfig':
-    case 'remarkThingConfig':
+    case 'newForm':
+    case 'updateForm':
+    case 'remarkForm':
       return (
         <LabelsForm
-          formType={cmd.replace('WorkConfig', '').replace('ThingConfig', '')}
-          typeName={cmd.includes('WorkConfig') ? '事项配置' : '实体配置'}
+          formType={cmd.replace('Form', '')}
+          typeName={'表单'}
           current={entity as any}
           finished={reloadFinish}
         />
@@ -92,7 +89,7 @@ const EntityForm: React.FC<IProps> = ({ cmd, entity, finished }) => {
       );
     case 'newTransferConfig':
     case 'updateTransferConfig':
-      return <LinkForm formType={cmd} current={entity as any} finished={reloadFinish} />;
+      return <TransferForm formType={cmd} current={entity as any} finished={reloadFinish} />;
     case "newPageTemplate":
     case 'updatePageTemplate':
       return <PageTemplateForm formType={cmd} current={entity as any} finished={reloadFinish} />;

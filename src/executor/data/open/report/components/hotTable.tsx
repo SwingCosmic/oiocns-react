@@ -11,37 +11,33 @@ import { IForm } from '@/ts/core';
 interface IProps {
   key: string;
   current: IForm; // 获取样式
-  info: any; // 数据
+  sheetList: any;
+  selectItem: any; // 选中数据
 }
 
 // 数据还未获取,明细待完善
-const HotTableView: React.FC<IProps> = ({ current, info }) => {
+const HotTableView: React.FC<IProps> = ({ current, sheetList, selectItem }) => {
   const [cells, setCells] = useState<any>([]);
   const [styleList, setStyleList] = useState<any>([]);
   const [classList, setClassList] = useState<any>([]);
   const [sheetIndex, setSheetIndex] = useState<string>('0');
-  const [rowHeights, setRowHeights] = useState<any>([]);
-  const [colWidths, setColWidths] = useState<any>([]);
 
   const hotRef: any = useRef(null);
-  let sheetList: any = current.metadata?.rule
-    ? Object.values(JSON.parse(current.metadata?.rule))
-    : [];
-  let datas = sheetList[sheetIndex]?.data?.data || [[]];
-  let setting = sheetList[sheetIndex]?.data?.setting || {};
-  let mergeCells = setting?.mergeCells || [];
 
   useEffect(() => {
     const hot = hotRef.current.hotInstance;
+    const datas = sheetList[sheetIndex]?.data?.data || [[]];
+    const setting = sheetList[sheetIndex]?.data?.setting || {};
+    const mergeCells = setting?.mergeCells || [];
     setCells(setting?.cells || []);
     setStyleList(setting?.styleList || []);
     setClassList(setting?.classList || []);
-    setRowHeights(setting?.row_h || []);
-    setColWidths(setting?.col_w || []);
     hot.updateSettings({
       data: datas,
       cell: cells,
       mergeCells: mergeCells,
+      rowHeights: setting?.row_h,
+      colWidths: setting?.col_w,
     });
   }, [sheetIndex]);
 
@@ -89,8 +85,6 @@ const HotTableView: React.FC<IProps> = ({ current, info }) => {
         readOnly={true}
         rowHeaders={true}
         colHeaders={true}
-        colWidths={colWidths}
-        rowHeights={rowHeights}
         dropdownMenu={true}
         height="600px"
         language={zhCN.languageCode}

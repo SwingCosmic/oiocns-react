@@ -18,11 +18,11 @@ const entityMap: any = {
   角色: 'Identity',
   岗位: 'Station',
   办事: 'Work',
+  报表: 'Report',
+  迁移配置: 'TransferConfig',
   事项配置: 'WorkConfig',
   实体配置: 'ThingConfig',
-  迁移配置: 'TransferConfig',
-  页面模板: 'PageTemplate',
-  报表: 'Report',
+  页面模板: 'PageTemplate'
 };
 
 interface IProps {
@@ -31,7 +31,6 @@ interface IProps {
   finished: () => void;
 }
 const ConfigExecutor: React.FC<IProps> = ({ cmd, args, finished }) => {
-  console.log(cmd, args);
   switch (cmd) {
     case 'open':
       if (Object.keys(entityMap).includes(args[0].typeName)) {
@@ -53,6 +52,9 @@ const ConfigExecutor: React.FC<IProps> = ({ cmd, args, finished }) => {
       return <SettingStation company={args[0].target} finished={finished} />;
     case 'update':
     case 'remark':
+      if ('attributes' in args[0]) {
+        return <EntityForm cmd={cmd + 'Form'} entity={args[0]} finished={finished} />;
+      }
       if (Object.keys(entityMap).includes(args[0].typeName)) {
         return (
           <EntityForm
