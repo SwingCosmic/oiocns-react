@@ -10,10 +10,11 @@ const PassportLogin: React.FC<RouteComponentProps> = (props) => {
   const [loading, setLoading] = useState(false);
   return (
     <div>
+      {/*<div className={cls.DivideLine}></div>*/}
       <Tabs
         size="large"
         items={[
-          { label: '账号密码登录', key: 'account' },
+          { label: '已有账号登陆', key: 'account' },
           { label: '扫码登录', key: 'qrCode' },
         ]}
       />
