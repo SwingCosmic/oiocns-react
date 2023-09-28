@@ -31,9 +31,6 @@ interface IProps {
 }
 
 const Welfare: React.FC<IProps> = ({ current }) => {
-  if (!current) {
-    return <></>;
-  }
   const [notInit, setNotInit] = useState<boolean>(true);
   const all = useRef<any[]>([]);
   const search = useRef<FieldModel[]>([]);
@@ -45,7 +42,7 @@ const Welfare: React.FC<IProps> = ({ current }) => {
   const [open, setOpen] = useState<boolean>(false);
   const [item, setItem] = useState<any>();
   useEffect(() => {
-    if (notInit) {
+    if (notInit && current) {
       Promise.all([
         current.loadContent(),
         kernel.loadThing<{ data: any[] }>(current.belongId, [], {}),
@@ -60,6 +57,9 @@ const Welfare: React.FC<IProps> = ({ current }) => {
       });
     }
   });
+  if (!current) {
+    return <></>;
+  }
   const Search: React.FC<{ search: FieldModel[] }> = ({ search }) => {
     return (
       <>

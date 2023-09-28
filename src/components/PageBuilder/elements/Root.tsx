@@ -7,7 +7,7 @@ import { PageContext } from "../render/PageContext";
 export default defineElement({
   render(props) {
     const ctx = useContext(PageContext);
-    return <div className="root">
+    return <div style={{ height: '100%' }}  className="root">
       {
         props.children.map(c => {
           // 自递归渲染
@@ -15,13 +15,13 @@ export default defineElement({
           return <Render key={c.id} element={c}/>;
         })
       }
-    </div>
+      </div>
   },
   displayName: "Root",
   meta: {
     props: {
 
-    },
+  },
     label: "模板根元素",
   }
 })
