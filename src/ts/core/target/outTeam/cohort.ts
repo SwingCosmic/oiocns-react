@@ -6,10 +6,8 @@ export interface ICohort extends ITarget {}
 
 export class Cohort extends Target implements ICohort {
   constructor(_metadata: schema.XTarget, _space: IBelong, relationId: string) {
-    super(_metadata, [relationId], _space.user);
-    this.space = _space;
+    super([_space.key], _metadata, [relationId], _space, _space.user);
   }
-  space: IBelong;
   async exit(): Promise<boolean> {
     if (this.metadata.belongId !== this.space.id) {
       if (await this.removeMembers([this.user.metadata])) {
@@ -20,11 +18,11 @@ export class Cohort extends Target implements ICohort {
     return false;
   }
   override async delete(notity: boolean = false): Promise<boolean> {
-    notity = await super.delete(notity);
-    if (notity) {
+    const success = await super.delete(notity);
+    if (success) {
       this.space.cohorts = this.space.cohorts.filter((i) => i.key != this.key);
     }
-    return notity;
+    return success;
   }
   get subTarget(): ITarget[] {
     return [];
@@ -43,8 +41,5 @@ export class Cohort extends Target implements ICohort {
       await this.loadMembers(reload),
       await this.directory.loadDirectoryResource(reload),
     ]);
-  }
-  async teamChangedNotity(target: schema.XTarget): Promise<boolean> {
-    return await this.pullMembers([target], true);
   }
 }

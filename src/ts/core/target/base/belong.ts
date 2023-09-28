@@ -23,12 +23,16 @@ export interface IBelong extends ITarget {
   cohortChats: ISession[];
   /** 共享组织 */
   shareTarget: ITarget[];
+  /** 获取存储占用情况 */
+  getDiskInfo(): Promise<model.DiskInfoType>;
   /** 加载超管权限 */
   loadSuperAuth(reload?: boolean): Promise<IAuthority | undefined>;
   /** 申请加用户 */
   applyJoin(members: schema.XTarget[]): Promise<boolean>;
   /** 设立人员群 */
   createCohort(data: model.TargetModel): Promise<ICohort | undefined>;
+  /** 发送职权变更消息 */
+  sendAuthorityChangeMsg(operate: string, authority: schema.XAuthority): Promise<boolean>;
 }
 
 /** 自归属用户基类实现 */
@@ -39,10 +43,13 @@ export abstract class Belong extends Target implements IBelong {
     _user?: IPerson,
     _memberTypes: TargetType[] = [TargetType.Person],
   ) {
-    super(_metadata, _relations, _user, _memberTypes);
-    this.space = this;
+    super([], _metadata, _relations, undefined, _user, _memberTypes);
+    kernel.subscribe(
+      `${_metadata.belongId}-${_metadata.id}-authority`,
+      [this.key],
+      (data: any) => this.superAuth?.receiveAuthority(data),
+    );
   }
-  space: IBelong;
   cohorts: ICohort[] = [];
   storages: IStorage[] = [];
   superAuth: IAuthority | undefined;
@@ -62,7 +69,7 @@ export abstract class Belong extends Target implements IBelong {
     data.typeName = TargetType.Cohort;
     const metadata = await this.create(data);
     if (metadata) {
-      const cohort = new Cohort(metadata, this, metadata.id);
+      const cohort = new Cohort(metadata, this, metadata.belongId);
       await cohort.deepLoad();
       if (this.typeName != TargetType.Person) {
         if (!(await this.pullSubTarget(cohort))) {
@@ -73,6 +80,10 @@ export abstract class Belong extends Target implements IBelong {
       await cohort.pullMembers([this.user.metadata]);
       return cohort;
     }
+  }
+  async getDiskInfo(): Promise<model.DiskInfoType> {
+    const data = await kernel.diskInfo(this.id, this.relations);
+    return data.data;
   }
   override loadMemberChats(_newMembers: schema.XTarget[], _isAdd: boolean): void {
     _newMembers = _newMembers.filter((i) => i.id != this.userId);
@@ -105,4 +116,24 @@ export abstract class Belong extends Target implements IBelong {
   abstract cohortChats: ISession[];
   abstract get parentTarget(): ITarget[];
   abstract applyJoin(members: schema.XTarget[]): Promise<boolean>;
+  async sendAuthorityChangeMsg(
+    operate: string,
+    authority: schema.XAuthority,
+  ): Promise<boolean> {
+    const res = await kernel.dataNotify({
+      data: {
+        operate,
+        authority,
+        operater: this.user.metadata,
+      },
+      flag: 'authority',
+      onlineOnly: true,
+      belongId: this.metadata.belongId,
+      relations: this.relations,
+      onlyTarget: true,
+      ignoreSelf: true,
+      targetId: this.metadata.id,
+    });
+    return res.success;
+  }
 }
