@@ -1,7 +1,6 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { HotTable } from '@handsontable/react';
 import { Modal } from 'antd';
-import { HyperFormula } from 'hyperformula';
 import { textRenderer, registerRenderer } from 'handsontable/renderers';
 import { registerLanguageDictionary, zhCN } from 'handsontable/i18n';
 registerLanguageDictionary(zhCN);
@@ -10,34 +9,40 @@ registerAllModules();
 import 'handsontable/dist/handsontable.min.css';
 import SelectPropertys from '../../SelectPropertys';
 import AttributeConfig from '../../FormDesign/attributeConfig';
-import { AttributeModel } from '@/ts/base/model';
-import { IReport } from '@/ts/core';
+import { IForm } from '@/ts/core';
 import useObjectUpdate from '@/hooks/useObjectUpdate';
-import { XAttribute } from '@/ts/base/schema';
-import { model } from '@/ts/base';
+import { schema } from '@/ts/base';
 interface IProps {
-  current: IReport;
+  current: IForm;
+  sheetList: any;
   selectItem: any;
   reportChange: any;
   changeType: string;
-  classType: string;
+  classType: any | undefined;
+  handEcho: (cellStyle: any) => void;
 }
 
 const HotTableView: React.FC<IProps> = ({
   current,
+  sheetList,
   selectItem,
   reportChange,
   changeType,
   classType,
+  handEcho,
 }) => {
   const [modalType, setModalType] = useState<string>('');
   const [tkey, tforceUpdate] = useObjectUpdate('');
-  const [selectedItem, setSelectedItem] = useState<XAttribute>();
+  const [sheetIndex, setSheetIndex] = useState<any>(0); // tabs页签
+  const [selectedItem, setSelectedItem] = useState<schema.XAttribute>();
   const [cells, setCells] = useState<any>([]);
   const [styleList, setStyleList] = useState<any>([]);
   const [classList, setClassList] = useState<any>([]);
-  const [rowHeights, setRowHeights] = useState<any>([]);
-  const [colWidths, setColWidths] = useState<any>([]);
+  const initRowCount: number = 8;
+  const initColCount: number = 60;
+  const defaultRowHeight: number = 23;
+  const defaultColWidth: number = 50;
+
   // 项配置改变
   const formValuesChange = (changedValues: any) => {
     if (selectedItem) {
@@ -50,22 +55,47 @@ const HotTableView: React.FC<IProps> = ({
       current.updateAttribute({ ...selectedItem, ...rule, rule: JSON.stringify(rule) });
     }
   };
-  const hotRef: any = useRef(null);
-  let mergeCells = selectItem?.data?.setting?.mergeCells || [];
+  const hotRef: any = useRef(null); // ref
 
   useEffect(() => {
     const hot = hotRef.current.hotInstance;
-    setCells(selectItem?.data?.setting?.cells || []);
-    setStyleList(selectItem?.data?.setting?.styleList || []);
-    setClassList(selectItem?.data?.setting?.classList || []);
-    setRowHeights(selectItem?.data?.setting?.row_h || []);
-    setColWidths(selectItem?.data?.setting?.col_w || []);
+    /** hot.clear之后会全选报表所有用的update */
     hot.updateSettings({
-      data: selectItem?.data?.data,
+      data: [[]],
+    });
+    /** 获取当前sheet页下标 */
+    const index = sheetList.findIndex((it: any) => it.code === selectItem.code);
+    setSheetIndex(index);
+    const setting = sheetList[index]?.data?.setting || {};
+    const mergeCells = setting?.mergeCells || [];
+    /** 初始化行高和列宽 */
+    const row_h = [];
+    for (let i = 0; i < initColCount; i += 1) {
+      row_h.push(defaultRowHeight);
+    }
+    const col_w = [];
+    for (let j = 0; j < initRowCount; j += 1) {
+      col_w.push(defaultColWidth);
+    }
+    setCells(setting?.cells || []);
+    setStyleList(setting?.styleList || []);
+    setClassList(setting?.classList || []);
+    hot.updateSettings({
+      data: sheetList[index]?.data?.data,
       cell: cells,
       mergeCells: mergeCells,
+      rowHeights: setting?.row_h || row_h,
+      colWidths: setting?.col_w || col_w,
     });
   }, [selectItem]);
+
+  useEffect(() => {
+    if (changeType !== '' && changeType !== 'onSave') {
+      buttonClickCallback();
+    } else if (changeType == 'onSave') {
+      saveClickCallback();
+    }
+  }, [reportChange]);
 
   styleList?.forEach((item: any) => {
     hotRef.current.hotInstance.getCellMeta(item.row, item.col).renderer =
@@ -85,14 +115,14 @@ const HotTableView: React.FC<IProps> = ({
     );
   });
 
+  /** 渲染单元格颜色 */
   cells?.forEach((item: any) => {
-    //渲染单元格颜色
     hotRef.current.hotInstance.getCellMeta(item.row, item.col).renderer =
       'customStylesRenderer';
   });
 
+  /** 工具栏按钮点击 */
   const buttonClickCallback = () => {
-    // 工具栏按钮点击
     const selected = hotRef.current.hotInstance.getSelected() || [];
     hotRef.current.hotInstance.suspendRender();
     if (changeType === 'border') {
@@ -114,6 +144,7 @@ const HotTableView: React.FC<IProps> = ({
       for (let rowIndex = startRow; rowIndex <= endRow; rowIndex += 1) {
         for (let columnIndex = startCol; columnIndex <= endCol; columnIndex += 1) {
           if (changeType === 'className') {
+            let json: any = { col: columnIndex, row: rowIndex, class: {} };
             if (classList.length > 0) {
               let items = classList.find(
                 (it: any) => it.col === columnIndex && it.row === rowIndex,
@@ -127,13 +158,11 @@ const HotTableView: React.FC<IProps> = ({
                   }
                 }
               } else {
-                let json: any = { col: columnIndex, row: rowIndex, class: {} };
                 json.class[classType] = reportChange;
                 classList.push(json);
               }
             } else {
-              let json: any = { col: columnIndex, row: rowIndex, class: {} };
-              json.class[changeType] = reportChange;
+              json.class[classType] = reportChange;
               classList.push(json);
             }
             let items = classList.find(
@@ -184,27 +213,20 @@ const HotTableView: React.FC<IProps> = ({
     hotRef.current.hotInstance.resumeRender();
   };
 
-  if (changeType !== '' && changeType !== 'onSave') {
-    buttonClickCallback();
-  }
-
+  /** 保存 保存数据结构---还未更新完 */
   const saveClickCallback = async () => {
-    // 保存 保存数据结构---还未更新完
-    let setRowHeightInstance = hotRef.current.hotInstance.getPlugin('ManualRowResize');
-    console.log(setRowHeightInstance, '12345');
-    let count_col = hotRef.current.hotInstance.countCols(); //获取列数
-    let count_row = hotRef.current.hotInstance.countRows(); //获取行数
+    const count_col = hotRef.current.hotInstance.countCols(); /** 获取列数 **/
+    const count_row = hotRef.current.hotInstance.countRows(); /** 获取行数 **/
     let row_h: any = [];
     let col_w: any = [];
     for (var i = 0; i < count_col; i++) {
       col_w.push(hotRef.current.hotInstance.getColWidth(i));
     }
-    for (var i = 0; i < count_row; i++) {
+    for (var k = 0; k < count_row; k++) {
       row_h.push(hotRef.current.hotInstance.getRowHeight(i));
     }
-    let newData = hotRef.current.hotInstance.getData();
     let json = {
-      data: newData,
+      data: hotRef.current.hotInstance.getData(),
       setting: {
         mergeCells:
           hotRef.current.hotInstance.getPlugin('mergeCells').mergedCellsCollection
@@ -214,31 +236,18 @@ const HotTableView: React.FC<IProps> = ({
         classList: classList,
         row_h: row_h,
         col_w: col_w,
-        // columns:columns,
-        // cellMeta:cellMeta,
-        // columnSummary:columnSummary,
-        // cellList:cellData
       },
     };
-    selectItem.data = json;
+    sheetList[sheetIndex].data = json;
+    const newData = Object.assign({}, sheetList);
     await current.update({
-      id: current.id,
-      name: current.name,
-      code: current.code,
-      rule: JSON.stringify(selectItem),
-    } as model.FormModel);
+      ...current.metadata,
+      rule: JSON.stringify(newData),
+    });
   };
 
-  if (changeType == 'onSave') {
-    saveClickCallback();
-  }
-
-  const hyperformulaInstance = HyperFormula.buildEmpty({
-    licenseKey: 'internal-use-in-handsontable',
-  });
-
-  const saveSpeciality = (prop: XAttribute) => {
-    //插入特性
+  /** 插入特性 */
+  const saveSpeciality = (prop: schema.XAttribute) => {
     const selected = hotRef.current.hotInstance.getSelected() || [];
     for (let index = 0; index < selected.length; index += 1) {
       const [row1, column1, row2, column2] = selected[index];
@@ -266,49 +275,63 @@ const HotTableView: React.FC<IProps> = ({
     }
   };
 
+  /** 更新特性rules 但单元格只有只读属性 readOnly */
   const upDataCell = () => {
-    // 更新特性rules 但单元格只有只读属性 readOnly
     cells.forEach((item: any) => {
       current.attributes.forEach((items: any) => {
         if (item.prop.propId === items.propId) {
           item.prop = items;
-          let newRule = JSON.parse(item.prop.rule);
+          const newRule = JSON.parse(item.prop.rule);
           if (newRule) {
-            for (var key in newRule) {
+            Object.keys(newRule).map((key) => {
               hotRef.current.hotInstance.setCellMeta(
                 item.row,
                 item.col,
                 key,
                 newRule[key],
               );
-            }
+            });
           }
         }
       });
     });
   };
 
-  const afterOnCellMouseDown = (event: any, coords: any, TD: any) => {
-    // console.log(event, coords, TD)
-    cells?.forEach((item: any) => {
-      if (item.row === coords.row && item.col === coords.col) {
-        setModalType('配置特性');
-        setSelectedItem(item.prop);
-      }
-    });
+  /** 点击单元格展示编辑特性 */
+  const afterOnCellMouseDown = (event: any, coords: any) => {
+    if (event) {
+      let classJson = { styles: {}, class: {} };
+      styleList?.forEach((item: any) => {
+        if (item.row === coords.row && item.col === coords.col) {
+          classJson.styles = item.styles;
+        }
+      });
+      classList?.forEach((item: any) => {
+        if (item.row === coords.row && item.col === coords.col) {
+          classJson.class = item.class;
+        }
+      });
+      cells?.forEach((item: any) => {
+        if (item.row === coords.row && item.col === coords.col) {
+          setSelectedItem(item.prop);
+          setModalType('配置特性');
+        }
+      });
+      handEcho(classJson);
+    }
   };
 
+  /** 渲染特性背景色 **/
   registerRenderer('customStylesRenderer', (hotInstance: any, TD: any, ...rest) => {
-    //渲染特性背景色
     textRenderer(hotInstance, TD, ...rest);
     TD.style.background = '#e1f3d8';
   });
 
+  /** 渲染样式 **/
   registerRenderer('cellStylesRenderer', (hotInstance: any, TD: any, ...rest) => {
-    //渲染样式
     textRenderer(hotInstance, TD, ...rest);
-    let items = styleList.find((it: any) => it.row === rest[0] && it.col === rest[1]);
-    let td: any = TD.style;
+    const items = styleList.find((it: any) => it.row === rest[0] && it.col === rest[1]);
+    const td: any = TD.style;
     if (items) {
       for (let key in items.styles) {
         td[key] = items.styles[key];
@@ -320,18 +343,14 @@ const HotTableView: React.FC<IProps> = ({
     <div>
       <HotTable
         ref={hotRef}
-        formulas={{
-          engine: hyperformulaInstance,
-        }}
-        minCols={8}
-        minRows={60}
+        minCols={initRowCount}
+        minRows={initColCount}
         rowHeaders={true}
         colHeaders={true}
-        colWidths={colWidths}
-        rowHeights={rowHeights}
         dropdownMenu={true}
-        height="700px"
+        height="610px"
         language={zhCN.languageCode}
+        persistentState={true}
         stretchH="all"
         manualColumnResize={true}
         manualRowResize={true}
@@ -373,26 +392,23 @@ const HotTableView: React.FC<IProps> = ({
             target={current.directory.target}
             selected={current.attributes.map((a: any) => a.property!)}
             onAdded={async (prop: any) => {
-              await current.createAttribute(
+              let res = await current.createAttribute(
                 {
                   name: prop.name,
                   code: prop.code,
                   rule: '{}',
                   remark: prop.remark,
-                } as AttributeModel,
+                } as schema.XAttribute,
                 prop,
               );
-              tforceUpdate();
-              const attr = current.attributes.find((i: any) => i.propId === prop.id);
-              if (attr) {
-                saveSpeciality(attr);
+              if (res) {
+                saveSpeciality(res);
               }
             }}
             onDeleted={async (id: any) => {
-              const attr = current.attributes.find((i: any) => i.propId === id);
+              const attr = current.attributes.find((i) => i.propId === id);
               if (attr) {
                 await current.deleteAttribute(attr);
-                tforceUpdate();
               }
             }}
           />
@@ -402,6 +418,7 @@ const HotTableView: React.FC<IProps> = ({
       {/** 编辑特性模态框 */}
       {modalType.includes('配置特性') && selectedItem && (
         <AttributeConfig
+          key={tkey}
           attr={selectedItem}
           onChanged={formValuesChange}
           onClose={() => {
