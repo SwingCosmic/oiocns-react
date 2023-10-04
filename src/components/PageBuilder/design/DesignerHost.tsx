@@ -25,10 +25,8 @@ export function DesignerHost({ current }: DesignerProps) {
 
   const [activeKey, setActiveKey] = useState("code");
   const [refresh, withChangeToken] = useChangeToken();
-  const [refreshConfig, withConfigChangeToken] = useChangeToken();
 
   ctx.current.view.onNodeChange = refresh;
-  ctx.current.view.onCurrentChange = refreshConfig;
   
   function renderTabs(): Tab[] {
     return [
@@ -40,12 +38,12 @@ export function DesignerHost({ current }: DesignerProps) {
       {
         label: `配置`,
         key: 'element',
-        children: <ElementProps element={ctx.current.view.currentElement} {...withConfigChangeToken()}/>
+        children: <ElementProps element={ctx.current.view.currentElement}/>
       },
     ]
   }
 
-
+console.log("re-render")
   return (
     <PageContext.Provider value={ctx.current}>
       <div className={css.pageHostDesign}>
