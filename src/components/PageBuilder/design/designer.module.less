@@ -10,11 +10,16 @@
 }
 
 .content {
+  width: 100%;
   flex: auto;
   display: flex;
   gap: 8px;
   > div {
     background-color: white;
+  }
+  :global(.o-page-host) {
+    width: 1px;
+    flex: auto;
   }
 }
 
