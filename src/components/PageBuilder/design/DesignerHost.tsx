@@ -1,13 +1,15 @@
 import { useSimpleSignal } from '@/hooks/useSignal';
 import { IPageTemplate } from '@/ts/core/thing/standard/page';
 import { Button, message, Tabs } from 'antd';
-import React, { useState } from 'react';
+import React, { Component, useRef, useState } from 'react';
 import { DesignContext, PageContext } from '../render/PageContext';
 import Coder from './context';
 
 import css from './designer.module.less';
 import DesignerManager from './DesignerManager';
 import type { Tab } from 'rc-tabs/lib/interface';
+import { useChangeToken } from '@/hooks/useChangeToken';
+import ElementProps from './config/ElementProps';
 
 export interface DesignerProps {
   current: IPageTemplate;
@@ -15,18 +17,18 @@ export interface DesignerProps {
 
 
 export function DesignerHost({ current }: DesignerProps) {
-  const design = () => ({ view: new DesignerManager('design', current) });
-  const ctx = useSimpleSignal<DesignContext>(design, true);
-
+  const ctx = useSimpleSignal<DesignContext>(() => ({ 
+    view: new DesignerManager('design', current),
+  }) as DesignContext);
 
   const RootRender = ctx.current.view.components.rootRender as any;
 
   const [activeKey, setActiveKey] = useState("code");
-  const [changeToken, setChangeToken] = useState(true);
+  const [refresh, withChangeToken] = useChangeToken();
+  const [refreshConfig, withConfigChangeToken] = useChangeToken();
 
-  ctx.current.view.onNodeChange = () => {
-    setChangeToken(v => !v);
-  };
+  ctx.current.view.onNodeChange = refresh;
+  ctx.current.view.onCurrentChange = refreshConfig;
   
   function renderTabs(): Tab[] {
     return [
@@ -38,7 +40,7 @@ export function DesignerHost({ current }: DesignerProps) {
       {
         label: `配置`,
         key: 'element',
-        children: <div></div>
+        children: <ElementProps element={ctx.current.view.currentElement} {...withConfigChangeToken()}/>
       },
     ]
   }
@@ -53,7 +55,7 @@ export function DesignerHost({ current }: DesignerProps) {
               // ctx.current = design;
               ctx.current.view.update();
             }}>
-            更新数据
+            保存
           </Button>
         </div>
         <div className={css.content}>
@@ -65,7 +67,7 @@ export function DesignerHost({ current }: DesignerProps) {
             </Tabs>
           </div>
           
-          <div className="o-page-host" style={{ flex: 2 }} data-token={changeToken}>
+          <div className="o-page-host" style={{ flex: 2 }} {...withChangeToken()}>
             <RootRender element={ctx.current.view.rootElement} />
           </div>
 

@@ -1,9 +1,10 @@
-import { ComponentType, FC, createElement as h } from "react";
+import { ComponentType, FC, createElement as h, useCallback, useContext } from "react";
 import { HostMode } from "../core/IViewHost";
 import { PageElement } from "../core/PageElement";
 import _ from "lodash";
-import React from "react";
+import React, { MouseEvent } from "react";
 import { Result } from "antd";
+import { DesignContext, PageContext } from "./PageContext";
 
 export type Render = FC<ElementRenderProps>;
 
@@ -59,7 +60,14 @@ function createViewRender(component: ComponentType) {
 
 function createDesignRender(component: ComponentType) {
   return (props: ElementRenderProps) => {
-    return h(component, mergeProps(props.element));
+    const ctx = useContext(PageContext) as DesignContext;
+    const handleClick = useCallback((e: MouseEvent) => {
+      e.stopPropagation();
+      ctx.view.currentElement = props.element;
+    }, []);
+    return <div className="element-wrapper" onClick={handleClick}>
+      {h(component, mergeProps(props.element))}
+    </div>;
   };
 }
 

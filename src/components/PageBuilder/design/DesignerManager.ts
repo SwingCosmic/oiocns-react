@@ -18,7 +18,15 @@ export default class DesignerManager extends HostManagerBase<"design"> {
   }
 
   onNodeChange: ((root: PageElement) => void) | null = null;
+  onCurrentChange: ((e: PageElement | null) => void) | null = null;
 
-
+  private _currentElement: PageElement | null = null;
+  get currentElement() {
+    return this._currentElement;
+  }
+  set currentElement(e) {
+    this._currentElement = e;
+    this.onCurrentChange?.(e);
+  }
 
 }

@@ -20,26 +20,29 @@ export function useSignal<T>(initialValue: NonFunction<T>) {
  */
 export function useSimpleSignal<T>(initialValue: NonFunction<T> | (() => NonFunction<T>), isRef = false): MutableRefObject<T> {
   if (isRef) {
-    const ref = useRef<NonFunction<T>>(null!);
-    if (ref.current == null) {
-      if (typeof initialValue === "function") {
-        initialValue = (initialValue as Function)() as NonFunction<T>;
-      }    
-      ref.current = initialValue;  
-    }
-
-    return ref;
+    return createRef(initialValue);
   }
-  const v = createSimpleSignal(initialValue);
-  // 永不重新计算
-  return useMemo(() => v as any, []);
+  return createSimpleSignal(initialValue);
 }
 
+function createRef<T>(initialValue: NonFunction<T> | (() => NonFunction<T>)): MutableRefObject<NonFunction<T>> {
+  const ref = useRef<NonFunction<T>>(undefined!);
+  if (ref.current === undefined) { 
+    ref.current = getInitialValue(initialValue);  
+  }
+  return ref;
+}
 
-function createSimpleSignal<T>(initialValue: T | (() => T)) {
-  let [state, setState] = useState(initialValue);
+function createSimpleSignal<T>(initialValue: NonFunction<T> | (() => NonFunction<T>)): MutableRefObject<NonFunction<T>>  {
+  let [state, setState] = useState<T>(undefined!);
+  if (state === undefined) {
+    state = getInitialValue(initialValue);
+    setState(_ => state);
+  }
+
   const s = {
     __value: state,
+    [Symbol.for("SimpleSignal")]: true,
   } ;
   Object.defineProperty(s, "current", {
     get() {
@@ -51,5 +54,38 @@ function createSimpleSignal<T>(initialValue: T | (() => T)) {
       setState(_ => v);
     }
   });
-  return s;
+  return s as any;
+}
+
+
+function getInitialValue<T>(initialValue: T | (() => T)) {
+  if (typeof initialValue === "function") {
+    initialValue = (initialValue as Function)() as NonFunction<T>;
+  } 
+  return initialValue;
+}
+
+type UnRef<T extends Dictionary<MutableRefObject<any>>> = {
+  [P in keyof T]: T[P] extends MutableRefObject<infer R> ? R : T[P];
+};
+
+export function signalsToObject<T extends Dictionary<any>>(signals: T): UnRef<T> {
+  const ret: any = {};
+  for (const [prop, value] of Object.entries(signals)) {
+    if (value && "current" in value) {
+      Object.defineProperty(ret, prop, {
+        get() {
+          return value.current;
+        },
+        set(v) {
+          value.current = v;
+        },
+        enumerable: true,
+        configurable: true,
+      });
+    } else {
+      ret[prop] = value;
+    }
+  }
+  return ret;
 }
