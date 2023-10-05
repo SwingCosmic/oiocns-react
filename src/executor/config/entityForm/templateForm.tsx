@@ -1,17 +1,16 @@
-import ElementTreeManager from "@/components/PageBuilder/core/ElementTreeManager";
-import SchemaForm from "@/components/SchemaForm";
-import { schema } from "@/ts/base";
-import { IDirectory } from "@/ts/core";
-import { IPageTemplate } from "@/ts/core/thing/standard/page";
-import { ProFormColumnsType } from "@ant-design/pro-components";
-import React from "react";
+import ElementTreeManager from '@/components/PageBuilder/core/ElementTreeManager';
+import SchemaForm from '@/components/SchemaForm';
+import { schema } from '@/ts/base';
+import { IDirectory } from '@/ts/core';
+import { IPageTemplate } from '@/ts/core/thing/standard/page';
+import { ProFormColumnsType } from '@ant-design/pro-components';
+import React from 'react';
 
 interface IProps {
   formType: string;
   current: IDirectory | IPageTemplate;
   finished: (template?: IPageTemplate) => void;
 }
-
 
 const PageTemplateForm: React.FC<IProps> = ({ formType, current, finished }) => {
   let initialValue = {};
@@ -38,13 +37,13 @@ const PageTemplateForm: React.FC<IProps> = ({ formType, current, finished }) => 
     {
       title: '模板类型',
       dataIndex: 'kind',
-      valueType: "radio",
+      valueType: 'radio',
       formItemProps: {
         rules: [{ required: true, message: '模板类型为必填项' }],
       },
       colProps: { span: 24 },
+      initialValue: 'common',
       fieldProps: {
-        defaultValue: "shop",
         options: [
           {
             label: '通用模板',
