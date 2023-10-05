@@ -34,7 +34,7 @@ export default defineElement({
   meta: {
     props: {
 
-  },
+    },
     label: "模板根元素",
   }
 })

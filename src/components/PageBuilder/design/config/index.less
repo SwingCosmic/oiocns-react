@@ -1,0 +1,41 @@
+// @import '~antd/dist/antd.less';
+
+.page-element-props {
+  height: 100%;
+  min-height: 60vh;
+  > .props-header {
+    height: 40px;
+    border-bottom: 1px solid @border-color-base;
+    padding: 8px 16px;
+    .header-id {
+      font-size: 12px;
+      margin-right: 8px;
+    }
+    .header-title {
+      font-size: 16px;
+      font-weight: 600;
+      margin-right: 8px;
+    }
+    .header-kind {
+      margin-right: 8px;
+    }
+  }
+
+  > .props-content {
+    padding: 16px;
+    display: flex;
+    flex-direction: column;
+  }
+}
+
+.page-element-props-item {
+  min-height: 32px;
+  line-height: 32px;
+  display: flex;
+  margin-bottom: 12px;
+  .item-label {
+    white-space: nowrap;
+    text-overflow: ellipsis;
+    overflow: hidden;
+  }
+}

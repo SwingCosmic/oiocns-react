@@ -58,7 +58,7 @@ console.log("re-render")
         </div>
         <div className={css.content}>
           <div className={css.designConfig} style={{ flex: 1 }}>
-            <Tabs
+            <Tabs className="is-full-height"
               defaultActiveKey={activeKey}
               onChange={key => setActiveKey(key)}
               items={renderTabs()}>

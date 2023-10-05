@@ -194,6 +194,7 @@ export default defineElement({
     props: {
       formId: {
         type: 'string',
+        label: "关联表单"
       },
     },
     label: '公物仓',
