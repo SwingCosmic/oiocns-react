@@ -5,9 +5,26 @@ import { DesignContext, PageContext } from "../../render/PageContext";
 import { Empty, Form, Tag } from "antd";
 import ElementPropsItem from "./ElementPropsItem";
 import { useChangeToken } from "@/hooks/useChangeToken";
+import { TypeMeta } from "../../core/ElementMeta";
 
 interface Props {
   element: PageElement | null;
+}
+
+const commonTypeMeta: Dictionary<TypeMeta> = {
+  name: {
+    type: "string",
+    label: "名称",
+    required: true
+  },
+  className: {
+    type: "string",
+    label: "CSS类名"
+  },
+  style: {
+    type: "string",
+    label: "CSS样式"
+  },
 }
 
 export default function ElementProps({ element }: Props) {
@@ -31,6 +48,25 @@ export default function ElementProps({ element }: Props) {
       </Tag>
     </div>
     <div className="props-content">
+      {
+        Object
+          .entries(commonTypeMeta)
+          .map(([prop, meta]) => {
+            return <ElementPropsItem
+              key={prop}
+              value={(element as any)[prop]}
+              prop={prop}
+              meta={meta}
+              onValueChange={v => {
+                (element as any)[prop] = v;
+                refresh();
+              }} 
+            />;
+          })
+      }
+      <div className="diver">
+
+      </div>
       {
         Object
           .entries(meta.props)

@@ -26,6 +26,11 @@
     display: flex;
     flex-direction: column;
   }
+
+  .diver {
+    border-bottom: 1px solid @border-color-base;
+    margin: 8px 0;
+  }
 }
 
 .page-element-props-item {
@@ -37,5 +42,12 @@
     white-space: nowrap;
     text-overflow: ellipsis;
     overflow: hidden;
+    &.is-required::after {
+      content: "*";
+      position: relative;
+      display: inline-block;
+      color: @error-color;
+      margin-left: 8px;
+    }
   }
 }

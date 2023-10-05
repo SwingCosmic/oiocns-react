@@ -1,6 +1,6 @@
 import React, { ChangeEventHandler, useState } from 'react';
 import { ExistTypeMeta, TypeMeta } from '../../core/ElementMeta';
-import { DatePicker, Input, Switch } from 'antd';
+import { DatePicker, Input, Select, Switch } from 'antd';
 import FormProps from './FormProps';
 
 interface Props {
@@ -44,6 +44,11 @@ export default function ElementPropsItem(props: Props) {
             }}
           />
         );
+      case 'enum':
+        return <Select
+          allowClear
+          options={meta.options}
+        />;
       case 'type':
         const exist = meta as ExistTypeMeta<any>;
         switch (exist.typeName) {
@@ -69,7 +74,7 @@ export default function ElementPropsItem(props: Props) {
   return (
     <div className="page-element-props-item">
       <div
-        className="item-label"
+        className={"item-label " + (props.meta.required ? 'is-required' : '')}
         title={props.meta.label || props.prop}
         style={{ width: props.labelWidth || '160px' }}>
         {props.meta.label || props.prop}

@@ -1,7 +1,7 @@
 
 
 export type PrimitiveType = "string" | "number" | "boolean" | "date";
-export type ComplexType = "array" | "object" | "type";
+export type ComplexType = "enum" | "array" | "object" | "type";
 export type DataType = PrimitiveType | ComplexType;
 
 
@@ -16,6 +16,17 @@ export interface PrimitiveTypeMeta<T extends PrimitiveType> extends TypeMetaBase
 
 }
 
+
+export interface EnumItem<V = any> {
+  label: string;
+  value: V;
+}
+
+
+export interface EnumTypeMeta<V = any> extends TypeMetaBase<"enum"> {
+  options: EnumItem<V>[];
+}
+
 export interface ArrayTypeMeta extends TypeMetaBase<"array"> {
   elementType: TypeMeta;
 }
@@ -28,7 +39,7 @@ export interface ExistTypeMeta<T> extends TypeMetaBase<"type"> {
   typeName: string;
 }
 
-export type TypeMeta = PrimitiveTypeMeta<PrimitiveType> | ArrayTypeMeta | ObjectTypeMeta | ExistTypeMeta<any>;
+export type TypeMeta = PrimitiveTypeMeta<PrimitiveType> | EnumTypeMeta<string | number> | ArrayTypeMeta | ObjectTypeMeta | ExistTypeMeta<any>;
 
 export interface ElementMeta {
   /** 定义属性的类型 */
@@ -46,6 +57,7 @@ export type ExtractToType<T extends TypeMeta> =
   T["type"] extends "number" ? number :
   T["type"] extends "boolean" ? boolean :
   T["type"] extends "date" ? string :
+  T extends EnumTypeMeta<infer R> ? R :
   T extends ArrayTypeMeta ? ExtractToType<T["elementType"]>[] :
   T extends ObjectTypeMeta ? {
     [P in keyof T["properties"]]: ExtractToType<T["properties"][P]>
