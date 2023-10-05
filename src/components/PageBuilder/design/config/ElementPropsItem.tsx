@@ -1,6 +1,6 @@
-import React, { ChangeEventHandler, useState } from "react";
-import { TypeMeta } from "../../core/ElementMeta";
-import { DatePicker, Input, Switch } from "antd";
+import React, { ChangeEventHandler, useState } from 'react';
+import { TypeMeta } from '../../core/ElementMeta';
+import { DatePicker, Input, Switch } from 'antd';
 
 interface Props {
   value: any;
@@ -10,29 +10,42 @@ interface Props {
   labelWidth?: string;
 }
 
-
-
 export default function ElementPropsItem(props: Props) {
   const [value, setValue] = useState<any>(props.value);
-  const inputChange:ChangeEventHandler<HTMLInputElement> = (e)=>{
-    props.onValueChange(e.target.value)
+  const inputChange: ChangeEventHandler<HTMLInputElement> = (e) => {
+    props.onValueChange(e.target.value);
     setValue(e.target.value);
-  }
-  console.log(props.prop)
+  };
 
   function renderComponent(meta: TypeMeta) {
     switch (meta.type) {
-      case "string":
-        return <Input value={value} onChange={inputChange} />
-      case "number":
-        return <Input type="number" value={value} onChange={inputChange} />
-      case "boolean":
-        return <Switch checked={value} onChange={props.onValueChange}/>
-      case "date":
-        return <DatePicker value={value} onChange={props.onValueChange}/>
-      case "object":
-      case "array":
-      case "type":
+      case 'string':
+        return <Input value={value} onChange={inputChange} />;
+      case 'number':
+        return <Input type="number" value={value} onChange={inputChange} />;
+      case 'boolean':
+        return (
+          <Switch
+            checked={value}
+            onChange={(checked) => {
+              props.onValueChange(checked);
+              setValue(checked);
+            }}
+          />
+        );
+      case 'date':
+        return (
+          <DatePicker
+            value={value}
+            onChange={(_, date) => {
+              props.onValueChange(date);
+              setValue(date);
+            }}
+          />
+        );
+      case 'object':
+      case 'array':
+      case 'type':
       default:
         return <></>;
     }
@@ -40,12 +53,13 @@ export default function ElementPropsItem(props: Props) {
 
   return (
     <div className="page-element-props-item">
-      <div className="item-label" 
+      <div
+        className="item-label"
         title={props.meta.label || props.prop}
-        style={{ width: props.labelWidth || "160px" }}>
+        style={{ width: props.labelWidth || '160px' }}>
         {props.meta.label || props.prop}
       </div>
       {renderComponent(props.meta)}
     </div>
-  )
+  );
 }
