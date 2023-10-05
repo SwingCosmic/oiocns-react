@@ -1,6 +1,7 @@
 import React, { ChangeEventHandler, useState } from 'react';
-import { TypeMeta } from '../../core/ElementMeta';
+import { ExistTypeMeta, TypeMeta } from '../../core/ElementMeta';
 import { DatePicker, Input, Switch } from 'antd';
+import FormProps from './FormProps';
 
 interface Props {
   value: any;
@@ -43,9 +44,23 @@ export default function ElementPropsItem(props: Props) {
             }}
           />
         );
+      case 'type':
+        const exist = meta as ExistTypeMeta<any>;
+        switch (exist.typeName) {
+          case 'form':
+            return (
+              <FormProps
+                value={value}
+                onChange={(value) => {
+                  props.onValueChange(value);
+                  setValue(value);
+                }}
+              />
+            );
+        }
+        break;
       case 'object':
       case 'array':
-      case 'type':
       default:
         return <></>;
     }

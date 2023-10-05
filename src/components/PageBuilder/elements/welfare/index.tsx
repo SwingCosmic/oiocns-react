@@ -25,6 +25,7 @@ import React, { useEffect, useRef, useState } from 'react';
 import { defineElement } from '../defineElement';
 import cls from './index.module.less';
 import Asset from '/img/asset.png';
+import { ExistTypeMeta } from '../../core/ElementMeta';
 
 interface IProps {
   current: IForm;
@@ -193,9 +194,10 @@ export default defineElement({
   meta: {
     props: {
       formId: {
-        type: 'string',
-        label: "关联表单"
-      },
+        type: 'type',
+        label: '关联表单',
+        typeName: 'form',
+      } as ExistTypeMeta<any>,
     },
     label: '公物仓',
   },
