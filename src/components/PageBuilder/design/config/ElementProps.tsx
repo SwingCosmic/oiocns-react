@@ -37,6 +37,7 @@ export default function ElementProps({ element }: Props) {
           .entries(meta.props)
           .map(([prop, meta]) => {
             return <ElementPropsItem
+              key={prop}
               value={element.props[prop]}
               prop={prop}
               meta={meta}
