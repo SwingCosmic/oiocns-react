@@ -34,7 +34,11 @@ function createRef<T>(initialValue: NonFunction<T> | (() => NonFunction<T>)): Mu
 }
 
 function createSimpleSignal<T>(initialValue: NonFunction<T> | (() => NonFunction<T>)): MutableRefObject<NonFunction<T>>  {
-  let [state, setState] = useState<T>(getInitialValue(initialValue));
+  let [state, setState] = useState<T>(undefined!);
+  if (state === undefined) {
+    state = getInitialValue(initialValue);
+    setState(_ => state);
+  }
 
   const s = {
     __value: state,
