@@ -1,4 +1,4 @@
-import React, { ChangeEventHandler, useCallback, useContext } from "react";
+import React, { ChangeEventHandler, useState } from "react";
 import { TypeMeta } from "../../core/ElementMeta";
 import { DatePicker, Input, Switch } from "antd";
 
@@ -13,20 +13,23 @@ interface Props {
 
 
 export default function ElementPropsItem(props: Props) {
-  const inputChange = useCallback<ChangeEventHandler<HTMLInputElement>>(e => 
-    props.onValueChange(e.target.value), [props.onValueChange]);
+  const [value, setValue] = useState<any>(props.value);
+  const inputChange:ChangeEventHandler<HTMLInputElement> = (e)=>{
+    props.onValueChange(e.target.value)
+    setValue(e.target.value);
+  }
   console.log(props.prop)
 
   function renderComponent(meta: TypeMeta) {
     switch (meta.type) {
       case "string":
-        return <Input value={props.value} onChange={inputChange} />
+        return <Input value={value} onChange={inputChange} />
       case "number":
-        return <Input type="number" value={props.value} onChange={inputChange} />
+        return <Input type="number" value={value} onChange={inputChange} />
       case "boolean":
-        return <Switch checked={props.value} onChange={props.onValueChange}/>
+        return <Switch checked={value} onChange={props.onValueChange}/>
       case "date":
-        return <DatePicker value={props.value} onChange={props.onValueChange}/>
+        return <DatePicker value={value} onChange={props.onValueChange}/>
       case "object":
       case "array":
       case "type":

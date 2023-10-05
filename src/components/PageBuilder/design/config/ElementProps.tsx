@@ -43,6 +43,7 @@ export default function ElementProps({ element }: Props) {
               meta={meta}
               onValueChange={v => {
                 element.props[prop] = v;
+                ctx.view.rootChildren = [...ctx.view.rootChildren];
                 // refresh();
               }} 
             />;
