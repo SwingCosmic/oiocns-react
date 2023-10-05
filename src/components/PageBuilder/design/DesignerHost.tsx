@@ -23,7 +23,6 @@ export function DesignerHost({ current }: DesignerProps) {
 
   const RootRender = ctx.current.view.components.rootRender as any;
 
-  const [activeKey, setActiveKey] = useState("code");
   const [refresh, withChangeToken] = useChangeToken();
 
   ctx.current.view.onNodeChange = refresh;
@@ -58,10 +57,7 @@ console.log("re-render")
         </div>
         <div className={css.content}>
           <div className={css.designConfig} style={{ flex: 1 }}>
-            <Tabs className="is-full-height"
-              defaultActiveKey={activeKey}
-              onChange={key => setActiveKey(key)}
-              items={renderTabs()}>
+            <Tabs className="is-full-height" items={renderTabs()}>
             </Tabs>
           </div>
           
