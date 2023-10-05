@@ -1,7 +1,7 @@
 import { useSimpleSignal } from '@/hooks/useSignal';
 import { IPageTemplate } from '@/ts/core/thing/standard/page';
 import { Button, message, Tabs } from 'antd';
-import React, { Component, useRef, useState } from 'react';
+import React, { Component, useEffect, useRef, useState } from 'react';
 import { DesignContext, PageContext } from '../render/PageContext';
 import Coder from './context';
 
@@ -10,6 +10,7 @@ import DesignerManager from './DesignerManager';
 import type { Tab } from 'rc-tabs/lib/interface';
 import { useChangeToken } from '@/hooks/useChangeToken';
 import ElementProps from './config/ElementProps';
+import { useComputed, useSignal } from '@preact/signals-react';
 
 export interface DesignerProps {
   current: IPageTemplate;
@@ -17,16 +18,28 @@ export interface DesignerProps {
 
 
 export function DesignerHost({ current }: DesignerProps) {
-  const ctx = useSimpleSignal<DesignContext>(() => ({ 
-    view: new DesignerManager('design', current),
-  }) as DesignContext);
+  const [ready, setReady] = useState(false);
 
-  const RootRender = ctx.current.view.components.rootRender as any;
+  const ctx = useSignal<DesignContext>(null!);
+  const currentElement = useComputed(() => ctx.value?.view.currentElement ?? null!);
+  // 只调用一次
+  useEffect(() => {
+    ctx.value = { 
+      view: new DesignerManager('design', current),
+    };
+    setReady(true);
+  }, []);
 
+  
   const [refresh, withChangeToken] = useChangeToken();
 
-  ctx.current.view.onNodeChange = refresh;
-  
+
+  console.log("re-render");
+
+  if (!ready) {
+    return <></>;
+  }
+
   function renderTabs(): Tab[] {
     return [
       {
@@ -37,20 +50,21 @@ export function DesignerHost({ current }: DesignerProps) {
       {
         label: `配置`,
         key: 'element',
-        children: <ElementProps element={ctx.current.view.currentElement}/>
+        children: <ElementProps element={currentElement.value}/>
       },
     ]
   }
 
-console.log("re-render")
+  const RootRender = ctx.value.view.components.rootRender as any;
+  ctx.value.view.onNodeChange = refresh;
   return (
-    <PageContext.Provider value={ctx.current}>
+    <PageContext.Provider value={ctx.value}>
       <div className={css.pageHostDesign}>
         <div className={css.top}>
           <Button
             onClick={() => {
               // ctx.current = design;
-              ctx.current.view.update();
+              ctx.value.view.update();
             }}>
             保存
           </Button>
@@ -62,7 +76,7 @@ console.log("re-render")
           </div>
           
           <div className="o-page-host" style={{ flex: 2 }} {...withChangeToken()}>
-            <RootRender element={ctx.current.view.rootElement} />
+            <RootRender element={ctx.value.view.rootElement} />
           </div>
 
         </div>

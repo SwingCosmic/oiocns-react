@@ -11,25 +11,27 @@ interface Props {
   element: PageElement | null;
 }
 
-const commonTypeMeta: Dictionary<TypeMeta> = {
-  name: {
-    type: "string",
-    label: "名称",
-    required: true
-  },
-  className: {
-    type: "string",
-    label: "CSS类名"
-  },
-  style: {
-    type: "string",
-    label: "CSS样式"
-  },
-}
+
 
 export default function ElementProps({ element }: Props) {
   const ctx = useContext<DesignContext>(PageContext as any);
-  const [refresh] = useChangeToken(); 
+  // const [refresh] = useChangeToken(); 
+
+  const commonTypeMeta: Dictionary<TypeMeta> = {
+    name: {
+      type: "string",
+      label: "名称",
+      required: true
+    },
+    className: {
+      type: "string",
+      label: "CSS类名"
+    },
+    style: {
+      type: "string",
+      label: "CSS样式"
+    },
+  }
   
   if (!element) {
     return <div>
@@ -53,14 +55,10 @@ export default function ElementProps({ element }: Props) {
           .entries(commonTypeMeta)
           .map(([prop, meta]) => {
             return <ElementPropsItem
-              key={prop}
-              value={(element as any)[prop]}
+              key={"common_" + prop}
+              target={element}
               prop={prop}
               meta={meta}
-              onValueChange={v => {
-                (element as any)[prop] = v;
-                refresh();
-              }} 
             />;
           })
       }
@@ -73,13 +71,9 @@ export default function ElementProps({ element }: Props) {
           .map(([prop, meta]) => {
             return <ElementPropsItem
               key={prop}
-              value={element.props[prop]}
+              target={element.props}
               prop={prop}
               meta={meta}
-              onValueChange={v => {
-                element.props[prop] = v;
-                refresh();
-              }} 
             />;
           })
       }

@@ -15,8 +15,8 @@ export default class DesignerManager extends HostManagerBase<"design"> {
   set rootChildren(v: PageElement[]) {
     this.treeManager.root.children = v;
     this.treeManager.changeParent(v, this.treeManager.root.id);
+    this.currentElement = null;
     this.onNodeChange?.(this.treeManager.root);
-    this.onCurrentChange?.(null);
   }
 
   onNodeChange: ((root: PageElement) => void) | null = null;

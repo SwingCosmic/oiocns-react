@@ -1,51 +1,53 @@
-import React, { ChangeEventHandler, useState } from 'react';
+import React, { ChangeEventHandler, useEffect, useState } from 'react';
 import { ExistTypeMeta, TypeMeta } from '../../core/ElementMeta';
 import { DatePicker, Input, Select, Switch } from 'antd';
 import FormProps from './FormProps';
 
 interface Props {
-  value: any;
+  target: any;
   prop: string;
   meta: TypeMeta;
-  onValueChange: (v: any) => any;
+  onValueChange?: (v: any) => any;
   labelWidth?: string;
 }
 
 export default function ElementPropsItem(props: Props) {
-  const [value, setValue] = useState<any>(props.value);
-  const inputChange: ChangeEventHandler<HTMLInputElement> = (e) => {
-    props.onValueChange(e.target.value);
-    setValue(e.target.value);
+  const [value, setValue] = useState<any>(props.target[props.prop]);
+  // 相当于watch props.target[props.prop]
+  useEffect(() => {
+    setValue(() => props.target[props.prop]);
+  });
+
+  const onValueChange = (v: any) => {
+    props.target[props.prop] = v;
+    setValue(v);
+    props.onValueChange?.(v);
   };
 
   function renderComponent(meta: TypeMeta) {
     switch (meta.type) {
       case 'string':
-        return <Input value={value} onChange={inputChange} />;
+        return <Input value={value} onChange={e => onValueChange(e.target.value)} />;
       case 'number':
-        return <Input type="number" value={value} onChange={inputChange} />;
+        return <Input type="number" value={value} onChange={e => onValueChange(e.target.value)} />;
       case 'boolean':
         return (
           <Switch
             checked={value}
-            onChange={(checked) => {
-              props.onValueChange(checked);
-              setValue(checked);
-            }}
+            onChange={onValueChange}
           />
         );
       case 'date':
         return (
           <DatePicker
             value={value}
-            onChange={(_, date) => {
-              props.onValueChange(date);
-              setValue(date);
-            }}
+            onChange={(_, date) => onValueChange(date)}
           />
         );
       case 'enum':
         return <Select
+          value={value}
+          onChange={onValueChange}
           allowClear
           options={meta.options}
         />;
@@ -56,10 +58,7 @@ export default function ElementPropsItem(props: Props) {
             return (
               <FormProps
                 value={value}
-                onChange={(value) => {
-                  props.onValueChange(value);
-                  setValue(value);
-                }}
+                onChange={onValueChange}
               />
             );
         }
