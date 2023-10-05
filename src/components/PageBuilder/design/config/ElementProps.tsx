@@ -12,7 +12,7 @@ interface Props {
 
 export default function ElementProps({ element }: Props) {
   const ctx = useContext<DesignContext>(PageContext as any);
-  
+  const [refresh] = useChangeToken(); 
   
   if (!element) {
     return <div>
@@ -21,7 +21,6 @@ export default function ElementProps({ element }: Props) {
   }
 
   const meta = ctx.view.elements.elementMeta[element.kind] || {};
-  // const [refresh] = useChangeToken(); 
 
   return <div className="page-element-props">
     <div className="props-header">
@@ -43,8 +42,7 @@ export default function ElementProps({ element }: Props) {
               meta={meta}
               onValueChange={v => {
                 element.props[prop] = v;
-                ctx.view.rootChildren = [...ctx.view.rootChildren];
-                // refresh();
+                refresh();
               }} 
             />;
           })
