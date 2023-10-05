@@ -1,6 +1,6 @@
 import React, { ChangeEventHandler, useEffect, useState } from 'react';
 import { ExistTypeMeta, TypeMeta } from '../../core/ElementMeta';
-import { DatePicker, Input, Select, Switch } from 'antd';
+import { DatePicker, Input, InputNumber, Select, Switch } from 'antd';
 import FormProps from './FormProps';
 
 interface Props {
@@ -29,7 +29,7 @@ export default function ElementPropsItem(props: Props) {
       case 'string':
         return <Input value={value} onChange={e => onValueChange(e.target.value)} />;
       case 'number':
-        return <Input type="number" value={value} onChange={e => onValueChange(e.target.value)} />;
+        return <InputNumber value={value} onChange={e => onValueChange(e.target.value)} />;
       case 'boolean':
         return (
           <Switch
