@@ -65,7 +65,11 @@ function createDesignRender(component: ComponentType) {
       e.stopPropagation();
       ctx.view.currentElement = props.element;
     }, []);
-    return <div className="element-wrapper" onClick={handleClick}>
+    return <div 
+      className={[
+        "element-wrapper",
+        ctx.view.currentElement?.id == props.element.id ? "is-current": ""
+      ].join(" ")} onClick={handleClick}>
       {h(component, mergeProps(props.element))}
     </div>;
   };

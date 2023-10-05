@@ -25,6 +25,21 @@
       }
     }
   }
+
+  .element-wrapper {
+    position: relative;
+    &.is-current::before {
+      content: '';
+      display: block;
+      z-index: 100;
+      position: absolute;
+      height: 100%;
+      width: 100%;
+      pointer-events: none;
+      border: 1px solid @primary-color;
+      background-color: rgba(@primary-color, 0.25);
+    }
+  }
 }
 
 
