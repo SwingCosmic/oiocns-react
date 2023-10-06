@@ -3,7 +3,7 @@ import { model } from '@/ts/base';
 import { ITransfer } from '@/ts/core';
 import { ProFormColumnsType, ProFormInstance } from '@ant-design/pro-components';
 import React, { createRef, useEffect, useState } from 'react';
-import { MenuItem, loadApplicationsMenu, loadDirs, loadFormsMenu } from '../menus';
+import { MenuItem, loadApplicationsMenu, loadDirs, loadFormsMenu } from '@/config/menus';
 
 interface IProps {
   transfer: ITransfer;

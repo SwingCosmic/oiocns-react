@@ -1,7 +1,9 @@
 import React, { ChangeEventHandler, useEffect, useState } from 'react';
 import { ExistTypeMeta, TypeMeta } from '../../core/ElementMeta';
 import { DatePicker, Input, InputNumber, Select, Switch } from 'antd';
-import FormProps from './FormProps';
+import FormProp, { PageProp } from './StandardProp';
+import AttrsProp from './AttrsProp';
+import { FieldPositionProp } from './PositionProp';
 
 interface Props {
   target: any;
@@ -12,10 +14,10 @@ interface Props {
 }
 
 export default function ElementPropsItem(props: Props) {
-  const [value, setValue] = useState<any>(props.target[props.prop]);
+  const [value, setValue] = useState<any>(props.target[props.prop] ?? props.meta.default);
   // 相当于watch props.target[props.prop]
   useEffect(() => {
-    setValue(() => props.target[props.prop]);
+      setValue(() => props.target[props.prop]);
   });
 
   const onValueChange = (v: any) => {
@@ -46,6 +48,7 @@ export default function ElementPropsItem(props: Props) {
         );
       case 'enum':
         return <Select
+          style={{ width: "100%" }}
           value={value}
           onChange={onValueChange}
           allowClear
@@ -56,9 +59,30 @@ export default function ElementPropsItem(props: Props) {
         switch (exist.typeName) {
           case 'form':
             return (
-              <FormProps
+              <FormProp
                 value={value}
+                setValue={onValueChange}
+              />
+            );
+          case 'attr':
+            return (
+              <AttrsProp 
+                value={value} 
                 onChange={onValueChange}
+              />
+            )
+          case 'position':
+            return (
+              <FieldPositionProp 
+                value={value} 
+                setValue={onValueChange}
+              />
+            );
+          case 'page':
+            return (
+              <PageProp 
+                value={value} 
+                setValue={onValueChange}
               />
             );
         }

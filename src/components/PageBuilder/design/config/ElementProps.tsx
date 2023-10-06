@@ -74,6 +74,10 @@ export default function ElementProps({ element }: Props) {
               target={element.props}
               prop={prop}
               meta={meta}
+              onValueChange={() => {
+                ctx.view.onChange?.();
+                ctx.view.pageInfo.changCallback();
+              }}
             />;
           })
       }

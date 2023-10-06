@@ -41,6 +41,13 @@ const loadFiles = (current: IDirectory, typeNames: string[], genLabel?: GenLabel
             .map((entity) => loadEntity(entity, genLabel)),
         );
         break;
+      case '页面模板':
+        items.push(
+          ...current.templates
+            .filter((item) => item.typeName == typeName)
+            .map((entity) => loadEntity(entity, genLabel)),
+        );
+        break;
       case '应用':
         items.push(
           ...current.applications
@@ -96,6 +103,11 @@ export const loadMenus = (
   };
   operate?.(item);
   return item;
+};
+
+/** 表单项 */
+export const loadPagesMenu = (current: IDirectory, genLabel?: GenLabel) => {
+  return loadMenus(current, ['页面模板'], genLabel);
 };
 
 /** 表单项 */

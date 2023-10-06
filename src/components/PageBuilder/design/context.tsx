@@ -1,18 +1,24 @@
 import { json } from '@codemirror/lang-json';
 import CodeMirror from '@uiw/react-codemirror';
 import { Button, message } from 'antd';
-import React, { useContext, useState } from 'react';
+import React, { useContext, useEffect, useState } from 'react';
 import { DesignContext, PageContext } from '../render/PageContext';
 
-interface IProps {
-
-}
+interface IProps {}
 
 const Coder: React.FC<IProps> = ({}) => {
   const ctx = useContext<DesignContext>(PageContext as any);
   const [data, setData] = useState<string>(
     JSON.stringify(ctx.view.rootChildren, null, 2),
   );
+  useEffect(() => {
+    const id = ctx.view.pageInfo.subscribe(() => {
+      setData(JSON.stringify(ctx.view.rootChildren, null, 2));
+    });
+    return () => {
+      ctx.view.pageInfo.unsubscribe(id);
+    }
+  });
   return (
     <div>
       <Button

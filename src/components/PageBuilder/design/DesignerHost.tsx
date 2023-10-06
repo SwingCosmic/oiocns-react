@@ -11,6 +11,8 @@ import type { Tab } from 'rc-tabs/lib/interface';
 import { useChangeToken } from '@/hooks/useChangeToken';
 import ElementProps from './config/ElementProps';
 import { useComputed, useSignal } from '@preact/signals-react';
+import { DndProvider } from 'react-dnd';
+import { HTML5Backend } from 'react-dnd-html5-backend';
 
 export interface DesignerProps {
   current: IPageTemplate;
@@ -57,30 +59,33 @@ export function DesignerHost({ current }: DesignerProps) {
 
   const RootRender = ctx.value.view.components.rootRender as any;
   ctx.value.view.onNodeChange = refresh;
+  ctx.value.view.onChange = refresh;
   return (
-    <PageContext.Provider value={ctx.value}>
-      <div className={css.pageHostDesign}>
-        <div className={css.top}>
-          <Button
-            onClick={() => {
-              // ctx.current = design;
-              ctx.value.view.update();
-            }}>
-            保存
-          </Button>
-        </div>
-        <div className={css.content}>
-          <div className={css.designConfig} style={{ flex: 1 }}>
-            <Tabs className="is-full-height" items={renderTabs()}>
-            </Tabs>
+    <DndProvider backend={HTML5Backend}>
+      <PageContext.Provider value={ctx.value}>
+        <div className={css.pageHostDesign}>
+          <div className={css.top}>
+            <Button
+              onClick={() => {
+                // ctx.current = design;
+                ctx.value.view.update();
+              }}>
+              保存
+            </Button>
           </div>
-          
-          <div className="o-page-host" style={{ flex: 2 }} {...withChangeToken()}>
-            <RootRender element={ctx.value.view.rootElement} />
-          </div>
+          <div className={css.content}>
+            <div className={css.designConfig} style={{ flex: 1 }}>
+              <Tabs className="is-full-height" items={renderTabs()}>
+              </Tabs>
+            </div>
+            
+            <div className="o-page-host" style={{ flex: 2 }} {...withChangeToken()}>
+              <RootRender element={ctx.value.view.rootElement} />
+            </div>
 
+          </div>
         </div>
-      </div>
-    </PageContext.Provider>
+      </PageContext.Provider>
+    </DndProvider>
   );
 }

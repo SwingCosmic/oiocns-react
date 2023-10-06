@@ -4,10 +4,10 @@ import {
   AiOutlineRead,
   AiOutlineShoppingCart,
 } from '@/icons/ai';
-import { kernel } from '@/ts/base';
 import { FieldModel } from '@/ts/base/model';
 import { IForm } from '@/ts/core';
 import { ShareIdSet } from '@/ts/core/public/entity';
+import { IPageTemplate } from '@/ts/core/thing/standard/page';
 import {
   Badge,
   Button,
@@ -21,17 +21,21 @@ import {
   Tag,
 } from 'antd';
 import Meta from 'antd/lib/card/Meta';
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useContext, useEffect, useRef, useState } from 'react';
+import { ExistTypeMeta } from '../../core/ElementMeta';
 import { defineElement } from '../defineElement';
 import cls from './index.module.less';
 import Asset from '/img/asset.png';
-import { ExistTypeMeta } from '../../core/ElementMeta';
+import { PageContext } from '../../render/PageContext';
+import { generateUuid } from '@/ts/base/common';
 
 interface IProps {
-  current: IForm;
+  form?: IForm;
+  template?: IPageTemplate;
 }
 
-const Welfare: React.FC<IProps> = ({ current }) => {
+const Welfare: React.FC<IProps> = ({ form, template }) => {
+  const ctx = useContext(PageContext);
   const [notInit, setNotInit] = useState<boolean>(true);
   const all = useRef<any[]>([]);
   const search = useRef<FieldModel[]>([]);
@@ -43,22 +47,22 @@ const Welfare: React.FC<IProps> = ({ current }) => {
   const [open, setOpen] = useState<boolean>(false);
   const [item, setItem] = useState<any>();
   useEffect(() => {
-    if (notInit && current) {
-      Promise.all([
-        current.loadContent(),
-        kernel.loadThing<{ data: any[] }>(current.belongId, [], {}),
-      ]).then((responses) => {
-        all.current = responses[1].data.data;
+    if (notInit && form) {
+      form.loadContent().then(() => {
+        all.current = [];
+        for (let i = 0; i < 10; i++) {
+          all.current.push({});
+        }
         setData(all.current.splice((page - 1) * size, size));
         setTotal(all.current.length);
         setNotInit(false);
         const select = ['选择型', '分类型'];
         const judge = (item: any) => select.indexOf(item.valueType) != -1;
-        search.current = current.fields.filter(judge);
+        search.current = form.fields.filter(judge);
       });
     }
   });
-  if (!current) {
+  if (!form) {
     return <></>;
   }
   const Search: React.FC<{ search: FieldModel[] }> = ({ search }) => {
@@ -79,7 +83,7 @@ const Welfare: React.FC<IProps> = ({ current }) => {
   };
   const Grid: React.FC<{ data: any[]; choose: any[] }> = ({ data, choose }) => {
     return (
-      <Row gutter={[16, 16]}>
+      <Row gutter={[8, 8]}>
         {data.map((item) => {
           const actions = [
             <AiOutlineRead
@@ -105,6 +109,19 @@ const Welfare: React.FC<IProps> = ({ current }) => {
                   setChoose(choose.filter((one) => one.Id != item.Id));
                 }}
               />,
+            );
+          }
+          const children = template?.metadata.rootElement.children;
+          if (children && children.length > 0) {
+            const first = children[0];
+            const Render = ctx.view.components.getComponentRender(
+              first.kind,
+              ctx.view.mode,
+            );
+            return (
+              <Col span={4} className={cls.contentCard}>
+                <Render key={generateUuid()} element={first} />
+              </Col>
             );
           }
           return (
@@ -187,8 +204,10 @@ const Welfare: React.FC<IProps> = ({ current }) => {
 
 export default defineElement({
   render(props) {
+    console.log(props);
     const form = ShareIdSet.get(props.formId + '*') as IForm;
-    return <Welfare current={form} />;
+    const page = ShareIdSet.get(props.pageId + '*') as IPageTemplate;
+    return <Welfare form={form} template={page} />;
   },
   displayName: 'Welfare',
   meta: {
@@ -197,7 +216,12 @@ export default defineElement({
         type: 'type',
         label: '关联表单',
         typeName: 'form',
-      } as ExistTypeMeta<any>,
+      } as ExistTypeMeta<string>,
+      pageId: {
+        type: 'type',
+        label: '展示卡片',
+        typeName: 'page',
+      } as ExistTypeMeta<string>,
     },
     label: '公物仓',
   },

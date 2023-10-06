@@ -5,7 +5,7 @@ import { ProFormColumnsType, ProFormInstance } from '@ant-design/pro-components'
 import { javascript } from '@codemirror/lang-javascript';
 import CodeMirror from '@uiw/react-codemirror';
 import React, { createRef, useState } from 'react';
-import { MenuItem, expand, loadFormsMenu } from '../menus';
+import { MenuItem, expand, loadFormsMenu } from '@/config/menus';
 
 interface IProps {
   transfer: ITransfer;

@@ -5,7 +5,7 @@ import {ProFormColumnsType} from '@ant-design/pro-components';
 import {javascript} from '@codemirror/lang-javascript';
 import CodeMirror from '@uiw/react-codemirror';
 import React, {useState} from 'react';
-import {expand, loadFormsMenu, MenuItem} from '../menus';
+import {expand, loadFormsMenu, MenuItem} from '@/config/menus';
 import {Button, message, Space, Spin, TreeSelect, Upload} from 'antd';
 import { generateXlsx } from '@/utils/excel';
 

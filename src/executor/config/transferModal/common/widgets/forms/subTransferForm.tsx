@@ -5,7 +5,7 @@ import React, { useEffect, useRef, useState } from 'react';
 import CodeMirror from '@uiw/react-codemirror';
 import { javascript } from '@codemirror/lang-javascript';
 import SchemaForm from '@/components/SchemaForm';
-import { MenuItem, expand, loadTransfersMenu } from '../menus';
+import { MenuItem, expand, loadTransfersMenu } from '@/config/menus';
 import { message } from 'antd';
 
 interface IProps {
