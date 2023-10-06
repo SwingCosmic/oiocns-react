@@ -114,7 +114,10 @@ const Welfare: React.FC<IProps> = ({ form, template }) => {
           const children = template?.metadata.rootElement.children;
           if (children && children.length > 0) {
             const first = children[0];
-            const Render = ctx.view.components.getComponentRender(first.kind, 'view');
+            const Render = ctx.view.components.getComponentRender(
+              first.kind,
+              ctx.view.mode,
+            );
             return (
               <Col key={generateUuid()} span={4} className={cls.contentCard}>
                 <Render element={first} />
