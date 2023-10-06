@@ -1,8 +1,24 @@
 import { Signal, signal } from "@preact/signals-react";
 import { PageElement } from "../core/PageElement";
 import HostManagerBase from "../render/HostManager";
+import { IPageTemplate } from "@/ts/core/thing/standard/page";
+import { IDisposable } from "@/ts/base/common";
 
-export default class DesignerManager extends HostManagerBase<"design"> {
+export default class DesignerManager extends HostManagerBase<"design"> implements IDisposable {
+
+  constructor(mode: "design", pageFile: IPageTemplate) {
+    super(mode, pageFile);
+    this.currentElement = this.rootElement;
+  }
+
+  dispose() {
+    console.info("DesignerManager disposed");
+    this.onChange = null;
+    this.onNodeChange = null;
+    this.onCurrentChange = null;
+
+    this.currentElement = null;
+  }
  
   async update() {
     return await this.pageInfo.update(this.pageInfo.metadata);

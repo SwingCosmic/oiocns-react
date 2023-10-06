@@ -1,9 +1,7 @@
 import React, { ChangeEventHandler, useEffect, useState } from 'react';
 import { ExistTypeMeta, TypeMeta } from '../../core/ElementMeta';
 import { DatePicker, Input, InputNumber, Select, Switch } from 'antd';
-import FormProp, { PageProp } from './StandardProp';
-import AttrsProp from './AttrsProp';
-import { FieldPositionProp } from './PositionProp';
+import editors from '.';
 
 interface Props {
   target: any;
@@ -25,6 +23,21 @@ export default function ElementPropsItem(props: Props) {
     setValue(v);
     props.onValueChange?.(v);
   };
+
+  function renderExistType<T>(meta: ExistTypeMeta<T>) {
+    const Editor = editors[meta.typeName];
+    if (!Editor) {
+      console.warn(`未知属性类型 ${meta.typeName}`);
+      return <Input value={value} onChange={e => onValueChange(e.target.value)} />;
+    }
+    return (
+      <Editor
+        {...(meta.editorConfig || {})}
+        value={value}
+        setValue={onValueChange}
+      />
+    );
+  }
 
   function renderComponent(meta: TypeMeta) {
     switch (meta.type) {
@@ -55,38 +68,7 @@ export default function ElementPropsItem(props: Props) {
           options={meta.options}
         />;
       case 'type':
-        const exist = meta as ExistTypeMeta<any>;
-        switch (exist.typeName) {
-          case 'form':
-            return (
-              <FormProp
-                value={value}
-                setValue={onValueChange}
-              />
-            );
-          case 'attr':
-            return (
-              <AttrsProp 
-                value={value} 
-                onChange={onValueChange}
-              />
-            )
-          case 'position':
-            return (
-              <FieldPositionProp 
-                value={value} 
-                setValue={onValueChange}
-              />
-            );
-          case 'page':
-            return (
-              <PageProp 
-                value={value} 
-                setValue={onValueChange}
-              />
-            );
-        }
-        break;
+        return renderExistType(meta);
       case 'object':
       case 'array':
       default:

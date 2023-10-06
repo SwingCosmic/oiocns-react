@@ -1,15 +1,18 @@
-import ElementFactory from "./ElementFactory";
+import { ElementMeta } from "./ElementMeta";
 import { IComponentFactory } from "./IComponentFactory";
 import ElementTreeManager from "./ElementTreeManager";
+import ElementFactory from "./ElementFactory";
 
 export type HostMode = "design" | "view";
-export interface PageBuilderStaticContext<T extends IComponentFactory<any, any>> {
-  components: T;
-  elements: ElementFactory;
+export interface PageBuilderStaticContext<TComponent> {
+  components: Dictionary<TComponent>;
+  metas: Dictionary<ElementMeta>;
 }
 
-export interface IViewHost<T extends HostMode, F extends IComponentFactory<any, any>> extends PageBuilderStaticContext<F> {
+export interface IViewHost<T extends HostMode, F extends IComponentFactory<any, any>>  {
   readonly mode: T;
   treeManager: ElementTreeManager;
+  components: F;
+  elements: ElementFactory;
 }
 

@@ -4,6 +4,7 @@ import React from 'react';
 import { TreeSelect } from 'antd';
 import { MenuItem, loadFormsMenu, loadPagesMenu } from '@/config/menus';
 import { IDirectory } from '@/ts/core';
+import { IExistTypeEditor } from '../IExistTypeEditor';
 
 interface StandardProps extends IProps {
   loadMenus: (current: IDirectory) => MenuItem;
@@ -42,7 +43,7 @@ interface IProps {
   setValue: (value: string) => void;
 }
 
-export const FormProp: React.FC<IProps> = ({ value, setValue }) => {
+export const FormProp: IExistTypeEditor<string, IProps> = ({ value, setValue }) => {
   return (
     <StandardProp
       value={value}
@@ -53,7 +54,7 @@ export const FormProp: React.FC<IProps> = ({ value, setValue }) => {
   );
 };
 
-export const PageProp: React.FC<IProps> = ({ value, setValue }) => {
+export const PageProp: IExistTypeEditor<string, IProps> = ({ value, setValue }) => {
   return (
     <StandardProp
       value={value}

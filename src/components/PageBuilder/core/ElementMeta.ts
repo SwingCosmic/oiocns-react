@@ -35,8 +35,9 @@ export interface ObjectTypeMeta extends TypeMetaBase<"object"> {
 }
 
 // @ts-ignore
-export interface ExistTypeMeta<T> extends TypeMetaBase<"type"> {
+export interface ExistTypeMeta<T, C extends {} = Dictionary<any>> extends TypeMetaBase<"type"> {
   typeName: string;
+  editorConfig?: C;
 }
 
 export type TypeMeta = PrimitiveTypeMeta<PrimitiveType> | EnumTypeMeta<string | number> | ArrayTypeMeta | ObjectTypeMeta | ExistTypeMeta<any>;

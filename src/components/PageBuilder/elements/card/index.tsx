@@ -31,8 +31,22 @@ const MetaCard: React.FC<IProps> = ({ image, first, second, third, fourth, fifth
 };
 
 export default defineElement({
-  render(props) {
-    return <MetaCard {...props} />;
+  render({ image, first, second, third, fourth, fifth }) {
+    return <Card
+      hoverable
+      style={{ width: 240 }}
+      cover={<ImagePosition {...image} />}
+      actions={[<Position {...first} />, <Position {...second} />]}>
+      <Card.Meta
+        title={<Position {...third} />}
+        description={
+          <Space direction="vertical">
+            <Position {...fourth} />
+            <Position {...fifth} />
+          </Space>
+        }
+      />
+    </Card>;
   },
   displayName: 'MetaCard',
   meta: {

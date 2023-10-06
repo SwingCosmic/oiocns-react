@@ -2,12 +2,11 @@ import ElementFactory from "./core/ElementFactory";
 import { ElementMeta } from "./core/ElementMeta";
 import { PageBuilderStaticContext } from "./core/IViewHost";
 import { ElementFC } from "./elements/defineElement";
-import ReactComponentFactory from "./render/ReactComponentFactory";
 import { FC } from "react";
 
 import "./common.less";
 
-function scanComponents(): PageBuilderStaticContext<ReactComponentFactory> {
+function scanComponents(): PageBuilderStaticContext<ElementFC> {
   const moduleExports: Dictionary<{ default?: ElementFC }> = import.meta.glob("./elements/**/*.tsx", { eager: true });
 
   console.log(moduleExports);
@@ -44,15 +43,9 @@ function scanComponents(): PageBuilderStaticContext<ReactComponentFactory> {
   }
 
 
-  const componentFactory = new ReactComponentFactory();
-  componentFactory.registerComponents(elements);
-
-
-  const elementFactory = new ElementFactory(metas);
-
   return {
-    components: componentFactory,
-    elements: elementFactory, 
+    components: elements,
+    metas, 
   };
 }
 

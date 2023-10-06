@@ -30,6 +30,9 @@ export function DesignerHost({ current }: DesignerProps) {
       view: new DesignerManager('design', current),
     };
     setReady(true);
+    return () => {
+      ctx.value.view.dispose();
+    };
   }, []);
 
   

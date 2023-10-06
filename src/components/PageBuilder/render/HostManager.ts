@@ -21,10 +21,13 @@ export default class HostManagerBase<T extends HostMode>
     this.mode = mode;
     this.pageInfo = pageFile;
 
-    this.components = staticContext.components;
-    this.elements = staticContext.elements;
+    const componentFactory = new ReactComponentFactory();
+    componentFactory.registerComponents(staticContext.components);
+    this.components = componentFactory;
 
-    this.treeManager = new ElementTreeManager(staticContext.elements, pageFile.metadata.rootElement);
+    this.elements = new ElementFactory(staticContext.metas);
+
+    this.treeManager = new ElementTreeManager(this.elements, pageFile.metadata.rootElement);
   }
 
   get page(): PageTemplate {
