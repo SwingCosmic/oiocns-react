@@ -9,6 +9,9 @@ export class PageTemplate
   extends StandardFileInfo<schema.XPageTemplate>
   implements IPageTemplate
 {
+  get cacheFlag() {
+    return 'pageTemplate';
+  }
   constructor(_metadata: schema.XPageTemplate, _directory: IDirectory) {
     super(_metadata, _directory, _directory.resource.templateColl);
     this.setEntity();

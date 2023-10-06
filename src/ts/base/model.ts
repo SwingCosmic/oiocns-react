@@ -1015,8 +1015,6 @@ export type Tables = { formIds: string[]; file?: FileItemModel } & Node;
 export type Sheet<T> = {
   // 名称
   name: string;
-  // 表头行数
-  headers: number;
   // 列信息
   columns: Column[];
   // 数据
@@ -1033,8 +1031,6 @@ export interface Column {
   dataIndex: string;
   // 类型
   valueType: string;
-  // 是否隐藏
-  hide?: boolean;
 }
 
 // 映射
@@ -1203,6 +1199,24 @@ export type SchemaType = {
   column: 1 | 2 | 3;
 };
 
+export type CommonAppplication = {
+  // 应用Id
+  id: string;
+  // 展示归属组织
+  spaceId: string;
+};
+
+/** 代码构建 */
+export type codeBuildType = {
+  git: string;
+  dockerfile: string;
+  image: string;
+  registry_tokencreateTime: string;
+};
+/** 新建文档 */
+export type documentType = {
+  name: string;
+};
 // 页面设计
 export * from "./pageModel";
 
