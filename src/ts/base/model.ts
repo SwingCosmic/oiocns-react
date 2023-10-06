@@ -3,6 +3,7 @@ import {
   XAuthority,
   Xbase,
   XDirectory,
+  XEntity,
   XForm,
   XIdentity,
   XProperty,
@@ -1242,3 +1243,8 @@ export type DiskInfoType = {
   // 查询时间
   getTime: string;
 }
+
+export type SubObjects = {
+  // 订阅的对象 ID
+  pageIds: string[];
+} & XEntity;

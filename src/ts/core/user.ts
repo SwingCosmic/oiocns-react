@@ -2,6 +2,7 @@ import { IPerson, Person } from './target/person';
 import { command, common, kernel, model, schema } from '../base';
 import { IWorkProvider, WorkProvider } from './work/provider';
 import { ITarget } from './target/base/target';
+import { ISubscriber, Subscriber } from './work/subscriber';
 
 const sessionUserName = 'sessionUser';
 
@@ -9,6 +10,7 @@ const sessionUserName = 'sessionUser';
 export class UserProvider {
   private _user: IPerson | undefined;
   private _work: IWorkProvider | undefined;
+  private _subs: ISubscriber | undefined;
   private _inited: boolean = false;
   private _emiter: common.Emitter;
   constructor(emiter: common.Emitter) {
@@ -21,6 +23,10 @@ export class UserProvider {
   /** 当前用户 */
   get user(): IPerson | undefined {
     return this._user;
+  }
+  /** 当前订阅 */
+  get subs(): ISubscriber | undefined {
+    return this._subs;
   }
   /** 办事提供层 */
   get work(): IWorkProvider | undefined {
@@ -84,6 +90,7 @@ export class UserProvider {
     kernel.userId = person.id;
     this._user = new Person(person);
     this._work = new WorkProvider(this);
+    this._subs = new Subscriber(this._user);
     this.refresh();
   }
   /** 重载数据 */

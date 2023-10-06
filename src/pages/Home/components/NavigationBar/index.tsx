@@ -1,10 +1,12 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 
 import cls from './index.module.less';
 import { EllipsisOutlined, MinusCircleFilled, PlusCircleFilled } from '@ant-design/icons';
 import { NavigationItem } from '@/pages/Home';
 import BasicTitle from '@/pages/Home/components/BaseTitle';
 import { Badge, Button, message, Space, Typography } from 'antd';
+import orgCtrl from '@/ts/controller';
+import { ViewerHost } from '@/components/PageBuilder/view/ViewerHost';
 
 const allPages: NavigationItem[] = [
   {
@@ -25,26 +27,31 @@ const allPages: NavigationItem[] = [
     backgroundImageUrl: '/img/banner/activity-bg.png',
     component: React.lazy(() => import('@/pages/Home/components/Content/Warehouse')),
   },
-  {
-    key: 'digital-asset',
-    label: '数据资产',
-    backgroundImageUrl: '/img/banner/digital-asset-bg.png',
-    component: React.lazy(() => import('@/pages/Home/components/Content/DigitalAsset')),
-  },
-  {
-    key: 'dashboard',
-    label: '工作台',
-    backgroundImageUrl: '/img/banner/digital-asset-bg.png',
-    component: React.lazy(() => import('@/pages/Home/components/Content/WorkBench')),
-  },
 ];
+
 const NavigationBar: React.FC<{
   list: NavigationItem[];
   onChange: (item: NavigationItem) => void;
 }> = ({ list, onChange }) => {
   const [current, setCurrent] = useState(0);
   const [more, setMore] = useState(false);
-
+  const [pages, setPages] = useState([...allPages]);
+  useEffect(() => {
+    orgCtrl.loadPages().then((res) => {
+      const items = [
+        ...allPages,
+        ...res.map((item) => {
+          return {
+            key: item.id,
+            label: item.name,
+            backgroundImageUrl: '/img/banner/activity-bg.png',
+            component: <ViewerHost current={item} />,
+          };
+        }),
+      ];
+      setPages(items);
+    });
+  }, []);
   const regularNavigation = (
     <>
       <div className={cls.navigationBarContent}>
@@ -108,7 +115,7 @@ const NavigationBar: React.FC<{
         <div className={cls.navigationBarConfigSection}>
           <Typography.Title level={5}>全部页面</Typography.Title>
           <Space size={16}>
-            {allPages.map((item, index) => {
+            {pages.map((item, index) => {
               return (
                 <Badge
                   count={

@@ -1,7 +1,9 @@
 import cls from './index.module.less';
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import HeadBanner from '@/pages/Home/components/HeadBanner';
 import NavigationBar from '@/pages/Home/components/NavigationBar';
+import orgCtrl from '@/ts/controller';
+import { ViewerHost } from '@/components/PageBuilder/view/ViewerHost';
 
 export interface NavigationItem {
   key: string;
@@ -28,26 +30,31 @@ const navigationList: NavigationItem[] = [
     backgroundImageUrl: '/img/banner/circle-bg.jpeg',
     component: React.lazy(() => import('@/pages/Home/components/Content/Circle')),
   },
-  {
-    key: 'warehouse',
-    label: '公物仓',
-    backgroundImageUrl: '/img/banner/activity-bg.png',
-    component: React.lazy(() => import('@/pages/Home/components/Content/Warehouse')),
-  },
-  {
-    key: 'digital-asset',
-    label: '数据资产',
-    backgroundImageUrl: '/img/banner/digital-asset-bg.png',
-    component: React.lazy(() => import('@/pages/Home/components/Content/DigitalAsset')),
-  },
 ];
-const Home: React.FC = () => {
-  const [current, setCurrent] = useState(navigationList[0]);
 
+const getComponents = () => {
+  const subs = orgCtrl.provider.subs;
+  const pages = subs?.subscribedPages.map((item) => {
+    return {
+      key: item.id,
+      label: item.name,
+      backgroundImageUrl: '/img/banner/circle-bg.jpeg',
+      component: <ViewerHost current={item} />,
+    };
+  });
+  return [...navigationList, ...(pages ?? [])];
+};
+
+const Home: React.FC = () => {
+  const [list, setList] = useState(getComponents());
+  const [current, setCurrent] = useState(list[0]);
+  useEffect(() => {
+    setList(getComponents());
+  }, []);
   return (
     <div className={cls.homepage}>
       <NavigationBar
-        list={navigationList}
+        list={list}
         onChange={(item) => {
           setCurrent(item);
         }}></NavigationBar>
