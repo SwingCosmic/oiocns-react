@@ -6,13 +6,9 @@ import React, { useEffect, useState } from 'react';
 import { useDrag } from 'react-dnd';
 import FormProp from '../StandardProp';
 import cls from './index.module.less';
+import { IExistTypeEditor } from '../IExistTypeEditor';
 
-interface IProps {
-  value?: string;
-  onChange: (value: string) => void;
-}
-
-const AttrsProp: React.FC<IProps> = ({ value, onChange }) => {
+const AttrsProp: IExistTypeEditor<string> = ({ value, onChange }) => {
   const form = ShareIdSet.get(value + '*') as IForm | undefined;
   const [fields, setFields] = useState(form?.fields ?? []);
   useEffect(() => {
@@ -20,7 +16,7 @@ const AttrsProp: React.FC<IProps> = ({ value, onChange }) => {
   });
   return (
     <div className={cls.attrsContainer}>
-      <FormProp value={value} setValue={onChange} />
+      <FormProp value={value} onChange={onChange} />
       <Row className={cls.fields}>
         {fields.map((field) => {
           return <Field key={field.id} field={field} />;
