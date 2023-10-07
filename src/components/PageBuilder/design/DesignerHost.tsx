@@ -77,12 +77,12 @@ export function DesignerHost({ current }: DesignerProps) {
             </Button>
           </div>
           <div className={css.content}>
-            <div className={css.designConfig} style={{ flex: 1 }}>
+            <div className={css.designConfig}>
               <Tabs className="is-full-height" items={renderTabs()}>
               </Tabs>
             </div>
             
-            <div className="o-page-host" style={{ flex: 2 }} {...withChangeToken()}>
+            <div className="o-page-host" style={{ flex: "auto" }} {...withChangeToken()}>
               <RootRender element={ctx.value.view.rootElement} />
             </div>
 
