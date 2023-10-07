@@ -6,14 +6,14 @@ import { MenuItem, loadFormsMenu, loadPagesMenu } from '@/config/menus';
 import { IDirectory } from '@/ts/core';
 import { IExistTypeEditor } from '../IExistTypeEditor';
 
-interface StandardProps extends IProps {
+interface StandardProps {
   loadMenus: (current: IDirectory) => MenuItem;
   placeholder: string;
 }
 
-const StandardProp: React.FC<StandardProps> = ({
+const StandardProp: IExistTypeEditor<string, StandardProps> = ({
   value,
-  setValue,
+  onChange,
   loadMenus,
   placeholder,
 }) => {
@@ -32,33 +32,28 @@ const StandardProp: React.FC<StandardProps> = ({
       placeholder={placeholder}
       allowClear
       treeDefaultExpandAll
-      onChange={setValue}
+      onChange={onChange}
       treeData={[loadMenus(root)]}
     />
   );
 };
 
-interface IProps {
-  value?: string;
-  setValue: (value: string) => void;
-}
-
-export const FormProp: IExistTypeEditor<string, IProps> = ({ value, setValue }) => {
+export const FormProp: IExistTypeEditor<string> = ({ value, onChange }) => {
   return (
     <StandardProp
       value={value}
-      setValue={setValue}
+      onChange={onChange}
       loadMenus={loadFormsMenu}
       placeholder={'选择表单'}
     />
   );
 };
 
-export const PageProp: IExistTypeEditor<string, IProps> = ({ value, setValue }) => {
+export const PageProp: IExistTypeEditor<string> = ({ value, onChange }) => {
   return (
     <StandardProp
       value={value}
-      setValue={setValue}
+      onChange={onChange}
       loadMenus={loadPagesMenu}
       placeholder={'选择模板'}
     />

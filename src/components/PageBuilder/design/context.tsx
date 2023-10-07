@@ -13,7 +13,7 @@ const Coder: React.FC<IProps> = ({}) => {
   );
   useEffect(() => {
     const id = ctx.view.pageInfo.subscribe(() => {
-      setData(JSON.stringify(ctx.view.rootChildren, null, 2));
+      // setData(JSON.stringify(ctx.view.rootChildren, null, 2));
     });
     return () => {
       ctx.view.pageInfo.unsubscribe(id);

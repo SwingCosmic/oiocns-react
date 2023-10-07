@@ -7,6 +7,7 @@ import { Result } from "antd";
 import { DesignContext, PageContext } from "./PageContext";
 import { ElementMeta } from "../core/ElementMeta";
 import { deepClone } from "@/ts/base/common";
+import ErrorBoundary from "./ErrorBoundary";
 
 export type Render = FC<ElementRenderProps>;
 
@@ -76,13 +77,17 @@ function createDesignRender(component: ComponentType) {
       e.stopPropagation();
       ctx.view.currentElement = props.element;
     }, []);
-    return <div 
-      className={[
-        "element-wrapper",
-        ctx.view.currentElement?.id == props.element.id ? "is-current": ""
-      ].join(" ")} onClick={handleClick}>
-      {h(component, mergeProps(props.element, component))}
-    </div>;
+    return (
+      <ErrorBoundary>
+        <div 
+          className={[
+            "element-wrapper",
+            ctx.view.currentElement?.id == props.element.id ? "is-current": ""
+          ].join(" ")} onClick={handleClick}>
+          {h(component, mergeProps(props.element, component))}
+        </div>;
+      </ErrorBoundary>
+    );
   };
 }
 

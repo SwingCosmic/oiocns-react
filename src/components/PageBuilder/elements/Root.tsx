@@ -1,12 +1,10 @@
 
-import React, { useContext } from "react";
+import React from "react";
 import { defineElement } from "./defineElement";
-import { PageContext } from "../render/PageContext";
 
 
 export default defineElement({
-  render(props) {
-    const ctx = useContext(PageContext);
+  render(props, ctx) {
     const isDesign = ctx.view.mode == "design";
 
     return (
