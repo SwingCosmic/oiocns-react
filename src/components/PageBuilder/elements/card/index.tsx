@@ -5,31 +5,6 @@ import { PosVal } from '../../type';
 import Position, { ImagePosition } from '../../view/Position';
 import { defineElement } from '../defineElement';
 
-type PositionName = 'image' | 'first' | 'second' | 'third' | 'fourth' | 'fifth';
-type IProps = {
-  [key in PositionName]: PosVal;
-};
-
-const MetaCard: React.FC<IProps> = ({ image, first, second, third, fourth, fifth }) => {
-  return (
-    <Card
-      hoverable
-      style={{ width: 240 }}
-      cover={<ImagePosition {...image} />}
-      actions={[<Position {...first} />, <Position {...second} />]}>
-      <Card.Meta
-        title={<Position {...third} />}
-        description={
-          <Space direction="vertical">
-            <Position {...fourth} />
-            <Position {...fifth} />
-          </Space>
-        }
-      />
-    </Card>
-  );
-};
-
 export default defineElement({
   render({ image, first, second, third, fourth, fifth }) {
     return <Card
