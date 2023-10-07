@@ -28,9 +28,8 @@ import cls from './index.module.less';
 import Asset from '/img/asset.png';
 
 export default defineElement({
-  render(props) {
+  render(props, ctx) {
     const form = ShareIdSet.get(props.formId + '*') as IForm;
-    const ctx = useContext(PageContext);
     const [notInit, setNotInit] = useState<boolean>(true);
     const all = useRef<any[]>([]);
     const search = useRef<FieldModel[]>([]);

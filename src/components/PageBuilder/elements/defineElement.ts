@@ -1,6 +1,6 @@
 import { FCOptions, defineFC } from '@/utils/react/fc';
 import { FC, ReactNode, useContext } from 'react';
-import { IPageContext } from '../render/PageContext';
+import { Context, IPageContext } from '../render/PageContext';
 import { HostMode } from '../core/IViewHost';
 import { ElementMeta, ExtractMetaToType } from '../core/ElementMeta';
 import { PageElement } from '../core/PageElement';
@@ -19,7 +19,7 @@ export interface ElementOptions<M extends ElementMeta, P extends {}> extends FCO
 }
 
 export interface ElementInit<M extends ElementMeta, P extends {}> extends ElementOptions<M, P> {
-  render(this: void, props: WithCommonProps<P>, context: IPageContext<HostMode>): ReactNode;
+  render(this: void, props: WithCommonProps<P>, context: Context): ReactNode;
 }
 
 export type ElementFC<M extends ElementMeta = ElementMeta, P extends {} = {}> = FC<P> & ElementOptions<M, P>;
