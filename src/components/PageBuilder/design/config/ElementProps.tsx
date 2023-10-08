@@ -115,7 +115,7 @@ export default function ElementProps({ element }: Props) {
               meta={meta}
               onValueChange={() => {
                 ctx.view.onChange?.();
-                ctx.view.pageInfo.changCallback();
+                ctx.view.pageInfo.command.emitter("graph", "refresh");
               }}
             />;
           })

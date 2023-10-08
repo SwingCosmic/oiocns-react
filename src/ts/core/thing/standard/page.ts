@@ -1,19 +1,22 @@
-import { schema } from '@/ts/base';
+import { Command, schema } from '@/ts/base';
 import { IStandardFileInfo, StandardFileInfo } from '../fileinfo';
 import { IDirectory } from '../directory';
 
 export interface IPageTemplate extends IStandardFileInfo<schema.XPageTemplate> {
+  command: Command;
 }
 
 export class PageTemplate
   extends StandardFileInfo<schema.XPageTemplate>
   implements IPageTemplate
 {
+  command: Command;
   get cacheFlag() {
-    return 'pageTemplate';
+    return 'pages';
   }
   constructor(_metadata: schema.XPageTemplate, _directory: IDirectory) {
     super(_metadata, _directory, _directory.resource.templateColl);
+    this.command = new Command();
     this.setEntity();
   }
   async copy(destination: IDirectory): Promise<boolean> {

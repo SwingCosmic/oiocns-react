@@ -12,20 +12,21 @@ const Coder: React.FC<IProps> = ({}) => {
     JSON.stringify(ctx.view.rootChildren, null, 2),
   );
   useEffect(() => {
-    const id = ctx.view.pageInfo.subscribe(() => {
-      // setData(JSON.stringify(ctx.view.rootChildren, null, 2));
+    const id = ctx.view.pageInfo.command.subscribe((type, cmd) => {
+      if (type == 'graph' && cmd == 'refresh') {
+        setData(JSON.stringify(ctx.view.rootChildren, null, 2));
+      }
     });
     return () => {
       ctx.view.pageInfo.unsubscribe(id);
-    }
+    };
   });
   return (
     <div>
       <Button
         onClick={() => {
           try {
-            const children = JSON.parse(data);
-            ctx.view.rootChildren = children;
+            ctx.view.rootChildren = JSON.parse(data);
           } catch (error) {
             message.error('JSON 格式错误！');
           }
