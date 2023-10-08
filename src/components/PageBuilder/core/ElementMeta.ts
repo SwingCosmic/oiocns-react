@@ -10,6 +10,7 @@ export interface TypeMetaBase<T extends DataType> {
   default?: any;
   required?: boolean;
   label?: string;
+  readonly?: boolean;
 }
 
 export interface PrimitiveTypeMeta<T extends PrimitiveType> extends TypeMetaBase<T> {

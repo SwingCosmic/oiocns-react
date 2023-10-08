@@ -1,9 +1,11 @@
 import { signalsToObject, useSignal, useSimpleSignal } from "@/hooks/useSignal";
 import { defineFC } from "@/utils/react/fc";
-import { Form, Input, Modal } from "antd";
-import React, { useContext, useEffect, useState } from "react";
+import { Form, Input, Modal, Select } from "antd";
+import React, { useContext, useEffect, useMemo, useState } from "react";
 import { PageElement } from "../core/PageElement";
 import { DesignContext, PageContext } from "../render/PageContext";
+import { useComputed, useSignalEffect } from "@preact/signals-react";
+import { ElementMeta } from "../core/ElementMeta";
 
 interface Props {
   visible: boolean;
@@ -16,47 +18,91 @@ export default defineFC({
 
     const ctx = useContext<DesignContext>(PageContext as any);
 
-    const kind = useSimpleSignal("");
-    const name = useSimpleSignal("");
-    const form = signalsToObject({
-      kind,
-      name
+    const form = useSignal({
+      kind: "",
+      name: ""
+    });
+    const [formInst] = Form.useForm();
+    const meta = useSignal<ElementMeta | null>(null);
+    useSignalEffect(() => {
+      if (form.value.kind) {
+        meta.value = ctx.view.elements.elementMeta[form.value.kind] || {
+          props: {},
+          label: form.value.kind
+        };
+      } else {
+        meta.value = null;
+      }
     });
 
-    const modalVisible = useSimpleSignal(false);
+
+    const elementTypes = useMemo(() => {
+      const ret: { label: string, value: string }[] = [];
+      for (const [name, meta] of Object.entries(ctx.view.elements.elementMeta)) {
+        ret.push({
+          value: name,
+          label: meta?.label,
+        })
+      }
+      return ret;
+    }, []);
+
+    const modalVisible = useSignal(false);
     useEffect(() => {
-      modalVisible.current = props.visible;
+      modalVisible.value = props.visible;
       if (props.visible) {
-        form.name = "新元素";
-        form.kind = "";
+        form.value = {
+          kind: "",
+          name: "新元素"
+        };
       }
     }, [props.visible]);
-
     function visibleChange(v: boolean) {
-      modalVisible.current = v;
+      modalVisible.value = v;
       props.onVisibleChange?.(v);
     }
 
 
-
-
-    function handleCreate() {
-      ctx.view.addElement(form.kind, form.name, props.parentId);
+    async function handleCreate() {
+      const res = await formInst.validateFields();
+      debugger
+      const { kind, name } = form.value;
+      ctx.view.addElement(kind, name, props.parentId);
       visibleChange(false);
     }
 
 
     return <Modal title="新建元素"
       destroyOnClose={true}
-      open={modalVisible.current}
+      open={modalVisible.value}
       onCancel={() => visibleChange(false)}
       onOk={handleCreate}>
-      <Form initialValues={form}>
-        <Form.Item name="name" label="名称" required>
-          <Input value={form.name} onChange={v => form.name = v.target.value}/>
+      <Form initialValues={form.value} form={formInst}>
+        <Form.Item name="name" label="名称"
+          rules={[{ required: true, message: '请输入名称' }]}>
+          <Input value={form.value.name} onChange={v => form.value.name = v.target.value}/>
         </Form.Item>
-        <Form.Item name="kind" label="类型" required>
-          <Input value={form.kind} onChange={v => form.kind = v.target.value}/>
+        <Form.Item name="kind" label="类型" 
+          rules={[{ required: true, message: '请选择类型' }]}>
+          <Select optionLabelProp="label"
+            value={form.value.kind} 
+            onChange={v => form.value.kind = v}>
+            {
+              elementTypes.map(o => {
+                return (
+                  <Select.Option key={o.value}
+                    value={o.value} 
+                    label={o.label}>
+                    <div style={{ display: "flex" }}>
+                      <span>{o.value}</span>
+                      <span style={{flex: "auto"}}></span>
+                      <span>{o.label}</span>
+                    </div>  
+                  </Select.Option>
+                )
+              })
+            }
+          </Select>
         </Form.Item>
       </Form>
     </Modal>

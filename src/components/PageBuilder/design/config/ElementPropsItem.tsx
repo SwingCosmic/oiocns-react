@@ -42,9 +42,17 @@ export default function ElementPropsItem(props: Props) {
   function renderComponent(meta: TypeMeta) {
     switch (meta.type) {
       case 'string':
-        return <Input value={value} onChange={e => onValueChange(e.target.value)} />;
+        return <Input 
+          readOnly={meta.readonly}
+          value={value} 
+          onChange={e => onValueChange(e.target.value)} 
+        />;
       case 'number':
-        return <InputNumber value={value} onChange={e => onValueChange(e.target.value)} />;
+        return <InputNumber 
+          readOnly={meta.readonly}
+          value={value} 
+          onChange={e => onValueChange(e.target.value)} 
+        />;
       case 'boolean':
         return (
           <Switch

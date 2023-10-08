@@ -78,7 +78,9 @@ export function DesignerHost({ current }: DesignerProps) {
           </div>
           <div className={css.content}>
             <div className={css.designConfig}>
-              <Tabs className="is-full-height" items={renderTabs()}>
+              <Tabs className="is-full-height" 
+                defaultActiveKey='element' 
+                items={renderTabs()}>
               </Tabs>
             </div>
             

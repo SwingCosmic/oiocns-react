@@ -20,6 +20,11 @@ export default function ElementProps({ element }: Props) {
   const [addVisible, setAddVisible] = useState(false);
 
   const commonTypeMeta: Dictionary<TypeMeta> = {
+    id: {
+      type: "string",
+      label: "ID",
+      readonly: true
+    },
     name: {
       type: "string",
       label: "名称",
@@ -49,7 +54,7 @@ export default function ElementProps({ element }: Props) {
 
   return <div className="page-element-props">
     <div className="props-header">
-      <span className="header-id">[{element.id}]</span>
+      {/* <span className="header-id">[{element.id}]</span> */}
       <span className="header-title">{element.name || "（未命名）"}</span>
       <Tag color="processing" className="header-kind">
         {meta.label || element.kind}
