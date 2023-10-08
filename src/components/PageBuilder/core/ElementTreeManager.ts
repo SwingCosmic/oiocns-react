@@ -47,9 +47,7 @@ export default class ElementTreeManager {
         enumerable: false
       });
       this.allElements[e.id] = e;
-      for (const slot of e.children) {
-        this.initElements(slot.children, e.id);
-      }
+      this.initElements(e.children, e.id);
     }
   }
 

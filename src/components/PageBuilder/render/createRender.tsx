@@ -94,7 +94,7 @@ function createDesignRender(component: ComponentType) {
 export function createNullRender(name: string) {
   const staticRenderResult = (
     <div>
-      <Result status="error" title={`元素 ${name} 未注册组件`} />
+      <Result status="error" title={`元素 '${name}' 未注册组件`} />
     </div>
   );
   return () => staticRenderResult;

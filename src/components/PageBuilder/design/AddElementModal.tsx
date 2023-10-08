@@ -65,8 +65,7 @@ export default defineFC({
 
     async function handleCreate() {
       const res = await formInst.validateFields();
-      debugger
-      const { kind, name } = form.value;
+      const { kind, name } = res;
       ctx.view.addElement(kind, name, props.parentId);
       visibleChange(false);
     }
