@@ -4,24 +4,60 @@ import { ExistTypeMeta } from '../../core/ElementMeta';
 import { PosVal } from '../../type';
 import Position, { ImagePosition } from '../../view/Position';
 import { defineElement } from '../defineElement';
+import { Image } from 'antd';
+import Asset from '/img/banner/activity-bg.png';
+import { model } from '@/ts/base';
+
+interface IProps {
+  data: model.AnyThingModel;
+  pos: PosVal;
+}
+
+const Content: React.FC<IProps> = ({ data, pos }) => {
+  return <>{pos.field ? data[pos.field.id] : pos.label}</>;
+};
 
 export default defineElement({
-  render({ image, first, second, third, fourth, fifth }) {
-    return <Card
-      hoverable
-      style={{ width: 240 }}
-      cover={<ImagePosition {...image} />}
-      actions={[<Position {...first} />, <Position {...second} />]}>
-      <Card.Meta
-        title={<Position {...third} />}
-        description={
-          <Space direction="vertical">
-            <Position {...fourth} />
-            <Position {...fifth} />
-          </Space>
-        }
-      />
-    </Card>;
+  render({ data, image, first, second, third, fourth, fifth }, ctx) {
+    if (ctx.view.mode == 'view') {
+      return (
+        <Card
+          hoverable
+          style={{ width: 240 }}
+          cover={<Image height={200} src={Asset} />}
+          actions={[
+            <Content data={data} pos={first} />,
+            <Content data={data} pos={second} />,
+          ]}>
+          <Card.Meta
+            title={<Content data={data} pos={third} />}
+            description={
+              <Space direction="vertical">
+                <Content data={data} pos={fourth} />
+                <Content data={data} pos={fifth} />
+              </Space>
+            }
+          />
+        </Card>
+      );
+    }
+    return (
+      <Card
+        hoverable
+        style={{ width: 240 }}
+        cover={<ImagePosition {...image} />}
+        actions={[<Position {...first} />, <Position {...second} />]}>
+        <Card.Meta
+          title={<Position {...third} />}
+          description={
+            <Space direction="vertical">
+              <Position {...fourth} />
+              <Position {...fifth} />
+            </Space>
+          }
+        />
+      </Card>
+    );
   },
   displayName: 'MetaCard',
   meta: {
@@ -31,6 +67,11 @@ export default defineElement({
         typeName: 'attr',
         label: '表单字段',
       } as ExistTypeMeta<string>,
+      data: {
+        type: 'type',
+        typeName: 'empty',
+        label: '数据',
+      } as ExistTypeMeta<model.AnyThingModel>,
       image: {
         type: 'type',
         typeName: 'position',

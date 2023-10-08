@@ -57,7 +57,7 @@ export default defineElement({
       }
     });
     if (!form) {
-      return <></>;
+      return <>{'未获取到表单信息！'}</>;
     }
     const Search: React.FC<{ search: FieldModel[] }> = ({ search }) => {
       return (

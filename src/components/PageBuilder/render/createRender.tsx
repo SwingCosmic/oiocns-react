@@ -85,7 +85,7 @@ function createDesignRender(component: ComponentType) {
             ctx.view.currentElement?.id == props.element.id ? "is-current": ""
           ].join(" ")} onClick={handleClick}>
           {h(component, mergeProps(props.element, component))}
-        </div>;
+        </div>
       </ErrorBoundary>
     );
   };
