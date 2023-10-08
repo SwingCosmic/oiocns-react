@@ -55,4 +55,10 @@ export default class DesignerManager extends HostManagerBase<"design"> implement
     return e as any;
   }
 
+  removeElement(e: PageElement, recursive?: boolean) {
+    this.treeManager.removeElement(e, recursive);
+    this.currentElement = null;
+    this.onCurrentChange?.(this.treeManager.root);
+  }
+
 }

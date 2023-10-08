@@ -2,11 +2,12 @@ import React, { useContext, useState } from "react";
 import "./index.less";
 import { PageElement } from "../../core/PageElement";
 import { DesignContext, PageContext } from "../../render/PageContext";
-import { Button, Empty, Form, Tag } from "antd";
+import { Button, Empty, Form, Modal, Tag, message } from "antd";
 import ElementPropsItem from "./ElementPropsItem";
 import { TypeMeta } from "../../core/ElementMeta";
-import { PlusOutlined } from "@ant-design/icons";
+import { MinusOutlined, PlusOutlined } from "@ant-design/icons";
 import AddElementModal from "../AddElementModal";
+import { $confirm } from "@/utils/react/antd";
 
 interface Props {
   element: PageElement | null;
@@ -43,6 +44,21 @@ export default function ElementProps({ element }: Props) {
   function addElement() {
     setAddVisible(true)
   }
+
+  async function removeElement() {
+    if (!element) {
+      return;
+    }
+    if (element.kind == "Root") {
+      message.error('根元素不可删除');
+      return;
+    }
+    await $confirm({
+      title: '提示',
+      content: `确实要移除元素 ${element.name} 及其所有下级？`,
+    });
+    ctx.view.removeElement(element, true);
+  }
   
   if (!element) {
     return <div>
@@ -64,6 +80,12 @@ export default function ElementProps({ element }: Props) {
         size="small"
         icon={<PlusOutlined />}
         onClick={addElement}>
+      </Button>
+      <Button type="primary" shape="circle" 
+        danger style={{ marginLeft: "8px" }}
+        size="small"
+        icon={<MinusOutlined />}
+        onClick={removeElement}>
       </Button>
     </div>
     <div className="props-content">
