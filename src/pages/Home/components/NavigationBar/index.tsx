@@ -1,77 +1,75 @@
 import React, { useEffect, useState } from 'react';
 
-import cls from './index.module.less';
-import { EllipsisOutlined, MinusCircleFilled, PlusCircleFilled } from '@ant-design/icons';
-import { NavigationItem } from '@/pages/Home';
 import BasicTitle from '@/pages/Home/components/BaseTitle';
-import { Badge, Button, message, Space, Typography } from 'antd';
+import { command } from '@/ts/base';
 import orgCtrl from '@/ts/controller';
+import { IPageTemplate } from '@/ts/core/thing/standard/page';
+import { EllipsisOutlined, MinusCircleFilled, PlusCircleFilled } from '@ant-design/icons';
+import { Badge, Button, Space, Typography, message } from 'antd';
+import cls from './index.module.less';
+import { NavigationItem } from '../..';
 import { ViewerHost } from '@/components/PageBuilder/view/ViewerHost';
-
-const allPages: NavigationItem[] = [
-  {
-    key: 'activity',
-    label: '群动态',
-    backgroundImageUrl: '/img/banner/activity-bg.png',
-    component: React.lazy(() => import('@/pages/Home/components/Content/Activity')),
-  },
-  {
-    key: 'circle',
-    label: '好友圈',
-    backgroundImageUrl: '/img/banner/circle-bg.jpeg',
-    component: React.lazy(() => import('@/pages/Home/components/Content/Circle')),
-  },
-  {
-    key: 'warehouse',
-    label: '公物仓',
-    backgroundImageUrl: '/img/banner/activity-bg.png',
-    component: React.lazy(() => import('@/pages/Home/components/Content/Warehouse')),
-  },
-];
 
 const NavigationBar: React.FC<{
   list: NavigationItem[];
   onChange: (item: NavigationItem) => void;
-}> = ({ list, onChange }) => {
-  const [current, setCurrent] = useState(0);
+}> = ({ onChange, list }) => {
+  const [current, setCurrent] = useState(list.length > 0 ? list[0].key : '');
   const [more, setMore] = useState(false);
-  const [pages, setPages] = useState([...allPages]);
+  const [pages, setPages] = useState<IPageTemplate[]>([]);
   useEffect(() => {
-    orgCtrl.loadPages().then((res) => {
-      const items = [
-        ...allPages,
-        ...res.map((item) => {
-          return {
-            key: item.id,
-            label: item.name,
-            backgroundImageUrl: '/img/banner/activity-bg.png',
-            component: <ViewerHost current={item} />,
-          };
-        }),
-      ];
-      setPages(items);
+    const id = command.subscribeByFlag('pages', async () => {
+      setPages(await orgCtrl.loadPages());
     });
+    return () => {
+      command.unsubscribeByFlag(id);
+    };
   }, []);
   const regularNavigation = (
     <>
       <div className={cls.navigationBarContent}>
-        {list.map((item, index) => {
+        {list.map((item) => {
           return (
             <div
               key={item.key}
               className={
-                current === index
+                current === item.key
                   ? cls.navigationBarContent__itemActive
                   : cls.navigationBarContent__item
               }
               onClick={() => {
-                setCurrent(index);
+                setCurrent(item.key);
                 onChange(item);
               }}>
               {item.label}
             </div>
           );
         })}
+        {pages
+          .filter((item) => item.cache.tags?.includes('常用'))
+          .map((item) => {
+            return (
+              <div
+                key={item.key}
+                className={
+                  current === item.id
+                    ? cls.navigationBarContent__itemActive
+                    : cls.navigationBarContent__item
+                }
+                onClick={() => {
+                  setCurrent(item.id);
+                  onChange({
+                    key: item.id,
+                    label: item.name,
+                    backgroundImageUrl: '/img/banner/circle-bg.jpeg',
+                    type: "page",
+                    component: <ViewerHost current={item} />,
+                  });
+                }}>
+                {item.name}
+              </div>
+            );
+          })}
       </div>
       <EllipsisOutlined
         onClick={() => {
@@ -94,22 +92,24 @@ const NavigationBar: React.FC<{
         <div className={cls.navigationBarConfigSection}>
           <Typography.Title level={5}>常用页面</Typography.Title>
           <Space size={16}>
-            {list.map((item, index) => {
-              return (
-                <Badge
-                  count={
-                    <MinusCircleFilled
-                      onClick={() => {
-                        removeRegularNavigationItem();
-                      }}
-                      style={{ color: 'red' }}
-                    />
-                  }
-                  key={index}>
-                  <div className={cls.navigationBarConfigPageCard}>{item.label}</div>
-                </Badge>
-              );
-            })}
+            {pages
+              .filter((item) => item.cache.tags?.includes('常用'))
+              .map((item, index) => {
+                return (
+                  <Badge
+                    count={
+                      <MinusCircleFilled
+                        onClick={() => {
+                          removeRegularNavigationItem(item);
+                        }}
+                        style={{ color: 'red' }}
+                      />
+                    }
+                    key={index}>
+                    <div className={cls.navigationBarConfigPageCard}>{item.name}</div>
+                  </Badge>
+                );
+              })}
           </Space>
         </div>
         <div className={cls.navigationBarConfigSection}>
@@ -119,19 +119,19 @@ const NavigationBar: React.FC<{
               return (
                 <Badge
                   count={
-                    list.findIndex((find) => find.key === item.key) === -1 ? (
+                    item.cache.tags?.includes('常用') ? (
+                      0
+                    ) : (
                       <PlusCircleFilled
                         onClick={() => {
-                          addRegularNavigationItem();
+                          addRegularNavigationItem(item);
                         }}
                         style={{ color: 'blue' }}
                       />
-                    ) : (
-                      0
                     )
                   }
                   key={index}>
-                  <div className={cls.navigationBarConfigPageCard}>{item.label}</div>
+                  <div className={cls.navigationBarConfigPageCard}>{item.name}</div>
                 </Badge>
               );
             })}
@@ -141,11 +141,16 @@ const NavigationBar: React.FC<{
     </>
   );
 
-  const removeRegularNavigationItem = () => {
+  const removeRegularNavigationItem = (item: IPageTemplate) => {
+    item.cache.tags = item.cache.tags?.filter((i) => i != '常用');
+    item.cacheUserData(true);
     message.success('移除页面');
   };
 
-  const addRegularNavigationItem = () => {
+  const addRegularNavigationItem = (item: IPageTemplate) => {
+    item.cache.tags = item.cache.tags || [];
+    item.cache.tags.push('常用');
+    item.cacheUserData(true);
     message.success('添加页面');
   };
 
