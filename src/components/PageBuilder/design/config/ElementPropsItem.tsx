@@ -34,7 +34,7 @@ export default function ElementPropsItem(props: Props) {
       <Editor
         {...(meta.editorConfig || {})}
         value={value}
-        setValue={onValueChange}
+        onChange={onValueChange}
       />
     );
   }
