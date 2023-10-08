@@ -3,6 +3,7 @@ import { PageElement } from "../core/PageElement";
 import HostManagerBase from "../render/HostManager";
 import { IPageTemplate } from "@/ts/core/thing/standard/page";
 import { IDisposable } from "@/ts/base/common";
+import { ElementInit } from "../core/ElementTreeManager";
 
 export default class DesignerManager extends HostManagerBase<"design"> implements IDisposable {
 
@@ -46,6 +47,12 @@ export default class DesignerManager extends HostManagerBase<"design"> implement
   set currentElement(e) {
     this._currentElement.value = e;
     this.onCurrentChange?.(e);
+  }
+
+  addElement<E extends PageElement>(kind: E["kind"], name: string, parentId?: string, params: ElementInit<E> = {}): E {
+    const e = this.treeManager.createElement(kind, name, parentId, params);
+    this.onNodeChange?.(e);
+    return e as any;
   }
 
 }

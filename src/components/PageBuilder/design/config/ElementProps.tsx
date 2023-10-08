@@ -1,11 +1,12 @@
-import React, { useContext } from "react";
+import React, { useContext, useState } from "react";
 import "./index.less";
 import { PageElement } from "../../core/PageElement";
 import { DesignContext, PageContext } from "../../render/PageContext";
-import { Empty, Form, Tag } from "antd";
+import { Button, Empty, Form, Tag } from "antd";
 import ElementPropsItem from "./ElementPropsItem";
-import { useChangeToken } from "@/hooks/useChangeToken";
 import { TypeMeta } from "../../core/ElementMeta";
+import { PlusOutlined } from "@ant-design/icons";
+import AddElementModal from "../AddElementModal";
 
 interface Props {
   element: PageElement | null;
@@ -15,7 +16,8 @@ interface Props {
 
 export default function ElementProps({ element }: Props) {
   const ctx = useContext<DesignContext>(PageContext as any);
-  // const [refresh] = useChangeToken(); 
+
+  const [addVisible, setAddVisible] = useState(false);
 
   const commonTypeMeta: Dictionary<TypeMeta> = {
     name: {
@@ -31,6 +33,10 @@ export default function ElementProps({ element }: Props) {
       type: "string",
       label: "CSS样式"
     },
+  }
+
+  function addElement() {
+    setAddVisible(true)
   }
   
   if (!element) {
@@ -48,6 +54,12 @@ export default function ElementProps({ element }: Props) {
       <Tag color="processing" className="header-kind">
         {meta.label || element.kind}
       </Tag>
+      <div style={{flex: "auto"}}></div>
+      <Button type="primary" shape="circle" 
+        size="small"
+        icon={<PlusOutlined />}
+        onClick={addElement}>
+      </Button>
     </div>
     <div className="props-content">
       {
@@ -82,5 +94,11 @@ export default function ElementProps({ element }: Props) {
           })
       }
     </div>
+
+    <AddElementModal 
+      visible={addVisible}
+      parentId={ctx.view.currentElement?.id!}
+      onVisibleChange={v => setAddVisible(v)}
+    />
   </div>
 }
