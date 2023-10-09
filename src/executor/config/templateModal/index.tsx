@@ -1,4 +1,5 @@
 import { DesignerHost } from '@/components/PageBuilder/design/DesignerHost';
+import DesignerManager from '@/components/PageBuilder/design/DesignerManager';
 import FullScreenModal from '@/executor/tools/fullScreen';
 import { IPageTemplate } from '@/ts/core/thing/standard/page';
 import React from 'react';
@@ -19,7 +20,7 @@ const TemplateModal: React.FC<IProps> = ({ current, finished }) => {
       destroyOnClose
       title={'页面配置'}
       onCancel={() => finished()}
-      children={<DesignerHost current={current} />}
+      children={<DesignerHost ctx={{ view: new DesignerManager('design', current) }} />}
     />
   );
 };
