@@ -61,7 +61,7 @@ export default defineElement({
                   );
                   return (
                     <Col key={c.id} span={4} className={cls.contentCard}>
-                      <Render element={c} />
+                      <Render element={c} data={item}/>
                     </Col>
                   );
                 });

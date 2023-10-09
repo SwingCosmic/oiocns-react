@@ -14,6 +14,7 @@ export type Render = FC<ElementRenderProps>;
 
 export interface ElementRenderProps {
   readonly element: PageElement;
+  readonly data?: any;
 }
 
 
@@ -22,7 +23,7 @@ export interface ElementRenderProps {
  * @param e 要处理的元素
  * @returns ReactNode所需的属性对象
  */
-export function mergeProps(e: PageElement, c: ComponentType) {
+export function mergeProps(e: PageElement, c: ComponentType, data?: any) {
   const props = { ... e.props };
   
   let className = e.className;
@@ -51,7 +52,7 @@ export function mergeProps(e: PageElement, c: ComponentType) {
       }
     });
   }
-
+  props.data = data;
   return props;
 }
 
@@ -66,7 +67,7 @@ export function createRender(component: ComponentType, mode: HostMode): Render {
 
 function createViewRender(component: ComponentType) {
   return (props: ElementRenderProps) => {
-    return h(component, mergeProps(props.element, component));
+    return h(component, mergeProps(props.element, component, props.data));
   };
 }
 

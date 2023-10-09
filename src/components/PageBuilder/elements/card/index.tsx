@@ -16,7 +16,16 @@ interface DataProps extends PosProps {
 }
 
 const Content: React.FC<DataProps> = ({ data, pos }) => {
-  return <>{pos.field ? (data ? data[pos.field.id] : pos.field.name) : pos.label}</>;
+  return (
+    <div style={{ overflow: 'hidden', textOverflow: 'ellipsis',  }}>
+      {pos.field?.name}：{data && pos.field ? data[pos.field.code] : ''}
+    </div>
+  );
+};
+
+const ImageContent: React.FC<DataProps> = ({ data, pos }) => {
+  console.log(data, data && pos.field ? data[pos.field.code ?? ''] : '');
+  return <Image height={200} src={Asset} />;
 };
 
 const Position: React.FC<PosProps> = ({ pos }) => {
@@ -33,7 +42,7 @@ export default defineElement({
       return (
         <Card
           hoverable
-          cover={<Image height={200} src={Asset} />}
+          cover={<ImageContent data={data} pos={image} />}
           actions={[
             <Content data={data} pos={first} />,
             <Content data={data} pos={second} />,
