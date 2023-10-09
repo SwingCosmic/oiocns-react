@@ -2,19 +2,29 @@ import { Card, Space } from 'antd';
 import React from 'react';
 import { ExistTypeMeta } from '../../core/ElementMeta';
 import { PosVal } from '../../type';
-import Position, { ImagePosition } from '../../view/Position';
 import { defineElement } from '../defineElement';
 import { Image } from 'antd';
 import Asset from '/img/banner/activity-bg.png';
 import { model } from '@/ts/base';
 
-interface IProps {
-  data: model.AnyThingModel;
+interface PosProps {
   pos: PosVal;
 }
 
-const Content: React.FC<IProps> = ({ data, pos }) => {
+interface DataProps extends PosProps {
+  data: model.AnyThingModel;
+}
+
+const Content: React.FC<DataProps> = ({ data, pos }) => {
   return <>{pos.field ? data[pos.field.id] : pos.label}</>;
+};
+
+const Position: React.FC<PosProps> = ({ pos }) => {
+  return <>{pos.field?.name ?? pos.label}</>;
+};
+
+const ImagePosition: React.FC<PosProps> = ({ pos }) => {
+  return <Image src={Asset} height={200}/>;
 };
 
 export default defineElement({
@@ -45,14 +55,14 @@ export default defineElement({
       <Card
         hoverable
         style={{ width: 240 }}
-        cover={<ImagePosition {...image} />}
-        actions={[<Position {...first} />, <Position {...second} />]}>
+        cover={<ImagePosition pos={image} />}
+        actions={[<Position pos={first} />, <Position pos={second} />]}>
         <Card.Meta
-          title={<Position {...third} />}
+          title={<Position pos={third} />}
           description={
             <Space direction="vertical">
-              <Position {...fourth} />
-              <Position {...fifth} />
+              <Position pos={fourth} />
+              <Position pos={fifth} />
             </Space>
           }
         />

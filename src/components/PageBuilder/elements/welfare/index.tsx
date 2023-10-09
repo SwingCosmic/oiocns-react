@@ -1,160 +1,92 @@
 import { AiOutlineShoppingCart } from '@/icons/ai';
-import { kernel, model } from '@/ts/base';
-import { FieldModel } from '@/ts/base/model';
+import { kernel } from '@/ts/base';
 import { IForm } from '@/ts/core';
 import { ShareIdSet } from '@/ts/core/public/entity';
-import {
-  Badge,
-  Button,
-  Card,
-  Col,
-  Image,
-  Modal,
-  Pagination,
-  Row,
-  Space,
-  Tag,
-} from 'antd';
-import Meta from 'antd/lib/card/Meta';
-import React, { useEffect, useRef, useState } from 'react';
+import { Badge, Button, Col, Pagination, Row, Space, Tag } from 'antd';
+import React, { useEffect, useState } from 'react';
 import { ExistTypeMeta } from '../../core/ElementMeta';
 import { defineElement } from '../defineElement';
 import cls from './index.module.less';
-import Asset from '/img/asset.png';
 
 export default defineElement({
   render(props, ctx) {
-    console.log(props.pageSize);
-    const form = ShareIdSet.get(props.formId + '*') as IForm;
-    const [notInit, setNotInit] = useState<boolean>(true);
-    const all = useRef<any[]>([]);
-    const search = useRef<FieldModel[]>([]);
+    const form = ShareIdSet.get(props.formId + '*') as IForm | undefined;
     const [data, setData] = useState<any[]>([]);
     const [page, setPage] = useState<number>(1);
     const [size, setSize] = useState<number>(props.pageSize ?? 20);
     const [total, setTotal] = useState<number>(0);
     const [choose, setChoose] = useState<any[]>([]);
-    const [open, setOpen] = useState<boolean>(false);
-    const [item, setItem] = useState<any>();
     useEffect(() => {
-      if (notInit && form) {
-        Promise.all([
-          form.loadContent(),
-          kernel.loadThing<any>(form.belongId, [form.belongId], {
-            take: size,
-            skip: (page - 1) * size,
-            requireTotalCount: true,
-          }),
-        ]).then((res) => {
-          const things = res[1];
-          setData(things.data.data ?? []);
-          setTotal(things.data.totalCount);
-          setNotInit(false);
-          const select = ['选择型', '分类型'];
-          const judge = (item: any) => select.indexOf(item.valueType) != -1;
-          search.current = form.fields.filter(judge);
-        });
+      if (form) {
+        Promise.all([form.loadContent, loadData(size, page)]);
       }
-    });
-    if (!form) {
-      return <>{'未获取到表单信息！'}</>;
-    }
-    const Search: React.FC<{ search: FieldModel[] }> = ({ search }) => {
-      return (
-        <>
-          {search.map((item) => {
-            return (
-              <Space direction="horizontal">
-                <Tag color="blue">{item.name}</Tag>
-                {item.lookups?.map((up) => {
-                  return <Tag>{up.text}</Tag>;
-                }) ?? <></>}
-              </Space>
-            );
-          })}
-        </>
-      );
-    };
-    const Grid: React.FC<{ data: any[]; choose: any[] }> = ({ data, choose }) => {
-      return (
-        <Row gutter={[16, 16]}>
-          {data.map((item) => {
-            return props.children.map((c) => {
-              // 自递归渲染
-              const Render = ctx.view.components.getComponentRender(
-                c.kind,
-                ctx.view.mode,
-              );
-              return (
-                <Col key={c.id} span={4} className={cls.contentCard}>
-                  <Render element={c} />
-                </Col>
-              );
-            });
-          })}
-        </Row>
-      );
-    };
-    const FlowButton: React.FC<{}> = () => {
-      return (
-        <Badge count={choose.length}>
-          <Button
-            size="large"
-            type="primary"
-            shape="circle"
-            icon={<AiOutlineShoppingCart />}
-          />
-        </Badge>
-      );
-    };
-    const Page: React.FC<{}> = () => {
-      return (
-        <Pagination
-          current={page}
-          pageSize={size}
-          total={total}
-          onChange={(page, size) => {
-            setPage(page);
-            setSize(size);
-            setData(all.current.splice((page - 1) * size, size));
-          }}
-        />
-      );
-    };
-    const Box: React.FC<{}> = () => {
-      return (
-        <Modal
-          title={item?.name}
-          open={open}
-          onCancel={() => setOpen(false)}
-          destroyOnClose={true}
-          cancelText={'关闭'}
-          width={1000}>
-          <div className={cls.box}>
-            <Card hoverable cover={<Image width={100} height={100} src={Asset} />}>
-              <Meta title={'电脑'} description="xxx路xxx号" />
-            </Card>
-          </div>
-        </Modal>
-      );
+    }, []);
+    const loadData = async (take: number, page: number) => {
+      if (!form) return;
+      const res = await kernel.loadThing<any>(form.belongId, [form.belongId], {
+        take: take,
+        skip: (page - 1) * take,
+        requireTotalCount: true,
+      });
+      setData(res.data.data ?? []);
+      setSize(take);
+      setPage(page);
+      setTotal(res.data.totalCount);
     };
     return (
       <div className={cls.layout}>
         <div className={cls.search}>
-          <Search search={search.current} />
+          {form?.fields
+            .filter((item: any) => ['选择型', '分类型'].indexOf(item.valueType) != -1)
+            .map((item) => {
+              return (
+                <Space key={item.id} direction="horizontal">
+                  <Tag color="blue">{item.name}</Tag>
+                  {item.lookups?.map((up) => {
+                    return <Tag key={up.id}>{up.text}</Tag>;
+                  }) ?? <></>}
+                </Space>
+              );
+            })}
         </div>
         <div className={cls.contentData}>
           <div className={cls.contentGrid}>
-            <Grid data={data} choose={choose} />
+            <Row gutter={[16, 16]}>
+              {data.map((item) => {
+                return props.children.map((c) => {
+                  // 自递归渲染
+                  const Render = ctx.view.components.getComponentRender(
+                    c.kind,
+                    ctx.view.mode,
+                  );
+                  return (
+                    <Col key={c.id} span={4} className={cls.contentCard}>
+                      <Render element={c} />
+                    </Col>
+                  );
+                });
+              })}
+            </Row>
           </div>
         </div>
         <div className={cls.contentPage}>
-          <Page />
+          <Pagination
+            current={page}
+            pageSize={size}
+            total={total}
+            onChange={(page, size) => loadData(size, page)}
+          />
         </div>
         <div className={cls.shoppingBtn}>
-          <FlowButton />
+          <Badge count={choose.length}>
+            <Button
+              size="large"
+              type="primary"
+              shape="circle"
+              icon={<AiOutlineShoppingCart />}
+            />
+          </Badge>
         </div>
-        <Box />
       </div>
     );
   },
@@ -165,7 +97,7 @@ export default defineElement({
         type: 'type',
         label: '关联表单',
         typeName: 'form',
-      } as ExistTypeMeta<string>,
+      } as ExistTypeMeta<string | undefined>,
       pageSize: {
         type: 'number',
         label: '每页个数',
