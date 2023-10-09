@@ -1,6 +1,6 @@
 import React from "react";
 import { defineElement } from "../defineElement";
-import { EnumTypeMeta } from "../../core/ElementMeta";
+import { EnumTypeMeta, ExistTypeMeta } from "../../core/ElementMeta";
 import { Globals, Property } from "csstype";
 import _ from "lodash";
 import "./index.less";
@@ -72,20 +72,21 @@ export default defineElement({
         default: "stretch",
       } as EnumTypeMeta<SelfValue<Property.AlignItems>>,
       height: {
-        type: "string",
+        type: "type",
+        typeName: "size",
         label: "高度",
         default: "auto"
-      },
+      } as ExistTypeMeta<string>,
       padding: {
         type: "string",
         label: "内边距",
         default: "16px"
       },
       gap: {
-        type: "string",
-        label: "子元素间距",
+        type: "type",
+        typeName: "size",
         default: "16px"
-      },
+      } as ExistTypeMeta<string>,
     }
   }
 })

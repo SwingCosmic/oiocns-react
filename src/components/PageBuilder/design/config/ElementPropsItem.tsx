@@ -89,7 +89,7 @@ export default function ElementPropsItem(props: Props) {
       <div
         className={"item-label " + (props.meta.required ? 'is-required' : '')}
         title={props.meta.label || props.prop}
-        style={{ width: props.labelWidth || '160px' }}>
+        style={{ width: props.labelWidth || '120px' }}>
         {props.meta.label || props.prop}
       </div>
       {renderComponent(props.meta)}
