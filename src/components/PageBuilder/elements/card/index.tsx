@@ -12,11 +12,11 @@ interface PosProps {
 }
 
 interface DataProps extends PosProps {
-  data: model.AnyThingModel;
+  data?: model.AnyThingModel;
 }
 
 const Content: React.FC<DataProps> = ({ data, pos }) => {
-  return <>{pos.field ? data[pos.field.id] : pos.label}</>;
+  return <>{pos.field ? (data ? data[pos.field.id] : pos.field.name) : pos.label}</>;
 };
 
 const Position: React.FC<PosProps> = ({ pos }) => {
@@ -24,7 +24,7 @@ const Position: React.FC<PosProps> = ({ pos }) => {
 };
 
 const ImagePosition: React.FC<PosProps> = ({ pos }) => {
-  return <Image src={Asset} height={200}/>;
+  return <Image src={Asset} height={200} />;
 };
 
 export default defineElement({
@@ -33,7 +33,6 @@ export default defineElement({
       return (
         <Card
           hoverable
-          style={{ width: 240 }}
           cover={<Image height={200} src={Asset} />}
           actions={[
             <Content data={data} pos={first} />,
@@ -54,7 +53,6 @@ export default defineElement({
     return (
       <Card
         hoverable
-        style={{ width: 240 }}
         cover={<ImagePosition pos={image} />}
         actions={[<Position pos={first} />, <Position pos={second} />]}>
         <Card.Meta
@@ -84,7 +82,7 @@ export default defineElement({
       } as ExistTypeMeta<model.AnyThingModel>,
       image: {
         type: 'type',
-        typeName: 'position',
+        typeName: 'image',
         label: '图片',
         default: { position: 'image', label: '主图片' },
       } as ExistTypeMeta<PosVal>,
