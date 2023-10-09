@@ -1,3 +1,4 @@
+import HostManagerBase from '@/components/PageBuilder/render/HostManager';
 import { ViewerHost } from '@/components/PageBuilder/view/ViewerHost';
 import FullScreenModal from '@/executor/tools/fullScreen';
 import { IPageTemplate } from '@/ts/core/thing/standard/page';
@@ -19,7 +20,7 @@ const TemplateView: React.FC<IProps> = ({ current, finished }) => {
       destroyOnClose
       title={'页面预览'}
       onCancel={() => finished()}
-      children={<ViewerHost current={current} />}
+      children={<ViewerHost ctx={{ view: new HostManagerBase('view', current) }} />}
     />
   );
 };
