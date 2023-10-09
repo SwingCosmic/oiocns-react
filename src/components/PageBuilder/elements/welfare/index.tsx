@@ -1,9 +1,5 @@
-import {
-  AiOutlineCheck,
-  AiOutlinePlusSquare,
-  AiOutlineRead,
-  AiOutlineShoppingCart,
-} from '@/icons/ai';
+import { AiOutlineShoppingCart } from '@/icons/ai';
+import { kernel, model } from '@/ts/base';
 import { FieldModel } from '@/ts/base/model';
 import { IForm } from '@/ts/core';
 import { ShareIdSet } from '@/ts/core/public/entity';
@@ -20,35 +16,39 @@ import {
   Tag,
 } from 'antd';
 import Meta from 'antd/lib/card/Meta';
-import React, { useContext, useEffect, useRef, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { ExistTypeMeta } from '../../core/ElementMeta';
-import { PageContext } from '../../render/PageContext';
 import { defineElement } from '../defineElement';
 import cls from './index.module.less';
 import Asset from '/img/asset.png';
 
 export default defineElement({
   render(props, ctx) {
+    console.log(props.pageSize);
     const form = ShareIdSet.get(props.formId + '*') as IForm;
     const [notInit, setNotInit] = useState<boolean>(true);
     const all = useRef<any[]>([]);
     const search = useRef<FieldModel[]>([]);
     const [data, setData] = useState<any[]>([]);
     const [page, setPage] = useState<number>(1);
-    const [size, setSize] = useState<number>(50);
+    const [size, setSize] = useState<number>(props.pageSize ?? 20);
     const [total, setTotal] = useState<number>(0);
     const [choose, setChoose] = useState<any[]>([]);
     const [open, setOpen] = useState<boolean>(false);
     const [item, setItem] = useState<any>();
     useEffect(() => {
       if (notInit && form) {
-        form.loadContent().then(() => {
-          all.current = [];
-          for (let i = 0; i < 10; i++) {
-            all.current.push({});
-          }
-          setData(all.current.splice((page - 1) * size, size));
-          setTotal(all.current.length);
+        Promise.all([
+          form.loadContent(),
+          kernel.loadThing<any>(form.belongId, [form.belongId], {
+            take: size,
+            skip: (page - 1) * size,
+            requireTotalCount: true,
+          }),
+        ]).then((res) => {
+          const things = res[1];
+          setData(things.data.data ?? []);
+          setTotal(things.data.totalCount);
           setNotInit(false);
           const select = ['选择型', '分类型'];
           const judge = (item: any) => select.indexOf(item.valueType) != -1;
@@ -77,7 +77,7 @@ export default defineElement({
     };
     const Grid: React.FC<{ data: any[]; choose: any[] }> = ({ data, choose }) => {
       return (
-        <Row gutter={[8, 8]}>
+        <Row gutter={[16, 16]}>
           {data.map((item) => {
             return props.children.map((c) => {
               // 自递归渲染
@@ -166,11 +166,10 @@ export default defineElement({
         label: '关联表单',
         typeName: 'form',
       } as ExistTypeMeta<string>,
-      pageId: {
-        type: 'type',
-        label: '展示卡片',
-        typeName: 'page',
-      } as ExistTypeMeta<string>,
+      pageSize: {
+        type: 'number',
+        label: '每页个数',
+      },
     },
     label: '公物仓',
   },

@@ -49,13 +49,15 @@ export default function ElementPropsItem(props: Props) {
         />;
       case 'number':
         return <InputNumber 
+          style={{ width: "100%" }}
           readOnly={meta.readonly}
           value={value} 
-          onChange={e => onValueChange(e.target.value)} 
+          onChange={e => onValueChange(e)} 
         />;
       case 'boolean':
         return (
           <Switch
+            style={{ width: "100%" }}
             checked={value}
             onChange={onValueChange}
           />
@@ -63,6 +65,7 @@ export default function ElementPropsItem(props: Props) {
       case 'date':
         return (
           <DatePicker
+            style={{ width: "100%" }}
             value={value}
             onChange={(_, date) => onValueChange(date)}
           />

@@ -39,6 +39,7 @@ const FormSelectModal = ({ form, fields, belong, onSave }: IFormSelectProps) => 
           new CustomStore({
             key: 'Id',
             async load(loadOptions) {
+              console.log(loadOptions);
               loadOptions.userData = [];
               let request: any = { ...loadOptions };
               const result = await kernel.loadThing<any>(belong.id, [belong.id], request);

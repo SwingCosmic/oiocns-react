@@ -38,12 +38,15 @@ const Home: React.FC = () => {
   const [current, setCurrent] = useState(navigationList[0]);
   return (
     <div className={cls.homepage}>
+      {current.type == 'inner' && (
+        <HeadBanner
+          backgroundImageUrl={current.backgroundImageUrl}
+          title={current.label}
+        />
+      )}
+      {current.type == 'inner' && React.createElement(current.component)}
+      {current.type == 'page' && current.component}
       <NavigationBar list={navigationList} onChange={(item) => setCurrent(item)} />
-      <HeadBanner
-        backgroundImageUrl={current.backgroundImageUrl}
-        title={current.label}></HeadBanner>
-      {current.type == "inner" && React.createElement(current.component)}
-      {current.type == "page" && current.component}
     </div>
   );
 };
