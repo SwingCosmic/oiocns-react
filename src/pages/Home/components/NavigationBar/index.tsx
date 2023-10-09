@@ -1,14 +1,15 @@
 import React, { useEffect, useState } from 'react';
 
+import HostManagerBase from '@/components/PageBuilder/render/HostManager';
+import { ViewerHost } from '@/components/PageBuilder/view/ViewerHost';
 import BasicTitle from '@/pages/Home/components/BaseTitle';
 import { command } from '@/ts/base';
 import orgCtrl from '@/ts/controller';
 import { IPageTemplate } from '@/ts/core/thing/standard/page';
 import { EllipsisOutlined, MinusCircleFilled, PlusCircleFilled } from '@ant-design/icons';
 import { Badge, Button, Space, Typography, message } from 'antd';
-import cls from './index.module.less';
 import { NavigationItem } from '../..';
-import { ViewerHost } from '@/components/PageBuilder/view/ViewerHost';
+import cls from './index.module.less';
 
 const NavigationBar: React.FC<{
   list: NavigationItem[];
@@ -62,8 +63,10 @@ const NavigationBar: React.FC<{
                     key: item.id,
                     label: item.name,
                     backgroundImageUrl: '/img/banner/circle-bg.jpeg',
-                    type: "page",
-                    component: <ViewerHost current={item} />,
+                    type: 'page',
+                    component: (
+                      <ViewerHost ctx={{ view: new HostManagerBase('view', item) }} />
+                    ),
                   });
                 }}>
                 {item.name}
