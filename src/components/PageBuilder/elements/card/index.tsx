@@ -1,5 +1,5 @@
 import { Card, Space } from 'antd';
-import React from 'react';
+import React, { useState } from 'react';
 import { ExistTypeMeta } from '../../core/ElementMeta';
 import { PosVal } from '../../type';
 import { defineElement } from '../defineElement';
@@ -17,7 +17,7 @@ interface DataProps extends PosProps {
 
 const Content: React.FC<DataProps> = ({ data, pos }) => {
   return (
-    <div style={{ overflow: 'hidden', textOverflow: 'ellipsis',  }}>
+    <div style={{ overflow: 'hidden', textOverflow: 'ellipsis' }}>
       {pos.field?.name}：{data && pos.field ? data[pos.field.code] : ''}
     </div>
   );
@@ -37,7 +37,36 @@ const ImagePosition: React.FC<PosProps> = ({ pos }) => {
 };
 
 export default defineElement({
-  render({ data, image, first, second, third, fourth, fifth }, ctx) {
+  render(props, ctx) {
+    const data = props.data;
+    const [image, setImage] = useState(props.image);
+    const [first, setFirst] = useState(props.first);
+    const [second, setSecond] = useState(props.second);
+    const [third, setThird] = useState(props.third);
+    const [fourth, setFourth] = useState(props.fourth);
+    const [fifth, setFifth] = useState(props.fifth);
+    ctx.view.subscribeProps(props.id, (prop, value) => {
+      switch (prop) {
+        case 'image':
+          setImage(value);
+          break;
+        case 'first':
+          setFirst(value);
+          break;
+        case 'second':
+          setSecond(value);
+          break;
+        case 'third':
+          setThird(value);
+          break;
+        case 'fourth':
+          setFourth(value);
+          break;
+        case 'fifth':
+          setFifth(value);
+          break;
+      }
+    });
     if (ctx.view.mode == 'view') {
       return (
         <Card
