@@ -77,10 +77,6 @@ export default defineFC({
       onCancel={() => visibleChange(false)}
       onOk={handleCreate}>
       <Form initialValues={form.value} form={formInst}>
-        <Form.Item name="name" label="名称"
-          rules={[{ required: true, message: '请输入名称' }]}>
-          <Input value={form.value.name} onChange={v => form.value.name = v.target.value}/>
-        </Form.Item>
         <Form.Item name="kind" label="类型" 
           rules={[{ required: true, message: '请选择类型' }]}>
           <Select optionLabelProp="label"
@@ -102,6 +98,10 @@ export default defineFC({
               })
             }
           </Select>
+        </Form.Item>
+        <Form.Item name="name" label="名称"
+          rules={[{ required: true, message: '请输入名称' }]}>
+          <Input value={form.value.name} onChange={v => form.value.name = v.target.value}/>
         </Form.Item>
       </Form>
     </Modal>

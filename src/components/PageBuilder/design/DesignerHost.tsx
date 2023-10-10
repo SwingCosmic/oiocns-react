@@ -17,7 +17,7 @@ export interface DesignerProps {
 
 
 export function DesignerHost({ ctx }: DesignerProps) {
-  const currentElement = useComputed(() => ctx.view.currentElement ?? null!);
+  const currentElement = useComputed(() => ctx.view.currentElement);
   const [refresh, withChangeToken] = useChangeToken();
 
   console.log("re-render");

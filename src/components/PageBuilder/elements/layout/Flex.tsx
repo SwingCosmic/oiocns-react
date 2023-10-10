@@ -71,6 +71,16 @@ export default defineElement({
         ],
         default: "stretch",
       } as EnumTypeMeta<SelfValue<Property.AlignItems>>,
+      flexWrap: {
+        type: "enum",
+        label: "换行",
+        options: [
+          { label: "不换行", value: "nowrap" },
+          { label: "换行", value: "wrap" },
+          { label: "反向换行", value: "wrap-reverse" },
+        ],
+        default: "nowrap",
+      } as EnumTypeMeta<SelfValue<Property.FlexWrap>>,
       height: {
         type: "type",
         typeName: "size",
@@ -78,13 +88,15 @@ export default defineElement({
         default: "auto"
       } as ExistTypeMeta<string>,
       padding: {
-        type: "string",
+        type: "type",
+        typeName: "size",
         label: "内边距",
         default: "16px"
-      },
+      } as ExistTypeMeta<string>,
       gap: {
         type: "type",
         typeName: "size",
+        label: "子元素间距",
         default: "16px"
       } as ExistTypeMeta<string>,
     }
