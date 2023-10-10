@@ -113,9 +113,12 @@ export default function ElementProps({ element }: Props) {
               target={element.props}
               prop={prop}
               meta={meta}
-              onValueChange={() => {
-                ctx.view.onChange?.();
-                ctx.view.pageInfo.command.emitter("graph", "refresh");
+              onValueChange={(value) => {
+                ctx.view.emitter("props", "change", {
+                  id: element.id,
+                  prop: prop,
+                  value: value
+                });
               }}
             />;
           })

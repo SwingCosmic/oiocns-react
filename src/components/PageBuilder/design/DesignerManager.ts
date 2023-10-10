@@ -14,7 +14,6 @@ export default class DesignerManager extends HostManagerBase<"design"> implement
 
   dispose() {
     console.info("DesignerManager disposed");
-    this.onChange = null;
     this.onNodeChange = null;
     this.onCurrentChange = null;
 
@@ -36,7 +35,6 @@ export default class DesignerManager extends HostManagerBase<"design"> implement
     this.onNodeChange?.(this.treeManager.root);
   }
 
-  onChange: (() => void) | null = null;
   onNodeChange: ((root: PageElement) => void) | null = null;
   onCurrentChange: ((e: PageElement | null) => void) | null = null;
 
@@ -60,5 +58,5 @@ export default class DesignerManager extends HostManagerBase<"design"> implement
     this.currentElement = null;
     this.onCurrentChange?.(this.treeManager.root);
   }
-
+  
 }

@@ -42,7 +42,7 @@ export function mergeProps(e: PageElement, c: ElementFC, data?: any) {
       })
   );
   props.style = style;
-
+  props.id = e.id;
   props.children = e.children;
 
   if (c.meta) {

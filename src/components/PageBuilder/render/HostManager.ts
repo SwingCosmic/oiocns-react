@@ -6,8 +6,9 @@ import { HostMode, IViewHost } from "../core/IViewHost";
 import staticContext from "..";
 import { PageElement } from "../core/PageElement";
 import { IPageTemplate } from "@/ts/core/thing/standard/page";
+import { useEffect } from "react";
 
-export default class HostManagerBase<T extends HostMode> 
+export default class HostManagerBase<T extends HostMode>
   implements IViewHost<T, ReactComponentFactory>, EventTarget {
   readonly mode: T;
   treeManager: ElementTreeManager;
@@ -38,6 +39,37 @@ export default class HostManagerBase<T extends HostMode>
   /** 获取根元素 */
   get rootElement(): Readonly<PageElement> {
     return this.treeManager.root;
+  }
+
+  /** 订阅全局变动 */
+  subscribe(onChange: () => void) {
+    useEffect(() => {
+      const subId = this.pageInfo.command.subscribe(() => {
+        onChange();
+      });
+      return () => {
+        this.pageInfo.command.unsubscribe(subId);
+      }
+    });
+  }
+
+  /** 订阅属性变动 */
+  subscribeProps(elementId: string, onChange: (prop: string, value: any) => void) {
+    useEffect(() => {
+      const subId = this.pageInfo.command.subscribe((type, cmd, args) => {
+        if (type == "props" && cmd == "change" && elementId == args.id) {
+          onChange(args.prop, args.value);
+        }
+      });
+      return () => {
+        this.pageInfo.command.unsubscribe(subId);
+      }
+    });
+  }
+
+  /** 触发变动 */
+  emitter(type: string, cmd: string, args: any) {
+    this.pageInfo.command.emitter(type, cmd, args);
   }
 
   //#region EventTarget

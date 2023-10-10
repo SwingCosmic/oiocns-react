@@ -44,7 +44,6 @@ export function DesignerHost({ ctx }: DesignerProps) {
 
   const RootRender = ctx.view.components.rootRender as any;
   ctx.view.onNodeChange = refresh;
-  ctx.view.onChange = refresh;
   return (
     <DndProvider backend={HTML5Backend}>
       <PageContext.Provider value={ctx}>

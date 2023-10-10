@@ -9,7 +9,7 @@ import { PageContext } from '../render/PageContext';
 
 type WithCommonProps<P extends {}> = P 
   & Pick<HTMLAttributes<any>, "className" | "style"> 
-  & Pick<PageElement, "children">;
+  & Pick<PageElement, "children" | 'id'>;
 
 export interface ElementOptions<M extends ElementMeta, P extends {}> extends FCOptions<P> {
   /** 组件名称，必填 */

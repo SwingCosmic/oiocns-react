@@ -21,6 +21,13 @@ export default defineElement({
         Promise.all([form.loadContent, loadData(size, page)]);
       }
     }, []);
+    ctx.view.subscribeProps(props.id, (prop, value) =>{
+      switch(prop) {
+        case "pageSize":
+          loadData(value, page);
+          break;
+      }
+    });
     const loadData = async (take: number, page: number) => {
       if (!form) return;
       const res = await kernel.loadThing<any>(form.belongId, [form.belongId], {
@@ -61,7 +68,7 @@ export default defineElement({
                   );
                   return (
                     <Col key={c.id} span={4} className={cls.contentCard}>
-                      <Render element={c} data={item}/>
+                      <Render element={c} data={item} />
                     </Col>
                   );
                 });
