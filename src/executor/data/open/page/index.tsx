@@ -1,5 +1,6 @@
 import HostManagerBase from '@/components/PageBuilder/render/HostManager';
 import { ViewerHost } from '@/components/PageBuilder/view/ViewerHost';
+import ViewerManager from '@/components/PageBuilder/view/ViewerManager';
 import FullScreenModal from '@/executor/tools/fullScreen';
 import { IPageTemplate } from '@/ts/core/thing/standard/page';
 import React from 'react';
@@ -20,7 +21,7 @@ const TemplateView: React.FC<IProps> = ({ current, finished }) => {
       destroyOnClose
       title={'页面预览'}
       onCancel={() => finished()}
-      children={<ViewerHost ctx={{ view: new HostManagerBase('view', current) }} />}
+      children={<ViewerHost ctx={{ view: new ViewerManager(current) }} />}
     />
   );
 };

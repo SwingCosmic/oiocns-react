@@ -10,6 +10,10 @@ export default class ElementFactory {
   constructor(meta: Dictionary<ElementMeta>) {
     this.elementMeta = meta;
   }
+
+  getMeta(kind: string): ElementMeta | null {
+    return this.elementMeta[kind] ?? null;
+  }
   
   create<E extends PageElement>(kind: E["kind"], name: string, params: ElementInit<E> = {}): E {
     const e: E = {

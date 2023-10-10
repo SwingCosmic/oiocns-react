@@ -20,7 +20,7 @@ const TemplateModal: React.FC<IProps> = ({ current, finished }) => {
       destroyOnClose
       title={'页面配置'}
       onCancel={() => finished()}
-      children={<DesignerHost ctx={{ view: new DesignerManager('design', current) }} />}
+      children={<DesignerHost ctx={{ view: new DesignerManager(current) }} />}
     />
   );
 };

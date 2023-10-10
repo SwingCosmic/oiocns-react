@@ -7,8 +7,8 @@ import { ElementInit } from "../core/ElementTreeManager";
 
 export default class DesignerManager extends HostManagerBase<"design"> implements IDisposable {
 
-  constructor(mode: "design", pageFile: IPageTemplate) {
-    super(mode, pageFile);
+  constructor(pageFile: IPageTemplate) {
+    super("design", pageFile);
     this.currentElement = this.rootElement;
   }
 

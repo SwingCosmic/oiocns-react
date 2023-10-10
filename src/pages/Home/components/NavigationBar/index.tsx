@@ -10,6 +10,7 @@ import { EllipsisOutlined, MinusCircleFilled, PlusCircleFilled } from '@ant-desi
 import { Badge, Button, Space, Typography, message } from 'antd';
 import { NavigationItem } from '../..';
 import cls from './index.module.less';
+import ViewerManager from '@/components/PageBuilder/view/ViewerManager';
 
 const NavigationBar: React.FC<{
   list: NavigationItem[];
@@ -65,7 +66,7 @@ const NavigationBar: React.FC<{
                     backgroundImageUrl: '/img/banner/circle-bg.jpeg',
                     type: 'page',
                     component: (
-                      <ViewerHost ctx={{ view: new HostManagerBase('view', item) }} />
+                      <ViewerHost ctx={{ view: new ViewerManager(item) }} />
                     ),
                   });
                 }}>

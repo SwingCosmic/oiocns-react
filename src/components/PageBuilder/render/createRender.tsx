@@ -8,6 +8,7 @@ import { DesignContext, PageContext } from "./PageContext";
 import { ElementMeta } from "../core/ElementMeta";
 import { deepClone } from "@/ts/base/common";
 import ErrorBoundary from "./ErrorBoundary";
+import { ElementFC } from "../elements/defineElement";
 
 export type Render = FC<ElementRenderProps>;
 
@@ -23,7 +24,7 @@ export interface ElementRenderProps {
  * @param e 要处理的元素
  * @returns ReactNode所需的属性对象
  */
-export function mergeProps(e: PageElement, c: ComponentType, data?: any) {
+export function mergeProps(e: PageElement, c: ElementFC, data?: any) {
   const props = { ... e.props };
   
   let className = e.className;
@@ -44,10 +45,10 @@ export function mergeProps(e: PageElement, c: ComponentType, data?: any) {
 
   props.children = e.children;
 
-  if ((c as any).meta) {
-    const meta = (c as any).meta as ElementMeta;
+  if (c.meta) {
+    const meta = c.meta;
     Object.entries(meta.props).forEach(([prop, value])=>{
-      if (!props[prop] && value.default) {
+      if (props[prop] == undefined && value.default != undefined) {
         props[prop] = deepClone(value.default);
       }
     });
@@ -57,7 +58,7 @@ export function mergeProps(e: PageElement, c: ComponentType, data?: any) {
 }
 
 
-export function createRender(component: ComponentType, mode: HostMode): Render {
+export function createRender(component: ElementFC, mode: HostMode): Render {
   if (mode == "view") {
     return createViewRender(component);
   } else {
@@ -65,13 +66,13 @@ export function createRender(component: ComponentType, mode: HostMode): Render {
   }
 }
 
-function createViewRender(component: ComponentType) {
+function createViewRender(component: ElementFC) {
   return (props: ElementRenderProps) => {
     return h(component, mergeProps(props.element, component, props.data));
   };
 }
 
-function createDesignRender(component: ComponentType) {
+function createDesignRender(component: ElementFC) {
   return (props: ElementRenderProps) => {
     const ctx = useContext(PageContext) as DesignContext;
     const handleClick = useCallback((e: MouseEvent) => {

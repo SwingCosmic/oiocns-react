@@ -34,6 +34,11 @@ export function DesignerHost({ ctx }: DesignerProps) {
         key: 'element',
         children: <ElementProps element={currentElement.value}/>
       },
+      {
+        label: `数据`,
+        key: 'data',
+        children: <div></div>
+      },
     ]
   }
 

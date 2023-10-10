@@ -2,28 +2,29 @@ import { ComponentType } from "react";
 import { IComponentFactory } from "../core/IComponentFactory";
 import { Render, createNullRender, createRender } from "./createRender";
 import { HostMode } from "../core/IViewHost";
+import { ElementFC } from "../elements/defineElement";
 
 
-export default class ReactComponentFactory implements IComponentFactory<ComponentType, Render> {
+export default class ReactComponentFactory implements IComponentFactory<ElementFC, Render> {
 
   get rootRender() {
     return this.getComponentRender("Root");
   }
 
-  readonly componentDefinitions = new Map<string, ComponentType>();
+  readonly componentDefinitions = new Map<string, ElementFC>();
 
-  registerComponent<T extends ComponentType>(name: string, component: T) {
+  registerComponent<T extends ElementFC>(name: string, component: T) {
     this.componentDefinitions.set(name, component);
   }
 
-  registerComponents(components: Dictionary<ComponentType>) {
+  registerComponents(components: Dictionary<ElementFC>) {
     for (const [name, component] of Object.entries(components)) {
       this.registerComponent(name, component);
     }
   }
 
 
-  readonly renderDefinitions = new WeakMap<ComponentType, Render>();
+  readonly renderDefinitions = new WeakMap<ElementFC, Render>();
 
   /**
    * 创建或返回一个指定元素的包装渲染组件
