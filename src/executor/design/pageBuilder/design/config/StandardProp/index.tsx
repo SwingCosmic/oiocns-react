@@ -4,19 +4,14 @@ import React from 'react';
 import { TreeSelect } from 'antd';
 import { MenuItem, loadFormsMenu, loadPagesMenu } from '@/config/menus';
 import { IDirectory } from '@/ts/core';
-import { IExistTypeEditor } from '../IExistTypeEditor';
+import { IExistTypeProps } from '../IExistTypeEditor';
 
-interface StandardProps {
+interface IProps extends IExistTypeProps {
   loadMenus: (current: IDirectory) => MenuItem;
   placeholder: string;
 }
 
-const StandardProp: IExistTypeEditor<string, StandardProps> = ({
-  value,
-  onChange,
-  loadMenus,
-  placeholder,
-}) => {
+const StandardProp: React.FC<IProps> = ({ value, onChange, loadMenus, placeholder }) => {
   const ctx = useContext<DesignContext>(PageContext as any);
   const root = ctx.view.pageInfo.directory.target.directory;
   return (
@@ -38,7 +33,7 @@ const StandardProp: IExistTypeEditor<string, StandardProps> = ({
   );
 };
 
-export const FormProp: IExistTypeEditor<string> = ({ value, onChange }) => {
+export const FormProp: React.FC<IExistTypeProps> = ({ value, onChange }) => {
   return (
     <StandardProp
       value={value}
@@ -49,7 +44,7 @@ export const FormProp: IExistTypeEditor<string> = ({ value, onChange }) => {
   );
 };
 
-export const PageProp: IExistTypeEditor<string> = ({ value, onChange }) => {
+export const PageProp: React.FC<IExistTypeProps> = ({ value, onChange }) => {
   return (
     <StandardProp
       value={value}

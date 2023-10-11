@@ -1,7 +1,7 @@
-import { getUuid } from "@/utils/tools";
-import { ElementInit } from "./ElementTreeManager";
-import { PageElement } from "./PageElement";
-import { ElementMeta } from "./ElementMeta";
+import { getUuid } from '@/utils/tools';
+import { ElementInit } from './ElementTreeManager';
+import { PageElement } from './PageElement';
+import { ElementMeta } from './ElementMeta';
 
 export default class ElementFactory {
   // TODO: 注册和解析元素属性元数据，包括默认值和校验
@@ -14,13 +14,17 @@ export default class ElementFactory {
   getMeta(kind: string): ElementMeta | null {
     return this.elementMeta[kind] ?? null;
   }
-  
-  create<E extends PageElement>(kind: E["kind"], name: string, params: ElementInit<E> = {}): E {
+
+  create<E extends PageElement>(
+    kind: E['kind'],
+    name: string,
+    params: ElementInit<E> = {},
+  ): E {
     const e: E = {
       id: getUuid(),
       kind,
       name,
-      ...params
+      ...params,
     } as any;
     e.props ||= {};
     e.children ||= [];

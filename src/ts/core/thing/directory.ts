@@ -287,14 +287,14 @@ export class Directory extends StandardFileInfo<schema.XDirectory> implements ID
     return applications;
   }
   async loadAllTransfer(reload: boolean = false): Promise<ITransfer[]> {
-    const links: ITransfer[] = [...await this.standard.loadTransfers(reload)];
+    const links: ITransfer[] = [...(await this.standard.loadTransfers(reload))];
     for (const subDirectory of this.children) {
       links.push(...(await subDirectory.loadAllTransfer(reload)));
     }
     return links;
   }
   async loadAllTemplate(reload?: boolean | undefined): Promise<IPageTemplate[]> {
-    const templates: IPageTemplate[] = [...await this.standard.loadTemplates(reload)];
+    const templates: IPageTemplate[] = [...(await this.standard.loadTemplates(reload))];
     for (const subDirectory of this.children) {
       templates.push(...(await subDirectory.loadAllTemplate(reload)));
     }

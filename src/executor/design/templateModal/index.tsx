@@ -1,6 +1,6 @@
+import React from 'react';
 import FullScreenModal from '@/components/Common/fullScreen';
 import { IPageTemplate } from '@/ts/core/thing/standard/page';
-import React from 'react';
 import DesignerManager from '../pageBuilder/design/DesignerManager';
 import { DesignerHost } from '../pageBuilder/design/DesignerHost';
 
@@ -19,9 +19,9 @@ const TemplateModal: React.FC<IProps> = ({ current, finished }) => {
       bodyHeight={'80vh'}
       destroyOnClose
       title={'页面配置'}
-      onCancel={() => finished()}
-      children={<DesignerHost ctx={{ view: new DesignerManager(current) }} />}
-    />
+      onCancel={() => finished()}>
+      <DesignerHost ctx={{ view: new DesignerManager(current) }} />
+    </FullScreenModal>
   );
 };
 

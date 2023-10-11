@@ -35,7 +35,13 @@ export class StandardFiles {
     return this.directory.resource;
   }
   get standardFiles(): IStandard[] {
-    return [...this.forms, ...this.transfers, ...this.propertys, ...this.specieses, ...this.templates];
+    return [
+      ...this.forms,
+      ...this.transfers,
+      ...this.propertys,
+      ...this.specieses,
+      ...this.templates,
+    ];
   }
   async loadStandardFiles(reload: boolean = false): Promise<IStandard[]> {
     await Promise.all([
@@ -43,7 +49,7 @@ export class StandardFiles {
       this.loadTransfers(reload),
       this.loadPropertys(reload),
       this.loadSpecieses(reload),
-      this.loadTemplates(reload)
+      this.loadTemplates(reload),
     ]);
     return this.standardFiles;
   }
@@ -146,7 +152,7 @@ export class StandardFiles {
       return link;
     }
   }
-  async createTemplate(data: schema.XPageTemplate): Promise<IPageTemplate | undefined> {
+  async createTemplate(data: model.XPageTemplate): Promise<IPageTemplate | undefined> {
     const res = await this.resource.templateColl.insert({
       ...data,
       directoryId: this.id,

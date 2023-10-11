@@ -1,16 +1,20 @@
-import type { CSSProperties } from "@/ts/types/dom";
+import type { CSSProperties } from './dom';
+import {} from './global';
 
 export type NoFunctionPropertyObject<T extends {}> = {
   [P in keyof T & string]: T[P] extends AnyFunction ? never : T[P];
 };
 
-export interface PageElement<K extends string = string, P extends {} = Dictionary<any>, D = any> {
+export interface PageElement<
+  K extends string = string,
+  P extends {} = Dictionary<any>,
+  D = any,
+> {
   id: string;
   kind: K;
   name: string;
   data?: D;
   children: PageElement[];
-
 
   /** CSS类名 */
   className?: string | string[];
@@ -20,11 +24,8 @@ export interface PageElement<K extends string = string, P extends {} = Dictionar
   props: NoFunctionPropertyObject<P>;
 }
 
-
-
-declare module "@/ts/base/pageModel" {
+declare module '@/ts/base/model' {
   interface IPageTemplate<T extends string> {
-
     rootElement: PageElement;
   }
 }

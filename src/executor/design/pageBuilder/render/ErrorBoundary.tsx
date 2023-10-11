@@ -1,6 +1,5 @@
-import { Result } from "antd";
-import React, { Component, ReactNode } from "react";
-
+import { Result } from 'antd';
+import React, { Component, ReactNode } from 'react';
 
 interface Props {
   hookError?: any;
@@ -13,16 +12,15 @@ interface State {
 export default class ErrorBoundary extends Component<Props, State> {
   constructor(props: Props) {
     super(props);
-    this.state = { 
-      error: null
+    this.state = {
+      error: null,
     };
   }
 
   static getDerivedStateFromError(error: any) {
-    debugger
     // 更新状态，以便下一次渲染将显示后备 UI。
-    return { 
-      error
+    return {
+      error,
     };
   }
 
@@ -42,7 +40,6 @@ export default class ErrorBoundary extends Component<Props, State> {
   render() {
     const error = this.state.error || this.props.hookError;
     if (error) {
-      debugger
       return (
         <div>
           <Result status="error" title={this.getErrorMessage(error)} />

@@ -1,5 +1,4 @@
 export interface IComponentFactory<TComponent, TRender> {
-
   registerComponent<C extends TComponent>(name: string, component: C): void;
 
   registerComponents(components: Dictionary<TComponent>): void;

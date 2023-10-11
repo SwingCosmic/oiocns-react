@@ -1,7 +1,6 @@
-import { FC } from "react";
+import { FC } from 'react';
 
-
-export interface IExistTypeProps<T> {
+export interface IExistTypeProps<T = string> {
   value?: T;
   onChange: (value?: T | undefined) => any;
 }

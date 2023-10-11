@@ -1,11 +1,10 @@
-import { Card, Space } from 'antd';
+import { schema } from '@/ts/base';
+import { Card, Image, Space } from 'antd';
 import React from 'react';
 import { ExistTypeMeta } from '../../core/ElementMeta';
 import { PosVal } from '../../type';
 import { defineElement } from '../defineElement';
-import { Image } from 'antd';
-import Asset from '/img/banner/activity-bg.png';
-import { model, schema } from '@/ts/base';
+import Asset from '/img/banner/1.png';
 
 interface PosProps {
   pos: PosVal;
@@ -44,8 +43,8 @@ export default defineElement({
           hoverable
           cover={<ImageContent data={data} pos={image} />}
           actions={[
-            <Content data={data} pos={first} />,
-            <Content data={data} pos={second} />,
+            <Content key={'first'} data={data} pos={first} />,
+            <Content key={'second'} data={data} pos={second} />,
           ]}>
           <Card.Meta
             title={<Content data={data} pos={third} />}
@@ -63,7 +62,10 @@ export default defineElement({
       <Card
         hoverable
         cover={<ImagePosition pos={image} />}
-        actions={[<Position pos={first} />, <Position pos={second} />]}>
+        actions={[
+          <Position key={'first'} pos={first} />,
+          <Position key={'second'} pos={second} />,
+        ]}>
         <Card.Meta
           title={<Position pos={third} />}
           description={

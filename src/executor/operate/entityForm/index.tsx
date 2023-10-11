@@ -92,9 +92,15 @@ const EntityForm: React.FC<IProps> = ({ cmd, entity, finished }) => {
       return (
         <TransferForm formType={cmd} current={entity as any} finished={reloadFinish} />
       );
-    case "newPageTemplate":
+    case 'newPageTemplate':
     case 'updatePageTemplate':
-      return <PageTemplateForm formType={cmd} current={entity as any} finished={reloadFinish} />;
+      return (
+        <PageTemplateForm
+          formType={cmd}
+          current={entity as any}
+          finished={reloadFinish}
+        />
+      );
     default: {
       var target = entity as ITarget;
       if (entity.typeName === '目录') {

@@ -1,14 +1,13 @@
-import { ComponentType } from "react";
-import { IComponentFactory } from "../core/IComponentFactory";
-import { Render, createNullRender, createRender } from "./createRender";
-import { HostMode } from "../core/IViewHost";
-import { ElementFC } from "../elements/defineElement";
+import { IComponentFactory } from '../core/IComponentFactory';
+import { HostMode } from '../core/IViewHost';
+import { ElementFC } from '../elements/defineElement';
+import { Render, createNullRender, createRender } from './createRender';
 
-
-export default class ReactComponentFactory implements IComponentFactory<ElementFC, Render> {
-
+export default class ReactComponentFactory
+  implements IComponentFactory<ElementFC, Render>
+{
   get rootRender() {
-    return this.getComponentRender("Root");
+    return this.getComponentRender('Root');
   }
 
   readonly componentDefinitions = new Map<string, ElementFC>();
@@ -23,7 +22,6 @@ export default class ReactComponentFactory implements IComponentFactory<ElementF
     }
   }
 
-
   readonly renderDefinitions = new WeakMap<ElementFC, Render>();
 
   /**
@@ -31,7 +29,7 @@ export default class ReactComponentFactory implements IComponentFactory<ElementF
    * @param element 元素名称
    * @returns 包装渲染组件
    */
-  getComponentRender(name: string, mode: HostMode = "view") {
+  getComponentRender(name: string, mode: HostMode = 'view') {
     const component = this.componentDefinitions.get(name);
     if (!component) {
       return createNullRender(name);
@@ -44,5 +42,4 @@ export default class ReactComponentFactory implements IComponentFactory<ElementF
     }
     return def;
   }
-
 }

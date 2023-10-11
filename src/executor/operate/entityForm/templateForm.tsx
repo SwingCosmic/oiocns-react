@@ -1,10 +1,10 @@
 import SchemaForm from '@/components/SchemaForm';
 import ElementTreeManager from '@/executor/design/pageBuilder/core/ElementTreeManager';
-import { schema } from '@/ts/base';
+import { model } from '@/ts/base';
 import { IDirectory } from '@/ts/core';
-import { IPageTemplate } from '@/ts/core/thing/standard/page';
 import { ProFormColumnsType } from '@ant-design/pro-components';
 import React from 'react';
+import { IPageTemplate } from '@/ts/core/thing/standard/page';
 
 interface IProps {
   formType: string;
@@ -19,7 +19,7 @@ const PageTemplateForm: React.FC<IProps> = ({ formType, current, finished }) => 
       initialValue = current.metadata;
       break;
   }
-  const columns: ProFormColumnsType<schema.XPageTemplate>[] = [
+  const columns: ProFormColumnsType<model.XPageTemplate>[] = [
     {
       title: '名称',
       dataIndex: 'name',
@@ -45,7 +45,7 @@ const PageTemplateForm: React.FC<IProps> = ({ formType, current, finished }) => 
     },
   ];
   return (
-    <SchemaForm<schema.XPageTemplate>
+    <SchemaForm<model.XPageTemplate>
       open
       title="页面模板定义"
       width={640}

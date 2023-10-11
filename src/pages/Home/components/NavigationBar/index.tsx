@@ -24,8 +24,8 @@ const NavigationBar: React.FC<{
       label: item.name,
       backgroundImageUrl: '',
       type: 'page',
-      component: <ViewerHost ctx={{ view: new ViewerManager(item) }} />
-    }
+      component: <ViewerHost ctx={{ view: new ViewerManager(item) }} />,
+    };
     return navigation;
   };
   useEffect(() => {

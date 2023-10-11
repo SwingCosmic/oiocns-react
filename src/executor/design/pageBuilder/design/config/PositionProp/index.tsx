@@ -2,17 +2,17 @@ import { FieldModel } from '@/ts/base/model';
 import { Input } from 'antd';
 import React, { CSSProperties, ReactNode, useState } from 'react';
 import { useDrop } from 'react-dnd';
-import { IExistTypeEditor } from '../IExistTypeEditor';
+import { IExistTypeProps } from '../IExistTypeEditor';
 import { PosVal } from '../../../type';
 
-interface IProps {
+interface IProps extends IExistTypeProps<PosVal> {
   className?: string;
   style?: CSSProperties;
   children?: ReactNode;
   accept: string | string[];
 }
 
-export const PositionProp: IExistTypeEditor<PosVal, IProps> = (props) => {
+export const PositionProp: React.FC<IProps> = (props) => {
   const [{ isOver }, dropper] = useDrop<FieldModel, FieldModel, { isOver: boolean }>({
     accept: props.accept,
     collect: (monitor) => ({ isOver: monitor.isOver() }),
@@ -28,13 +28,13 @@ export const PositionProp: IExistTypeEditor<PosVal, IProps> = (props) => {
         border: `1px dashed rgba(255, 0, 0, ${isOver ? '1' : '0'})`,
       }}
       className={props.className}
-      ref={dropper}
-      children={props.children}
-    />
+      ref={dropper}>
+      {props.children}
+    </div>
   );
 };
 
-export const FieldPositionProp: IExistTypeEditor<PosVal, IProps> = (props) => {
+export const FieldPositionProp: React.FC<IProps> = (props) => {
   const [value, setValue] = useState(props.value);
   return (
     <PositionProp
@@ -45,13 +45,13 @@ export const FieldPositionProp: IExistTypeEditor<PosVal, IProps> = (props) => {
         setValue(field);
         props.onChange?.(field);
       }}
-      accept={props.accept}
-      children={<Input disabled value={value?.field?.name ?? '拖入此处'} />}
-    />
+      accept={props.accept}>
+      <Input disabled value={value?.field?.name ?? '拖入此处'} />
+    </PositionProp>
   );
 };
 
-export const NormalPosition: IExistTypeEditor<PosVal> = (props) => {
+export const NormalPosition: React.FC<IExistTypeProps<any>> = (props) => {
   return (
     <FieldPositionProp
       accept={['时间型', '日期型', '字典型', '分类型', '数值型', '用户型', '描述型']}
@@ -61,7 +61,7 @@ export const NormalPosition: IExistTypeEditor<PosVal> = (props) => {
   );
 };
 
-export const ImagePosition: IExistTypeEditor<PosVal> = (props) => {
+export const ImagePosition: React.FC<IExistTypeProps<any>> = (props) => {
   return (
     <FieldPositionProp
       accept={['附件型']}

@@ -1,5 +1,3 @@
-
-
 export interface DataContext<T extends string = string> {
   code: string;
   name: string;
@@ -7,8 +5,8 @@ export interface DataContext<T extends string = string> {
   thingId: string;
 }
 
-declare module "@/ts/base/pageModel" {
-  interface IPageTemplate<T extends string> {
+declare module '@/ts/base/schema' {
+  interface IPageTemplate {
     data?: DataContext[];
   }
 }

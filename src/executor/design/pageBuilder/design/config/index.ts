@@ -1,8 +1,8 @@
-import { IExistTypeEditor } from "./IExistTypeEditor";
+import { IExistTypeEditor } from './IExistTypeEditor';
 import FormProp, { PageProp } from './StandardProp';
 import AttrsProp from './AttrsProp';
 import { ImagePosition, NormalPosition } from './PositionProp';
-import CssSizeEditor from "./CssSizeEditor";
+import CssSizeEditor from './CssSizeEditor';
 
 const editors: Dictionary<IExistTypeEditor<any, any>> = {
   form: FormProp,
@@ -10,8 +10,7 @@ const editors: Dictionary<IExistTypeEditor<any, any>> = {
   attr: AttrsProp,
   position: NormalPosition,
   size: CssSizeEditor,
-  image: ImagePosition
+  image: ImagePosition,
 };
-
 
 export default editors;

@@ -1,23 +1,21 @@
-import { createContext } from "react";
-import { HostMode } from "../core/IViewHost";
-import type HostManagerBase from "./HostManager";
-import DesignerManager from "../design/DesignerManager";
-import { PageElement } from "../core/PageElement";
-
+import { createContext } from 'react';
+import { HostMode } from '../core/IViewHost';
+import DesignerManager from '../design/DesignerManager';
+import type HostManagerBase from './HostManager';
 
 export const PageContext = createContext<Context>({
-  view: null!
+  view: null!,
 });
 
 export interface IPageContext<T extends HostMode> {
   view: HostManagerBase<T>;
 }
 
-export interface DesignContext extends IPageContext<'design'>{
+export interface DesignContext extends IPageContext<'design'> {
   view: DesignerManager;
 }
 
-export interface ViewContext extends IPageContext<'view'>{
+export interface ViewContext extends IPageContext<'view'> {
   view: HostManagerBase<'view'>;
 }
 

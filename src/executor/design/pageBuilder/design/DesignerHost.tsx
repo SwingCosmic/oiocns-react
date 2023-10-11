@@ -15,31 +15,30 @@ export interface DesignerProps {
   ctx: DesignContext;
 }
 
-
 export function DesignerHost({ ctx }: DesignerProps) {
   const currentElement = useComputed(() => ctx.view.currentElement);
   const [refresh, withChangeToken] = useChangeToken();
 
-  console.log("re-render");
+  console.log('re-render');
 
   function renderTabs(): Tab[] {
     return [
       {
         label: `JSON数据`,
         key: 'code',
-        children: <Coder />
+        children: <Coder />,
       },
       {
         label: `配置`,
         key: 'element',
-        children: <ElementProps element={currentElement.value}/>
+        children: <ElementProps element={currentElement.value} />,
       },
       {
         label: `数据`,
         key: 'data',
-        children: <div></div>
+        children: <div></div>,
       },
-    ]
+    ];
   }
 
   const RootRender = ctx.view.components.rootRender as any;
@@ -59,16 +58,15 @@ export function DesignerHost({ ctx }: DesignerProps) {
           </div>
           <div className={css.content}>
             <div className={css.designConfig}>
-              <Tabs className="is-full-height" 
-                defaultActiveKey='element' 
-                items={renderTabs()}>
-              </Tabs>
-            </div>
-            
-            <div className="o-page-host" style={{ flex: "auto" }} {...withChangeToken()}>
-              <RootRender element={ctx.view.rootElement} />
+              <Tabs
+                className="is-full-height"
+                defaultActiveKey="element"
+                items={renderTabs()}></Tabs>
             </div>
 
+            <div className="o-page-host" style={{ flex: 'auto' }} {...withChangeToken()}>
+              <RootRender element={ctx.view.rootElement} />
+            </div>
           </div>
         </div>
       </PageContext.Provider>

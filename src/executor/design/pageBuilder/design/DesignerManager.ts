@@ -1,29 +1,31 @@
-import { Signal, signal } from "@preact/signals-react";
-import { PageElement } from "../core/PageElement";
-import HostManagerBase from "../render/HostManager";
-import { IPageTemplate } from "@/ts/core/thing/standard/page";
-import { IDisposable } from "@/ts/base/common";
-import { ElementInit } from "../core/ElementTreeManager";
+import { Signal, signal } from '@preact/signals-react';
+import { PageElement } from '../core/PageElement';
+import HostManagerBase from '../render/HostManager';
+import { IPageTemplate } from '@/ts/core/thing/standard/page';
+import { IDisposable } from '@/ts/base/common';
+import { ElementInit } from '../core/ElementTreeManager';
 
-export default class DesignerManager extends HostManagerBase<"design"> implements IDisposable {
-
+export default class DesignerManager
+  extends HostManagerBase<'design'>
+  implements IDisposable
+{
   constructor(pageFile: IPageTemplate) {
-    super("design", pageFile);
+    super('design', pageFile);
     this.currentElement = this.rootElement;
   }
 
   dispose() {
-    console.info("DesignerManager disposed");
+    console.info('DesignerManager disposed');
     this.onNodeChange = null;
     this.onCurrentChange = null;
 
     this.currentElement = null;
   }
- 
+
   async update() {
     return await this.pageInfo.update(this.pageInfo.metadata);
   }
-  
+
   /** 获取或设置根元素的子元素 */
   get rootChildren(): readonly PageElement[] {
     return this.treeManager.root.children;
@@ -47,10 +49,15 @@ export default class DesignerManager extends HostManagerBase<"design"> implement
     this.onCurrentChange?.(e);
   }
 
-  addElement<E extends PageElement>(kind: E["kind"], name: string, parentId?: string, params: ElementInit<E> = {}): E {
+  addElement<E extends PageElement>(
+    kind: E['kind'],
+    name: string,
+    parentId?: string,
+    params: ElementInit<E> = {},
+  ): E {
     const e = this.treeManager.createElement(kind, name, parentId, params);
     this.onNodeChange?.(e);
-    this.emitter("props", "change");
+    this.emitter('props', 'change');
     return e as any;
   }
 
@@ -59,5 +66,4 @@ export default class DesignerManager extends HostManagerBase<"design"> implement
     this.currentElement = null;
     this.onCurrentChange?.(this.treeManager.root);
   }
-  
 }
