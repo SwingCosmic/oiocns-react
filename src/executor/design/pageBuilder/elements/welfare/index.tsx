@@ -1,7 +1,6 @@
 import { AiOutlineShoppingCart } from '@/icons/ai';
-import { kernel } from '@/ts/base';
-import { IForm } from '@/ts/core';
-import { ShareIdSet } from '@/ts/core/public/entity';
+import { kernel, model, schema } from '@/ts/base';
+import { Form } from '@/ts/core/thing/standard/form';
 import { Badge, Button, Col, Pagination, Row, Space, Tag } from 'antd';
 import React, { useEffect, useState } from 'react';
 import { ExistTypeMeta } from '../../core/ElementMeta';
@@ -10,14 +9,17 @@ import cls from './index.module.less';
 
 export default defineElement({
   render(props, ctx) {
-    const form = ShareIdSet.get(props.formId + '*') as IForm | undefined;
+    const dir = ctx.view.pageInfo.directory;
+    const form = props.form ? new Form(props.form, dir) : undefined;
     const [data, setData] = useState<any[]>([]);
     const [page, setPage] = useState<number>(1);
     const [size, setSize] = useState<number>(props.pageSize ?? 20);
     const [total, setTotal] = useState<number>(0);
+    const [fields, setFields] = useState<model.FieldModel[]>([]);
     useEffect(() => {
       const init = async () => {
         await form?.loadContent();
+        setFields(form?.fields ?? []);
         await loadData(size, page);
       };
       init();
@@ -37,8 +39,8 @@ export default defineElement({
     return (
       <div className={cls.layout}>
         <div className={cls.search}>
-          {form?.fields
-            .filter((item: any) => ['选择型', '分类型'].indexOf(item.valueType) != -1)
+          {fields
+            .filter((item: any) => ['选择型', '分类型'].includes(item.valueType))
             .map((item) => {
               return (
                 <Space key={item.id} direction="horizontal">
@@ -94,11 +96,11 @@ export default defineElement({
   displayName: 'Welfare',
   meta: {
     props: {
-      formId: {
+      form: {
         type: 'type',
         label: '关联表单',
-        typeName: 'form',
-      } as ExistTypeMeta<string | undefined>,
+        typeName: 'formFile',
+      } as ExistTypeMeta<schema.XForm | undefined>,
       pageSize: {
         type: 'number',
         label: '每页个数',

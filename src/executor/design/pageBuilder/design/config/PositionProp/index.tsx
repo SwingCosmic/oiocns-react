@@ -51,7 +51,7 @@ export const FieldPositionProp: React.FC<IProps> = (props) => {
   );
 };
 
-export const NormalPosition: React.FC<IExistTypeProps<any>> = (props) => {
+export const NormalPosition: React.FC<IExistTypeProps<PosVal>> = (props) => {
   return (
     <FieldPositionProp
       accept={['时间型', '日期型', '字典型', '分类型', '数值型', '用户型', '描述型']}
@@ -61,7 +61,7 @@ export const NormalPosition: React.FC<IExistTypeProps<any>> = (props) => {
   );
 };
 
-export const ImagePosition: React.FC<IExistTypeProps<any>> = (props) => {
+export const ImagePosition: React.FC<IExistTypeProps<PosVal>> = (props) => {
   return (
     <FieldPositionProp
       accept={['附件型']}
