@@ -35,32 +35,6 @@ const PageTemplateForm: React.FC<IProps> = ({ formType, current, finished }) => 
       },
     },
     {
-      title: '模板类型',
-      dataIndex: 'kind',
-      valueType: 'radio',
-      formItemProps: {
-        rules: [{ required: true, message: '模板类型为必填项' }],
-      },
-      colProps: { span: 24 },
-      initialValue: 'common',
-      fieldProps: {
-        options: [
-          {
-            label: '通用模板',
-            value: 'common',
-          },
-          {
-            label: '商城页',
-            value: 'shop',
-          },
-          {
-            label: '新闻页',
-            value: 'news',
-          },
-        ],
-      },
-    },
-    {
       title: '备注',
       dataIndex: 'remark',
       valueType: 'textarea',
