@@ -73,7 +73,7 @@ function createViewRender(component: ElementFC) {
 }
 
 function createDesignRender(component: ElementFC) {
-  return (props: ElementRenderProps) => {
+  const render = (props: ElementRenderProps) => {
     const ctx = useContext(PageContext) as DesignContext;
     const [key, setKey] = useState(generateUuid());
     const handleClick = useCallback((e: MouseEvent) => {
@@ -95,13 +95,14 @@ function createDesignRender(component: ElementFC) {
       </ErrorBoundary>
     );
   };
+  return render;
 }
 
 export function createNullRender(name: string) {
-  const staticRenderResult = (
+  const staticRenderResult = () => (
     <div>
       <Result status="error" title={`元素 '${name}' 未注册组件`} />
     </div>
   );
-  return () => staticRenderResult;
+  return staticRenderResult;
 }

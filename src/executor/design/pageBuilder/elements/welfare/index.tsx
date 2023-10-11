@@ -15,7 +15,6 @@ export default defineElement({
     const [page, setPage] = useState<number>(1);
     const [size, setSize] = useState<number>(props.pageSize ?? 20);
     const [total, setTotal] = useState<number>(0);
-    const [choose, setChoose] = useState<any[]>([]);
     useEffect(() => {
       const init = async () => {
         await form?.loadContent();
@@ -80,7 +79,7 @@ export default defineElement({
           />
         </div>
         <div className={cls.shoppingBtn}>
-          <Badge count={choose.length}>
+          <Badge count={0}>
             <Button
               size="large"
               type="primary"

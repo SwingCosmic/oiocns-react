@@ -326,7 +326,6 @@ export abstract class StandardFileInfo<T extends schema.XStandard>
     );
   }
   async update(data: T): Promise<boolean> {
-    console.log(data);
     const res = await this.coll.replace({
       ...this.metadata,
       ...data,
