@@ -3,13 +3,13 @@ import {
   XAuthority,
   Xbase,
   XDirectory,
-  XEntity,
   XForm,
   XIdentity,
   XProperty,
   XSpecies,
   XStandard,
   XTarget,
+  XThing,
 } from './schema';
 // 请求类型定义
 export type ReqestType = {
@@ -560,23 +560,6 @@ export type GetDirectoryModel = {
   page: PageModel | undefined;
 };
 
-export type AnyThingModel = {
-  /** 唯一ID */
-  Id: string;
-  /** 名称 */
-  Name: string;
-  /** 状态 */
-  Status: string;
-  /** 创建人 */
-  Creater: string;
-  /** 创建时间 */
-  CreateTime: string;
-  /** 变更时间 */
-  ModifiedTime: string;
-  /** 其它信息 */
-  [field: string]: any;
-};
-
 export type WorkDefineModel = {
   // 流程ID
   id: string;
@@ -675,11 +658,13 @@ export type FiledLookup = {
 
 export type FormEditData = {
   /** 操作前数据体 */
-  before: AnyThingModel[];
+  before: XThing[];
   /** 操作后数据体 */
-  after: AnyThingModel[];
+  after: XThing[];
   /** 流程节点Id */
   nodeId: string;
+  /** 表单名称 */
+  formName: string;
   /** 操作人 */
   creator: string;
   /** 操作时间 */
@@ -908,6 +893,7 @@ export type OperateModel = {
   sort: number;
   label: string;
   iconType: string;
+  model?: string;
   menus?: OperateModel[];
 };
 
@@ -1032,6 +1018,8 @@ export interface Column {
   dataIndex: string;
   // 类型
   valueType: string;
+  // 是否隐藏
+  hide?: boolean;
 }
 
 // 映射
@@ -1200,24 +1188,6 @@ export type SchemaType = {
   column: 1 | 2 | 3;
 };
 
-export type CommonAppplication = {
-  // 应用Id
-  id: string;
-  // 展示归属组织
-  spaceId: string;
-};
-
-/** 代码构建 */
-export type codeBuildType = {
-  git: string;
-  dockerfile: string;
-  image: string;
-  registry_tokencreateTime: string;
-};
-/** 新建文档 */
-export type documentType = {
-  name: string;
-};
 // 页面设计
 export * from "./pageModel";
 
@@ -1243,8 +1213,3 @@ export type DiskInfoType = {
   // 查询时间
   getTime: string;
 }
-
-export type SubObjects = {
-  // 订阅的对象 ID
-  pageIds: string[];
-} & XEntity;

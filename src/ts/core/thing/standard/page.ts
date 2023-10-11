@@ -10,6 +10,7 @@ export class PageTemplate
   extends StandardFileInfo<schema.XPageTemplate>
   implements IPageTemplate
 {
+  canDesign: boolean = true;
   command: Command;
   get cacheFlag() {
     return 'pages';

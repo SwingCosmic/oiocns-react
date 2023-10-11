@@ -1,7 +1,5 @@
 import React, { useEffect, useState } from 'react';
 
-import HostManagerBase from '@/components/PageBuilder/render/HostManager';
-import { ViewerHost } from '@/components/PageBuilder/view/ViewerHost';
 import BasicTitle from '@/pages/Home/components/BaseTitle';
 import { command } from '@/ts/base';
 import orgCtrl from '@/ts/controller';
@@ -10,15 +8,26 @@ import { EllipsisOutlined, MinusCircleFilled, PlusCircleFilled } from '@ant-desi
 import { Badge, Button, Space, Typography, message } from 'antd';
 import { NavigationItem } from '../..';
 import cls from './index.module.less';
-import ViewerManager from '@/components/PageBuilder/view/ViewerManager';
+import { ViewerHost } from '@/executor/design/pageBuilder/view/ViewerHost';
+import ViewerManager from '@/executor/design/pageBuilder/view/ViewerManager';
 
 const NavigationBar: React.FC<{
   list: NavigationItem[];
   onChange: (item: NavigationItem) => void;
-}> = ({ onChange, list }) => {
-  const [current, setCurrent] = useState(list.length > 0 ? list[0].key : '');
+}> = ({ list, onChange }) => {
+  const [current, setCurrent] = useState(0);
   const [more, setMore] = useState(false);
   const [pages, setPages] = useState<IPageTemplate[]>([]);
+  const mapping = (item: IPageTemplate) => {
+    const navigation: NavigationItem = {
+      key: item.id,
+      label: item.name,
+      backgroundImageUrl: '',
+      type: 'page',
+      component: <ViewerHost ctx={{ view: new ViewerManager(item) }} />
+    }
+    return navigation;
+  };
   useEffect(() => {
     const id = command.subscribeByFlag('pages', async () => {
       setPages(await orgCtrl.loadPages());
@@ -30,50 +39,26 @@ const NavigationBar: React.FC<{
   const regularNavigation = (
     <>
       <div className={cls.navigationBarContent}>
-        {list.map((item) => {
+        {[
+          ...list,
+          ...pages.filter((item) => item.cache.tags?.includes('常用')).map(mapping),
+        ].map((item, index) => {
           return (
             <div
               key={item.key}
               className={
-                current === item.key
+                current === index
                   ? cls.navigationBarContent__itemActive
                   : cls.navigationBarContent__item
               }
               onClick={() => {
-                setCurrent(item.key);
+                setCurrent(index);
                 onChange(item);
               }}>
               {item.label}
             </div>
           );
         })}
-        {pages
-          .filter((item) => item.cache.tags?.includes('常用'))
-          .map((item) => {
-            return (
-              <div
-                key={item.key}
-                className={
-                  current === item.id
-                    ? cls.navigationBarContent__itemActive
-                    : cls.navigationBarContent__item
-                }
-                onClick={() => {
-                  setCurrent(item.id);
-                  onChange({
-                    key: item.id,
-                    label: item.name,
-                    backgroundImageUrl: '/img/banner/circle-bg.jpeg',
-                    type: 'page',
-                    component: (
-                      <ViewerHost ctx={{ view: new ViewerManager(item) }} />
-                    ),
-                  });
-                }}>
-                {item.name}
-              </div>
-            );
-          })}
       </div>
       <EllipsisOutlined
         onClick={() => {

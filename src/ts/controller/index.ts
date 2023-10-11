@@ -65,7 +65,8 @@ class IndexController extends Controller {
   async loadPages(): Promise<IPageTemplate[]> {
     const pages: IPageTemplate[] = [];
     for (const directory of this.targets.map((t) => t.directory)) {
-      pages.push(...(await directory.loadAllTemplate()));
+      const templates = await directory.loadAllTemplate();
+      pages.push(...templates);
     }
     return pages;
   }
