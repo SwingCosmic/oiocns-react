@@ -113,12 +113,8 @@ export default function ElementProps({ element }: Props) {
               target={element.props}
               prop={prop}
               meta={meta}
-              onValueChange={(value) => {
-                ctx.view.emitter("props", "change", {
-                  id: element.id,
-                  prop: prop,
-                  value: value
-                });
+              onValueChange={() => {
+                ctx.view.emitter("props", "change", element.id);
               }}
             />;
           })

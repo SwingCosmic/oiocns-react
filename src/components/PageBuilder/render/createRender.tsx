@@ -1,4 +1,4 @@
-import { ComponentType, FC, createElement as h, useCallback, useContext } from "react";
+import { ComponentType, FC, createElement as h, useCallback, useContext, useState } from "react";
 import { HostMode } from "../core/IViewHost";
 import { PageElement } from "../core/PageElement";
 import _ from "lodash";
@@ -6,7 +6,7 @@ import React, { MouseEvent } from "react";
 import { Result } from "antd";
 import { DesignContext, PageContext } from "./PageContext";
 import { ElementMeta } from "../core/ElementMeta";
-import { deepClone } from "@/ts/base/common";
+import { deepClone, generateUuid } from "@/ts/base/common";
 import ErrorBoundary from "./ErrorBoundary";
 import { ElementFC } from "../elements/defineElement";
 
@@ -75,13 +75,16 @@ function createViewRender(component: ElementFC) {
 function createDesignRender(component: ElementFC) {
   return (props: ElementRenderProps) => {
     const ctx = useContext(PageContext) as DesignContext;
+    const [key, setKey] = useState(generateUuid());
     const handleClick = useCallback((e: MouseEvent) => {
       e.stopPropagation();
       ctx.view.currentElement = props.element;
     }, []);
+    ctx.view.subscribeElement(props.element.id, ()=> setKey(generateUuid()));
     return (
       <ErrorBoundary>
         <div 
+          key={key}
           className={[
             "element-wrapper",
             ctx.view.currentElement?.id == props.element.id ? "is-current": ""

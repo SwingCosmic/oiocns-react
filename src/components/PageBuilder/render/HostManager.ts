@@ -53,12 +53,12 @@ export default class HostManagerBase<T extends HostMode>
     });
   }
 
-  /** 订阅属性变动 */
-  subscribeProps(elementId: string, onChange: (prop: string, value: any) => void) {
+  /** 订阅元素变动 */
+  subscribeElement(elementId: string, onChange: () => void) {
     useEffect(() => {
       const subId = this.pageInfo.command.subscribe((type, cmd, args) => {
-        if (type == "props" && cmd == "change" && elementId == args.id) {
-          onChange(args.prop, args.value);
+        if (type == "props" && cmd == "change" && elementId == args) {
+          onChange();
         }
       });
       return () => {
