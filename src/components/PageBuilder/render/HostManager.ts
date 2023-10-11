@@ -68,7 +68,7 @@ export default class HostManagerBase<T extends HostMode>
   }
 
   /** 触发变动 */
-  emitter(type: string, cmd: string, args: any) {
+  emitter(type: string, cmd: string, args?: any) {
     this.pageInfo.command.emitter(type, cmd, args);
   }
 

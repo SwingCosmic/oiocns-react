@@ -25,7 +25,7 @@ export function DesignerHost({ ctx }: DesignerProps) {
   function renderTabs(): Tab[] {
     return [
       {
-        label: `JSON编辑`,
+        label: `JSON数据`,
         key: 'code',
         children: <Coder />
       },

@@ -50,6 +50,7 @@ export default class DesignerManager extends HostManagerBase<"design"> implement
   addElement<E extends PageElement>(kind: E["kind"], name: string, parentId?: string, params: ElementInit<E> = {}): E {
     const e = this.treeManager.createElement(kind, name, parentId, params);
     this.onNodeChange?.(e);
+    this.emitter("props", "change");
     return e as any;
   }
 
