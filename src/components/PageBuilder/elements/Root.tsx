@@ -1,6 +1,7 @@
 
 import React from "react";
 import { defineElement } from "./defineElement";
+import { EnumTypeMeta } from "../core/ElementMeta";
 
 
 export default defineElement({
@@ -11,7 +12,8 @@ export default defineElement({
       <div style={{ height: '100%' }}  
         className={[
           'element-root',
-          isDesign ? "is-design" : ""
+          isDesign ? "is-design" : "",
+          `is-${props.layoutType}`
         ].join(" ")}>
 
         {isDesign ? <div className="design-tip">
@@ -31,7 +33,15 @@ export default defineElement({
   displayName: "Root",
   meta: {
     props: {
-
+      layoutType: {
+        type: "enum",
+        label: "布局方式",
+        options: [
+          { label: "滚动", value: "scroll" },
+          { label: "撑满", value: "full" }
+        ],
+        default: "scroll",
+      } as EnumTypeMeta<'scroll' | 'full'>,
     },
     label: "模板根元素",
   }
