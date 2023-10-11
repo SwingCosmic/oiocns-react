@@ -17,9 +17,11 @@ export default defineElement({
     const [total, setTotal] = useState<number>(0);
     const [choose, setChoose] = useState<any[]>([]);
     useEffect(() => {
-      if (form) {
-        Promise.all([form.loadContent, loadData(size, page)]);
-      }
+      const init = async () => {
+        await form?.loadContent();
+        await loadData(size, page);
+      };
+      init();
     }, []);
     const loadData = async (take: number, page: number) => {
       if (!form) return;
