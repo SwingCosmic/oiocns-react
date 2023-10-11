@@ -5,6 +5,7 @@ import { ExistTypeMeta } from '../../core/ElementMeta';
 import { PosVal } from '../../type';
 import { defineElement } from '../defineElement';
 import Asset from '/img/banner/1.png';
+import { shareOpenLink } from '@/utils/tools';
 
 interface PosProps {
   pos: PosVal;
@@ -23,8 +24,10 @@ const Content: React.FC<DataProps> = ({ data, pos }) => {
 };
 
 const ImageContent: React.FC<DataProps> = ({ data, pos }) => {
-  console.log(data, data && pos.field ? data[pos.field.code ?? ''] : '');
-  return <Image height={200} src={Asset} />;
+  const shareLink = data && pos.field?.code ? data[pos.field.code] : '';
+  return (
+    <Image height={200} src={shareLink ? shareOpenLink(String(shareLink)) : Asset} />
+  );
 };
 
 const Position: React.FC<PosProps> = ({ pos }) => {
@@ -93,7 +96,7 @@ export default defineElement({
       } as ExistTypeMeta<schema.XThing>,
       image: {
         type: 'type',
-        typeName: 'image',
+        typeName: 'position',
         label: '图片',
         default: { position: 'image', label: '主图片' },
       } as ExistTypeMeta<PosVal>,
