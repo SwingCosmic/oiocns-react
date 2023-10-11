@@ -1,19 +1,18 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { defineElement } from './defineElement';
 import { EnumTypeMeta } from '../core/ElementMeta';
 
 export default defineElement({
   render(props, ctx) {
     const isDesign = ctx.view.mode == 'design';
-
+    const [layoutType, setLayoutType] = useState(props.layoutType);
+    ctx.view.subscribeElement(props.id, () => setLayoutType(props.layoutType));
     return (
       <div
         style={{ height: '100%' }}
-        className={[
-          'element-root',
-          isDesign ? 'is-design' : '',
-          `is-${props.layoutType}`,
-        ].join(' ')}>
+        className={['element-root', isDesign ? 'is-design' : '', `is-${layoutType}`].join(
+          ' ',
+        )}>
         {isDesign ? (
           <div className="design-tip">
             <div>设计模式</div>
