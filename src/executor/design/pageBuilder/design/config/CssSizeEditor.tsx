@@ -1,7 +1,7 @@
 import { computed, useSignal, useSignalEffect } from '@preact/signals-react';
 import { InputNumber, Select } from 'antd';
 import React, { useEffect } from 'react';
-import { IExistTypeProps } from './IExistTypeEditor';
+import { IExistTypeEditor } from './IExistTypeEditor';
 
 export const CSSUnits = [
   'px',
@@ -18,7 +18,7 @@ export const CSSUnits = [
 ] as const;
 export type CSSUnit = (typeof CSSUnits)[number];
 
-const CssSizeEditor: React.FC<IExistTypeProps> = ({ value, onChange }) => {
+const CssSizeEditor: IExistTypeEditor<string> = ({ value, onChange }) => {
   const type = useSignal<'value' | 'auto' | 'none'>('value');
   const number = useSignal<number | null>(null);
   const unit = useSignal<CSSUnit | null>(null);
