@@ -1,7 +1,7 @@
 import { Button, Tabs } from 'antd';
 import React from 'react';
 import { DesignContext, PageContext } from '../render/PageContext';
-import Coder from './context';
+import Coder from './Context';
 
 import { useChangeToken } from '@/hooks/useChangeToken';
 import { useComputed } from '@preact/signals-react';
@@ -10,6 +10,7 @@ import { DndProvider } from 'react-dnd';
 import { HTML5Backend } from 'react-dnd-html5-backend';
 import ElementProps from './config/ElementProps';
 import css from './designer.module.less';
+import TreeManager from './TreeManager';
 
 export interface DesignerProps {
   ctx: DesignContext;
@@ -24,9 +25,9 @@ export function DesignerHost({ ctx }: DesignerProps) {
   function renderTabs(): Tab[] {
     return [
       {
-        label: `JSON数据`,
-        key: 'code',
-        children: <Coder />,
+        label: `元素树`,
+        key: 'tree',
+        children: <TreeManager ctx={ctx} />,
       },
       {
         label: `配置`,
@@ -37,6 +38,11 @@ export function DesignerHost({ ctx }: DesignerProps) {
         label: `数据`,
         key: 'data',
         children: <div></div>,
+      },
+      {
+        label: `JSON数据`,
+        key: 'code',
+        children: <Coder />,
       },
     ];
   }
@@ -60,7 +66,7 @@ export function DesignerHost({ ctx }: DesignerProps) {
             <div className={css.designConfig}>
               <Tabs
                 className="is-full-height"
-                defaultActiveKey="element"
+                defaultActiveKey="tree"
                 items={renderTabs()}></Tabs>
             </div>
 

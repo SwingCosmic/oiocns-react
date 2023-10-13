@@ -13,6 +13,21 @@ interface Props {
   element: PageElement | null;
 }
 
+export async function removeElement(element: PageElement | null, ctx: DesignContext) {
+  if (!element) {
+    return;
+  }
+  if (element.kind == 'Root') {
+    message.error('根元素不可删除');
+    return;
+  }
+  await $confirm({
+    title: '提示',
+    content: `确实要移除元素 ${element.name} 及其所有下级？`,
+  });
+  ctx.view.removeElement(element, true);
+}
+
 export default function ElementProps({ element }: Props) {
   const ctx = useContext<DesignContext>(PageContext as any);
 
@@ -41,21 +56,6 @@ export default function ElementProps({ element }: Props) {
 
   function addElement() {
     setAddVisible(true);
-  }
-
-  async function removeElement() {
-    if (!element) {
-      return;
-    }
-    if (element.kind == 'Root') {
-      message.error('根元素不可删除');
-      return;
-    }
-    await $confirm({
-      title: '提示',
-      content: `确实要移除元素 ${element.name} 及其所有下级？`,
-    });
-    ctx.view.removeElement(element, true);
   }
 
   if (!element) {
@@ -90,7 +90,7 @@ export default function ElementProps({ element }: Props) {
           style={{ marginLeft: '8px' }}
           size="small"
           icon={<MinusOutlined />}
-          onClick={removeElement}></Button>
+          onClick={() => removeElement(element, ctx)}></Button>
       </div>
       <div className="props-content">
         {Object.entries(commonTypeMeta).map(([prop, meta]) => {

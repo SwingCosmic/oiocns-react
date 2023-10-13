@@ -1,6 +1,8 @@
-import type { Properties, PropertiesHyphen } from "csstype";
+import type { Properties, PropertiesHyphen } from 'csstype';
 
-export interface CSSProperties extends Properties<string | number>, PropertiesHyphen<string | number> {
+export interface CSSProperties
+  extends Properties<string | number>,
+    PropertiesHyphen<string | number> {
   /**
    * The index signature was removed to enable closed typing for style
    * using CSSType. You're able to use type assertion or module augmentation
