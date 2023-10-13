@@ -43,11 +43,13 @@ export default defineElement({
             .filter((item: any) => ['选择型', '分类型'].includes(item.valueType))
             .map((item) => {
               return (
-                <Space key={item.id} direction="horizontal">
+                <Space align="start" key={item.id} direction="horizontal">
                   <Tag color="blue">{item.name}</Tag>
-                  {item.lookups?.map((up) => {
-                    return <Tag key={up.id}>{up.text}</Tag>;
-                  }) ?? <></>}
+                  <Row gutter={[6, 6]} key={item.id}>
+                    {(item.lookups ?? []).map((up) => {
+                      return <Tag key={up.id}>{up.text}</Tag>;
+                    })}
+                  </Row>
                 </Space>
               );
             })}
