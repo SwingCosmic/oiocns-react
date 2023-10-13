@@ -15,7 +15,7 @@ export interface PageElement<
   name: string;
   data?: D;
   children: PageElement[];
-  slots: { [position: string]: PageElement };
+  slots?: { [position: string]: PageElement };
 
   /** CSS类名 */
   className?: string | string[];

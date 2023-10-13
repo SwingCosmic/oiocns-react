@@ -10,7 +10,6 @@ export default defineElement({
           background: `no-repeat url(${props.url}) #fafafa center `,
           backgroundSize: 'cover',
           height: props.height,
-          minHeight: 200,
         }}>
         <div
           style={{
@@ -30,6 +29,7 @@ export default defineElement({
     props: {
       height: {
         type: 'number',
+        default: 200,
       },
       title: {
         type: 'string',

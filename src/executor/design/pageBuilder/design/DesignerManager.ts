@@ -53,6 +53,13 @@ export default class DesignerManager
     return e as any;
   }
 
+  // setSlot<E extends PageElement>(): E {
+  //   const e = this.treeManager.createElement(kind, name, parentId, params);
+  //   this.currentElement = e;
+  //   this.emitter('all', 'change');
+  //   return e as any;
+  // }
+
   removeElement(e: PageElement, recursive?: boolean) {
     this.treeManager.removeElement(e, recursive);
     this.currentElement = null;

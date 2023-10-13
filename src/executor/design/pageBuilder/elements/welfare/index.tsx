@@ -1,9 +1,10 @@
 import { AiOutlineShoppingCart } from '@/icons/ai';
 import { kernel, model, schema } from '@/ts/base';
 import { Form } from '@/ts/core/thing/standard/form';
-import { Badge, Button, Col, Pagination, Row, Space, Tag } from 'antd';
+import { Badge, Button, Col, Empty, Pagination, Row, Space, Tag } from 'antd';
 import React, { useEffect, useState } from 'react';
 import { ExistTypeMeta } from '../../core/ElementMeta';
+import { PageElement } from '../../core/PageElement';
 import { defineElement } from '../defineElement';
 import cls from './index.module.less';
 
@@ -58,18 +59,18 @@ export default defineElement({
           <div className={cls.contentGrid}>
             <Row gutter={[16, 16]}>
               {data.map((item) => {
-                return props.children.map((c) => {
-                  // 自递归渲染
+                if (props.card) {
                   const Render = ctx.view.components.getComponentRender(
-                    c.kind,
+                    props.card.kind,
                     ctx.view.mode,
                   );
                   return (
-                    <Col key={c.id} span={4} className={cls.contentCard}>
-                      <Render element={c} data={item} />
+                    <Col key={item.id} className={cls.contentCard}>
+                      <Render element={props.card} data={item} />
                     </Col>
                   );
-                });
+                }
+                return <Empty description={'未放置组件'} />;
               })}
             </Row>
           </div>
@@ -107,6 +108,11 @@ export default defineElement({
         type: 'number',
         label: '每页个数',
       },
+      card: {
+        type: 'type',
+        label: '卡片模板',
+        typeName: 'slot',
+      } as ExistTypeMeta<PageElement | undefined>,
     },
     hasChildren: false,
     label: '公物仓',

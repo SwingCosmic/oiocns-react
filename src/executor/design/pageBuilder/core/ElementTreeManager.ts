@@ -41,14 +41,24 @@ export default class ElementTreeManager {
 
   initElements(elements: PageElement[], parentId = '') {
     for (const e of elements) {
-      Object.defineProperty(e, 'parentId', {
-        value: parentId,
-        configurable: true,
-        enumerable: false,
-      });
-      this.allElements[e.id] = e;
+      this.setElement(e, parentId);
+      if (e.slots) {
+        for (const key in e.slots) {
+          const item = e.slots[key];
+          this.setElement(item, parentId);
+        }
+      }
       this.initElements(e.children, e.id);
     }
+  }
+
+  setElement(e: PageElement, parentId = '') {
+    Object.defineProperty(e, 'parentId', {
+      value: parentId,
+      configurable: true,
+      enumerable: false,
+    });
+    this.allElements[e.id] = e;
   }
 
   /** 批量修改元素的直接上级，不处理子级 */

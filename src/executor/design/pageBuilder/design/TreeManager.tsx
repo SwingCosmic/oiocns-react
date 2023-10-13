@@ -13,36 +13,76 @@ interface IProps {
   ctx: DesignContext;
 }
 
-const buildElementTree = (element: PageElement): any => {
+const buildElementTree = (
+  element: PageElement,
+  ctx: DesignContext,
+  isSlot: boolean = false,
+  parent?: PageElement,
+): any => {
+  const meta = ctx.view.treeManager.factory.getMeta(element.kind);
+  const slots: PageElement[] = [];
+  if (meta) {
+    for (const key of Object.keys(meta.props)) {
+      const prop = meta.props[key];
+      const slot = element.props[key];
+      if (prop.type == 'type' && prop.typeName == 'slot') {
+        if (slot) {
+          slots.push(slot);
+        } else {
+          // 占位
+          const ele = ctx.view.treeManager.factory.create('Any', prop.label ?? '插槽');
+          ele.props.seize = true;
+          slots.push(ele);
+        }
+      }
+    }
+  }
   return {
     key: element.id,
     title: element.name,
     item: element,
-    isLeaf: element.children.length === 0,
+    isLeaf: element.children.length === 0 && slots.length == 0,
+    typeName: isSlot ? '插槽' : meta?.hasChildren ? '布局' : '节点',
     icon: <EntityIcon entityId={element.id} size={18} />,
-    children: element.children.map(item => buildElementTree(item)),
+    parent: parent,
+    children: [
+      ...element.children.map((item) => buildElementTree(item, ctx, false, element)),
+      ...slots.map((item) => buildElementTree(item, ctx, true, element)),
+    ],
   };
 };
 
 const TreeManager: React.FC<IProps> = ({ ctx }) => {
   const [visible, setVisible] = useState<boolean>(false);
+  const tree = [buildElementTree(ctx.view.rootElement, ctx)];
   return (
     <div style={{ margin: '0 8px' }}>
       <CustomTree
-        treeData={[buildElementTree(ctx.view.rootElement)]}
+        treeData={tree}
         defaultExpandAll={true}
         searchable
         draggable
         onSelect={(_, info) => {
-          ctx.view.currentElement = (info.node as any).item;
+          const node = info.node as any;
+          switch (node.typeName) {
+            case '插槽':
+              ctx.view.currentElement = node.parent;
+              setVisible(true);
+              break;
+            default:
+              ctx.view.currentElement = node.item;
+              break;
+          }
         }}
         selectedKeys={[ctx.view.currentElement?.id ?? '']}
         titleRender={(node: any) => {
           return (
             <div className={cls.node}>
-              <Space>
-                {node.item.name}
+              <Space size={0}>
+                <Tag>{node.item.name}</Tag>
                 <Tag>{node.item.kind}</Tag>
+                <Tag>{node.typeName}</Tag>
+                {node.item.props.seize && <Tag color="red">未放置</Tag>}
               </Space>
               <Space>
                 {ctx.view.treeManager.hasChildren(node.item) && (
@@ -53,7 +93,7 @@ const TreeManager: React.FC<IProps> = ({ ctx }) => {
                     onClick={() => setVisible(true)}
                   />
                 )}
-                {ctx.view.rootElement != node.item && (
+                {ctx.view.rootElement != node.item && !node.item.props.seize && (
                   <Button
                     shape="circle"
                     size="small"
@@ -66,7 +106,7 @@ const TreeManager: React.FC<IProps> = ({ ctx }) => {
             </div>
           );
         }}
-        onDrop={info => {
+        onDrop={(info) => {
           const target = (info.node as any).item;
           if (!ctx.view.treeManager.hasChildren(target)) {
             message.error('非布局节点，其下无法放置！');
@@ -83,7 +123,7 @@ const TreeManager: React.FC<IProps> = ({ ctx }) => {
       <AddElementModal
         visible={visible}
         parentId={ctx.view.currentElement?.id!}
-        onVisibleChange={v => setVisible(v)}
+        onVisibleChange={(v) => setVisible(v)}
       />
     </div>
   );
