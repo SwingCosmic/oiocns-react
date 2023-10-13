@@ -16,9 +16,6 @@ export default class DesignerManager
 
   dispose() {
     console.info('DesignerManager disposed');
-    this.onNodeChange = null;
-    this.onCurrentChange = null;
-
     this.currentElement = null;
   }
 
@@ -34,11 +31,7 @@ export default class DesignerManager
     this.treeManager.root.children = v;
     this.treeManager.changeParent(v, this.treeManager.root.id);
     this.currentElement = null;
-    this.onNodeChange?.(this.treeManager.root);
   }
-
-  onNodeChange: ((root: PageElement) => void) | null = null;
-  onCurrentChange: ((e: PageElement | null) => void) | null = null;
 
   private _currentElement: Signal<PageElement | null> = signal(null);
   get currentElement() {
@@ -46,7 +39,6 @@ export default class DesignerManager
   }
   set currentElement(e) {
     this._currentElement.value = e;
-    this.onCurrentChange?.(e);
   }
 
   addElement<E extends PageElement>(
@@ -56,7 +48,7 @@ export default class DesignerManager
     params: ElementInit<E> = {},
   ): E {
     const e = this.treeManager.createElement(kind, name, parentId, params);
-    this.onNodeChange?.(e);
+    this.currentElement = e;
     this.emitter('props', 'change');
     return e as any;
   }
@@ -64,6 +56,10 @@ export default class DesignerManager
   removeElement(e: PageElement, recursive?: boolean) {
     this.treeManager.removeElement(e, recursive);
     this.currentElement = null;
-    this.onCurrentChange?.(this.treeManager.root);
+  }
+
+  moveELement(e: PageElement, target: PageElement) {
+    this.treeManager.moveElement(e, target);
+    this.currentElement = null;
   }
 }

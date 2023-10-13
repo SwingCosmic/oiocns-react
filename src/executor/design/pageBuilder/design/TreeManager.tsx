@@ -20,7 +20,7 @@ const buildElementTree = (element: PageElement): any => {
     item: element,
     isLeaf: element.children.length === 0,
     icon: <EntityIcon entityId={element.id} size={18} />,
-    children: element.children.map((item) => buildElementTree(item)),
+    children: element.children.map(item => buildElementTree(item)),
   };
 };
 
@@ -62,14 +62,14 @@ const TreeManager: React.FC<IProps> = ({ ctx }) => {
             </div>
           );
         }}
-        onDrop={(info) => {
-          console.log(info);
+        onDrop={info => {
+          ctx.view.moveELement((info.dragNode as any).item, (info.node as any).item);
         }}
       />
       <AddElementModal
         visible={visible}
         parentId={ctx.view.currentElement?.id!}
-        onVisibleChange={(v) => setVisible(v)}
+        onVisibleChange={v => setVisible(v)}
       />
     </div>
   );

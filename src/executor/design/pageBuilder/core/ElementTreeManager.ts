@@ -108,4 +108,11 @@ export default class ElementTreeManager {
     }
     return false;
   }
+
+  moveElement(e: PageElementView, target: PageElementView) {
+    this.removeElement(e, false);
+    this.allElements[e.id] = e;
+    this.changeParent([e], target.id);
+    target.children.push(e);
+  }
 }
