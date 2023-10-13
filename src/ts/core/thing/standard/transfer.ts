@@ -5,6 +5,7 @@ import { Command, common, kernel, model, schema } from '../../../base';
 import { IDirectory } from '../directory';
 import { IStandardFileInfo, StandardFileInfo } from '../fileinfo';
 import { IForm } from './form';
+import { ShareIdSet } from '../../public/entity';
 
 export type GraphData = () => any;
 
@@ -56,13 +57,15 @@ export interface ITransfer extends IStandardFileInfo<model.Transfer> {
   /** 脚本 */
   running(code: string, args: any, env?: model.KeyValue): any;
   /** 映射 */
-  mapping(node: model.Node, array: any[]): Promise<any[]>;
+  mapping(node: model.Node, array: any[]): Promise<{ [key: string]: any[] }>;
   /** 写入 */
-  writing(node: model.Node, array: any[]): Promise<any[]>;
+  writing(node: model.Node, array: { [key: string]: any[] }): Promise<any[]>;
   /** 模板 */
   template<T>(node: model.Node): Promise<model.Sheet<T>[]>;
   /** 读取 */
   reading(node: model.Node): Promise<any>;
+  /** 输入 */
+  inputting(node: model.Node): Promise<any>;
   /** 创建任务 */
   execute(status: model.GStatus, event: model.GEvent): Promise<void>;
   /** 创建任务 */
@@ -74,16 +77,18 @@ export class Transfer extends StandardFileInfo<model.Transfer> implements ITrans
   taskList: ITask[];
   curTask?: ITask;
   getData?: GraphData;
-  canDesign: boolean = true;
+
   constructor(metadata: model.Transfer, dir: IDirectory) {
     super(metadata, dir, dir.resource.transferColl);
     this.taskList = [];
     this.command = new Command();
     this.setEntity();
   }
+
   get cacheFlag(): string {
     return 'transfers';
   }
+
   async execute(status: model.GStatus, event: model.GEvent): Promise<void> {
     this.curTask = new Task(this, event, status);
     this.taskList.push(this.curTask);
@@ -186,34 +191,36 @@ export class Transfer extends StandardFileInfo<model.Transfer> implements ITrans
     return runtime.nextData;
   }
 
-  async writing(node: model.Node, array: any[]): Promise<any[]> {
+  async writing(node: model.Node, array: { [key: string]: any[] }): Promise<any[]> {
     const write = node as model.Store;
     if (write.directIs) {
       for (const app of await this.directory.target.directory.loadAllApplication()) {
         const works = await app.loadWorks();
         const work = works.find((item) => item.id == write.workId);
         await work?.loadWorkNode();
-        if (work && work.primaryForms.length > 0 && work.node) {
+        if (work && work.node) {
           const apply = await work.createApply();
           if (apply) {
             const map = new Map<string, model.FormEditData>();
             const editForm: model.FormEditData = {
               before: [],
               after: [],
-              formName: '资产卡片',
               nodeId: work.node.id,
               creator: apply.belong.userId,
               createTime: formatDate(new Date(), 'yyyy-MM-dd hh:mm:ss.S'),
             };
             const belongId = this.directory.belongId;
-            for (const item of array) {
-              const res = await kernel.createThing(belongId, [], '资产卡片');
-              if (res.success) {
-                const one: schema.XThing = { ...item, ...res.data };
-                editForm.after.push(one);
+            const allForms = [...work.primaryForms, ...work.detailForms];
+            for (const key of Object.keys(array)) {
+              for (const form of allForms) {
+                if (key == form.id) {
+                  for (const item of array[key]) {
+                    editForm.after.push({ ...item });
+                  }
+                }
               }
+              map.set(key, editForm);
             }
-            map.set(work.primaryForms[0].id, editForm);
             await apply.createApply(belongId, '自动写入', map);
           }
         }
@@ -222,20 +229,16 @@ export class Transfer extends StandardFileInfo<model.Transfer> implements ITrans
     return [];
   }
 
-  async mapping(node: model.Node, array: any[]): Promise<any[]> {
+  async mapping(node: model.Node, array: any[]): Promise<{ [key: string]: any[] }> {
     const data = node as model.Mapping;
-    const ans: any[] = [];
-    const form = this.findMetadata<XForm>(data.source);
-    if (form) {
+    const ans: model.AnyThingModel[] = [];
+    const sourceForm = this.findMetadata<XForm>(data.source);
+    if (sourceForm) {
       const sourceMap = new Map<string, schema.XAttribute>();
-      form.attributes.forEach((attr) => {
-        if (attr.property?.info) {
-          sourceMap.set(attr.property.info, attr);
-        }
-      });
+      sourceForm.attributes.forEach((attr) => sourceMap.set(attr.code, attr));
       for (let item of array) {
         let oldItem: { [key: string]: any } = {};
-        let newItem: { [key: string]: any } = { id: common.generateUuid() };
+        let newItem: any = { id: item[data.idName] };
         Object.keys(item).forEach((key) => {
           if (sourceMap.has(key)) {
             const attr = sourceMap.get(key)!;
@@ -244,13 +247,23 @@ export class Transfer extends StandardFileInfo<model.Transfer> implements ITrans
         });
         for (const mapping of data.mappings) {
           if (mapping.source in oldItem) {
-            newItem[mapping.target] = oldItem[mapping.source];
+            if (mapping.typeName && ['选择型', '分类型'].includes(mapping.typeName)) {
+              const oldValue = oldItem[mapping.source];
+              for (const mappingItem of mapping.mappings ?? []) {
+                if (mappingItem.source == oldValue) {
+                  newItem[mapping.target] = mappingItem.target;
+                  break;
+                }
+              }
+            } else {
+              newItem[mapping.target] = oldItem[mapping.source];
+            }
           }
         }
         ans.push(newItem);
       }
     }
-    return ans;
+    return { [data.target]: ans };
   }
 
   async template<T>(node: model.Node): Promise<model.Sheet<T>[]> {
@@ -270,7 +283,6 @@ export class Transfer extends StandardFileInfo<model.Transfer> implements ITrans
         }
         ans.push({
           name: form.name,
-          headers: 1,
           columns: columns,
           data: [],
         });
@@ -280,9 +292,53 @@ export class Transfer extends StandardFileInfo<model.Transfer> implements ITrans
   }
 
   async reading(node: model.Node): Promise<boolean> {
+    return new Promise(() => {});
     // const table = node as model.Tables;
-    // if (table.file) { }
-    return false;
+    // if (table.file) {
+    //   const url = `/orginone/kernel/load/${table.file.shareLink}?download=1`;
+    //   const res = await axios.request({
+    //     method: 'GET',
+    //     url: url,
+    //     responseType: 'blob',
+    //   });
+    //   const sheets = await this.template<any>(node);
+    //   readXlsx(res.data as Blob, sheets);
+    // }
+    // return false;
+  }
+
+  async inputting(node: model.Node): Promise<any> {
+    return new Promise((resolve, reject) => {
+      try {
+        const id = this.command.subscribe((type, cmd, args) => {
+          if (type == 'data' && cmd == 'inputCall') {
+            const { value, formNode } = args;
+            if (formNode.id != node.id) return;
+            const data: { [key: string]: any } = {};
+            for (const key in value) {
+              for (const field of form.fields) {
+                if (field.id == key) {
+                  data[field.name] = value[key];
+                }
+              }
+            }
+            this.command.unsubscribe(id);
+            resolve(data);
+          }
+        });
+        const formNode = node as model.Form;
+        const form = ShareIdSet.get(formNode.formId + '*') as IForm;
+        if (form) {
+          form.loadContent().then(() => {
+            this.command.emitter('data', 'input', { form, formNode });
+          });
+        } else {
+          throw new Error('未获取到表单信息！');
+        }
+      } catch (error) {
+        reject(error);
+      }
+    });
   }
 
   getNode(id: string): model.Node | undefined {
@@ -574,12 +630,15 @@ export class Task implements ITask {
           nextData = await this.transfer.mapping(node, preData.array);
           break;
         case '存储':
-          isArray(preData);
+          Object.keys(preData).forEach((key) => isArray(preData[key]));
           await this.transfer.writing(node, preData);
           nextData = preData;
           break;
         case '表格':
           await this.transfer.reading(node);
+          break;
+        case '表单':
+          nextData = await this.transfer.inputting(node);
           break;
       }
       if (node.postScripts) {
@@ -673,6 +732,16 @@ export class Task implements ITask {
   }
 }
 
+export const getDefaultFormNode = (): model.Form => {
+  return {
+    id: common.generateUuid(),
+    code: 'form',
+    name: '表单',
+    typeName: '表单',
+    formId: '',
+  };
+};
+
 export const getDefaultTableNode = (): model.Tables => {
   return {
     id: common.generateUuid(),
@@ -706,8 +775,11 @@ export const getDefaultMappingNode = (): model.Mapping => {
     code: 'mapping',
     name: '映射',
     typeName: '映射',
+    idName: 'id',
+    nameName: 'name',
     source: '',
     target: '',
+    mappingType: 'OToI',
     mappings: [],
   };
 };
@@ -720,7 +792,6 @@ export const getDefaultStoreNode = (): model.Store => {
     typeName: '存储',
     directoryId: '',
     workId: '',
-    formIds: [],
     directIs: false,
   };
 };

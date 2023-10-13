@@ -1,7 +1,7 @@
 import { Table } from 'antd';
 import { ColumnsType } from 'antd/lib/table';
 import React, { useEffect, useState } from 'react';
-import cls from '../index.module.less';
+import cls from './../index.module.less';
 import { ITransfer } from '@/ts/core';
 
 interface IProps {

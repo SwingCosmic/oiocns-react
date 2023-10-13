@@ -1,6 +1,7 @@
 import EntityIcon from '@/components/Common/GlobalComps/entityIcon';
-import { model } from '@/ts/base';
+import { model, schema } from '@/ts/base';
 import { XTarget } from '@/ts/base/schema';
+import { ITransfer } from '@/ts/core';
 import {
   CheckCircleOutlined,
   CloseCircleOutlined,
@@ -9,13 +10,12 @@ import {
   StopOutlined,
 } from '@ant-design/icons';
 import { Graph, Node } from '@antv/x6';
+import { message } from 'antd';
 import React, { CSSProperties, createRef, memo, useEffect, useState } from 'react';
 import { MenuItemType } from 'typings/globelType';
-import cls from '../index.module.less';
-import { ITransfer } from '@/ts/core';
-import { TransferStore } from './graph';
-import { message } from 'antd';
-import GraphEditor from '../widgets/graphEditor';
+import { GraphView } from '../running/graphView';
+import cls from './../index.module.less';
+import { Store } from './graph';
 
 interface IProps {
   node: Node;
@@ -23,7 +23,7 @@ interface IProps {
 }
 
 const useNode = (node: Node, graph: Graph) => {
-  const store = graph.getPlugin<TransferStore>('TransferStore');
+  const store = graph.getPlugin<Store>('TransferStore');
   const transfer = store?.transfer;
   const [data, setData] = useState(transfer?.getNode(node.id) ?? node.getData());
   useEffect(() => {
@@ -58,8 +58,7 @@ const useNode = (node: Node, graph: Graph) => {
   };
 };
 
-// eslint-disable-next-line react/display-name, react/prop-types
-export const GraphNode: React.FC<IProps> = memo(({ node, graph }) => {
+export const GraphNode: React.FC<IProps> = memo(({ node, graph }: IProps) => {
   const { store, transfer, data } = useNode(node, graph);
   const nextTransfer = transfer?.getTransfer((data as model.SubTransfer).nextId);
   return (
@@ -69,11 +68,13 @@ export const GraphNode: React.FC<IProps> = memo(({ node, graph }) => {
       onMouseLeave={() => transfer?.command.emitter('node', 'closeRemove', node)}
       onDoubleClick={() => transfer?.command.emitter('tools', 'edit', data)}>
       {nextTransfer && (
-        <GraphEditor
+        <GraphView
           current={nextTransfer}
-          options={{ background: { color: '#F2F7FA' }, panning: false, mousewheel: true }}
-          initStatus={'Viewable'}
-          initEvent={'ViewRun'}
+          options={{
+            background: { color: '#F2F7FA' },
+            panning: false,
+            mousewheel: true,
+          }}
         />
       )}
       <NodeStatus
@@ -88,12 +89,14 @@ export const GraphNode: React.FC<IProps> = memo(({ node, graph }) => {
         transfer={transfer}
         style={{ position: 'absolute', left: 40, top: 20 }}
       />
-      <Info name={data.name} style={{ left: 200, top: 16 }} />
+      <Info node={data} style={{ left: 200, top: 16 }} />
       <Remove store={store} node={node} transfer={transfer} data={data} />
       <ContextMenu store={store} node={node} transfer={transfer} data={data} />
     </div>
   );
 });
+
+GraphNode.displayName = '节点';
 
 export const ProcessingNode: React.FC<IProps> = ({ node, graph }) => {
   const { data, store, transfer } = useNode(node, graph);
@@ -104,7 +107,7 @@ export const ProcessingNode: React.FC<IProps> = ({ node, graph }) => {
       onMouseLeave={() => transfer?.command.emitter('node', 'closeRemove', node)}
       onDoubleClick={() => transfer?.command.emitter('tools', 'edit', data)}>
       <Tag typeName={data.typeName} transfer={transfer} />
-      <Info name={data.name} />
+      <Info node={data} />
       <NodeStatus store={store} transfer={transfer} node={node} data={data} />
       <Remove store={store} transfer={transfer} node={node} data={data} />
       <ContextMenu store={store} transfer={transfer} node={node} data={data} />
@@ -113,7 +116,7 @@ export const ProcessingNode: React.FC<IProps> = ({ node, graph }) => {
 };
 
 interface RemoveProps {
-  store?: TransferStore;
+  store?: Store;
   transfer?: ITransfer;
   node: Node;
   data: model.Node;
@@ -121,7 +124,7 @@ interface RemoveProps {
 
 const Remove: React.FC<RemoveProps> = ({ store, transfer, node, data }) => {
   const [show, setShow] = useState<boolean>(false);
-  const graphStatus = store?.graphStatus;
+  const graphStatus = store?.status;
   const dataStatus = data.status ?? graphStatus ?? 'Editable';
   const [status, setStatus] = useState<model.NStatus>(dataStatus);
   const editableStatus = ['Editable', 'Viewable', 'Completed'];
@@ -165,7 +168,7 @@ const Remove: React.FC<RemoveProps> = ({ store, transfer, node, data }) => {
 };
 
 export interface StatusProps {
-  store?: TransferStore;
+  store?: Store;
   transfer?: ITransfer;
   node: Node;
   data: model.Node;
@@ -179,7 +182,7 @@ export const NodeStatus: React.FC<StatusProps> = ({
   data,
   style,
 }) => {
-  const dataStatus = data.status ?? store?.graphStatus ?? 'Editable';
+  const dataStatus = data.status ?? store?.status ?? 'Editable';
   const [status, setStatus] = useState<model.NStatus>(dataStatus);
   useEffect(() => {
     const id = transfer?.command.subscribe((type, cmd, args) => {
@@ -248,7 +251,7 @@ const Tag: React.FC<TagProps> = ({ typeName, transfer, style }) => {
 };
 
 interface ContextProps {
-  store?: TransferStore;
+  store?: Store;
   transfer?: ITransfer;
   node: Node;
   data: model.Node;
@@ -284,10 +287,10 @@ const ContextMenu: React.FC<ContextProps> = ({ store, transfer, node, data }) =>
   const div = createRef<HTMLDivElement>();
   const [menu, setMenu] = useState<boolean>();
   const [pos, setPos] = useState<{ x: number; y: number }>();
-  const graphStatus = store?.graphStatus;
+  const graphStatus = store?.status;
   const dataStatus = data.status ?? graphStatus ?? 'Editable';
   const [status, setStatus] = useState<model.NStatus>(dataStatus);
-  const editableStatus = ['Editable', 'Viewable', 'Completed'];
+  const editableStatus = ['Editable', 'Viewable', 'Completed', 'Error'];
   useEffect(() => {
     div.current?.focus();
     const id = transfer?.command.subscribe((type, cmd, args) => {
@@ -346,16 +349,17 @@ const ContextMenu: React.FC<ContextProps> = ({ store, transfer, node, data }) =>
 };
 
 interface InfoProps {
-  name: string;
+  node: model.Node;
   style?: CSSProperties;
 }
 
 // 节点信息
-const Info: React.FC<InfoProps> = ({ name, style }) => {
+const Info: React.FC<InfoProps> = ({ node, style }) => {
+  const entity = { name: node.name, typeName: node.typeName } as schema.XEntity;
   return (
     <div style={style} className={`${cls['flex-row']} ${cls['info']} ${cls['border']}`}>
-      <EntityIcon entityId={name} />
-      <div style={{ marginLeft: 10 }}>{name}</div>
+      <EntityIcon entity={entity} />
+      <div style={{ marginLeft: 10 }}>{node.name}</div>
     </div>
   );
 };

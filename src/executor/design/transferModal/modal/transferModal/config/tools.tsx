@@ -2,16 +2,15 @@ import { model } from '@/ts/base';
 import { ITransfer } from '@/ts/core';
 import { Button, Space } from 'antd';
 import React, { useEffect, useState } from 'react';
-import { EnvSelector } from '../../../';
-import cls from '../index.module.less';
+import { EnvSelector } from '../../..';
+import cls from './../index.module.less';
 
 interface IProps {
   current: ITransfer;
-  initStatus: 'Editable' | 'Viewable';
 }
 
-const GraphTools: React.FC<IProps> = ({ current, initStatus }) => {
-  const [status, setStatus] = useState<model.GStatus>(initStatus);
+const Tools: React.FC<IProps> = ({ current }) => {
+  const [status, setStatus] = useState<model.GStatus>('Editable');
   useEffect(() => {
     const id = current.command.subscribe((type, cmd, args) => {
       if (type == 'graph' && cmd == 'status') {
@@ -25,20 +24,20 @@ const GraphTools: React.FC<IProps> = ({ current, initStatus }) => {
   return (
     <Space className={cls.tools}>
       <Button onClick={() => current.command.emitter('graph', 'center')}>中心</Button>
+      <Button onClick={() => current.command.emitter('tasks', 'open')}>运行记录</Button>
       <Button
         disabled={status == 'Running'}
         onClick={() => current.command.emitter('graph', 'executing')}>
         运行
       </Button>
-      <Button onClick={() => current.command.emitter('tasks', 'open')}>运行记录</Button>
       <Button
-        disabled={status != 'Editable'}
+        disabled={status == 'Running'}
         onClick={() => current.command.emitter('tools', 'newEnvironment')}>
         新增环境
       </Button>
-      <EnvSelector current={current} initStatus={initStatus} />
+      <EnvSelector current={current} />
     </Space>
   );
 };
 
-export default GraphTools;
+export default Tools;

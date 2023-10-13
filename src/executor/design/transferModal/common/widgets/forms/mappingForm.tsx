@@ -20,7 +20,7 @@ const getExpandKeys = (treeData: MenuItem[]) => {
 const MappingForm: React.FC<IProps> = ({ transfer, current, finished }) => {
   const formRef = createRef<ProFormInstance>();
   const [treeData, setTreeData] = useState<MenuItem[]>([
-    loadFormsMenu(transfer.directory),
+    loadFormsMenu(transfer.directory.target.directory),
   ]);
   const selector = (
     title: string,
@@ -45,7 +45,7 @@ const MappingForm: React.FC<IProps> = ({ transfer, current, finished }) => {
           if (!node.isLeaf) {
             let forms = await (node.item as IDirectory).standard.forms;
             if (forms.length > 0) {
-              setTreeData([loadFormsMenu(transfer.directory)]);
+              setTreeData([loadFormsMenu(transfer.directory.target.directory)]);
             }
           }
         },
@@ -72,6 +72,24 @@ const MappingForm: React.FC<IProps> = ({ transfer, current, finished }) => {
         rules: [{ required: true, message: '编码为必填项' }],
       },
     },
+    {
+      title: '映射类型',
+      dataIndex: 'mappingType',
+      valueType: 'select',
+      colProps: { span: 24 },
+      initialValue: 'OToI',
+      formItemProps: {
+        rules: [{ required: true, message: '编码为必填项' }],
+      },
+      fieldProps: {
+        options: [
+          { label: '外部系统 => 内部系统', value: 'OToI' },
+          { label: '内部系统 => 内部系统', value: 'IToI' },
+          { label: '内部系统 => 外部系统', value: 'IToO' },
+          { label: '外部系统 => 外部系统', value: 'OToO' },
+        ],
+      },
+    },
     selector('源表单', 'source'),
     selector('目标表单', 'target'),
     {
@@ -89,6 +107,13 @@ const MappingForm: React.FC<IProps> = ({ transfer, current, finished }) => {
             }}
           />
         );
+      },
+    },
+    {
+      title: '原 id 字段名称',
+      dataIndex: 'idName',
+      formItemProps: {
+        rules: [{ required: true, message: '原 Id 字段名称为必填项' }],
       },
     },
     {

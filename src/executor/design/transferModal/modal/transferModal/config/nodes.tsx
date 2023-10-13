@@ -2,6 +2,7 @@ import EntityIcon from '@/components/Common/GlobalComps/entityIcon';
 import { common, model } from '@/ts/base';
 import { ITransfer } from '@/ts/core';
 import {
+  getDefaultFormNode,
   getDefaultMappingNode,
   getDefaultRequestNode,
   getDefaultStoreNode,
@@ -13,7 +14,7 @@ import { Dnd } from '@antv/x6-plugin-dnd';
 import { Space } from 'antd';
 import React, { createRef, useEffect, useRef } from 'react';
 import { createGraphNode, createNode } from '../cells/graph';
-import cls from '../index.module.less';
+import cls from './../index.module.less';
 
 interface IProps {
   current: ITransfer;
@@ -85,6 +86,9 @@ const Nodes: React.FC<IProps> = ({ current }) => {
   ) => {
     let data = {} as model.Node;
     switch (name) {
+      case '表单':
+        data = getDefaultFormNode();
+        break;
       case '表格':
         data = getDefaultTableNode();
         break;
