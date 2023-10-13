@@ -6,7 +6,10 @@ export default defineElement({
   render(props, ctx) {
     const isDesign = ctx.view.mode == 'design';
     const [layoutType, setLayoutType] = useState(props.layoutType);
-    ctx.view.subscribeElement(props.id, () => setLayoutType(props.layoutType));
+    ctx.view.subscribeElement(props.id, () => {
+      const layout = ctx.view.treeManager.allElements[props.id].props.layoutType;
+      setLayoutType(layout);
+    });
     return (
       <div
         style={{ height: '100%' }}

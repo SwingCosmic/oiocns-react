@@ -23,6 +23,8 @@ export async function removeElement(element: PageElement | null, ctx: DesignCont
   }
   await $confirm({
     title: '提示',
+    okText: '确定',
+    cancelText: '取消',
     content: `确实要移除元素 ${element.name} 及其所有下级？`,
   });
   ctx.view.removeElement(element, true);
@@ -112,6 +114,7 @@ export default function ElementProps({ element }: Props) {
               prop={prop}
               meta={meta}
               onValueChange={() => {
+                console.log(element);
                 ctx.view.emitter('props', 'change', element.id);
               }}
             />
@@ -122,7 +125,7 @@ export default function ElementProps({ element }: Props) {
       <AddElementModal
         visible={addVisible}
         parentId={ctx.view.currentElement?.id!}
-        onVisibleChange={(v) => setAddVisible(v)}
+        onVisibleChange={v => setAddVisible(v)}
       />
     </div>
   );
