@@ -53,6 +53,8 @@ export interface ElementMeta {
   props: Dictionary<TypeMeta>;
   /** 组件中文名 */
   label: string;
+  /** 是否有 Children */
+  hasChildren: boolean;
 }
 
 /**

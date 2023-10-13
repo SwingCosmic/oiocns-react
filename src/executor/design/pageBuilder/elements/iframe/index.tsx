@@ -14,6 +14,7 @@ export default defineElement({
         label: '链接地址',
       },
     },
+    hasChildren: false,
     label: '链接',
   },
 });

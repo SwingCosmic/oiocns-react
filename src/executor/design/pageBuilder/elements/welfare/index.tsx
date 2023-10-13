@@ -108,6 +108,7 @@ export default defineElement({
         label: '每页个数',
       },
     },
+    hasChildren: false,
     label: '公物仓',
   },
 });

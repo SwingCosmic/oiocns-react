@@ -131,6 +131,7 @@ export default defineElement({
         default: { position: 'fifth', label: '位置-5' },
       } as ExistTypeMeta<PosVal>,
     },
+    hasChildren: false,
     label: '实体详情',
   },
 });

@@ -39,5 +39,6 @@ export default defineElement({
       },
     },
     label: '横幅',
+    hasChildren: false,
   },
 });

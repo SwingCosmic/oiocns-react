@@ -5,7 +5,7 @@ import EntityIcon from '@/components/Common/GlobalComps/entityIcon';
 import CustomTree from '@/components/CustomTree';
 import cls from './tree.module.less';
 import AddElementModal from './AddElementModal';
-import { Button, Space, Tag } from 'antd';
+import { Button, Space, Tag, message } from 'antd';
 import { MinusOutlined, PlusOutlined } from '@ant-design/icons';
 import { removeElement } from './config/ElementProps';
 
@@ -45,28 +45,37 @@ const TreeManager: React.FC<IProps> = ({ ctx }) => {
                 <Tag>{node.item.kind}</Tag>
               </Space>
               <Space>
-                <Button
-                  shape="circle"
-                  size="small"
-                  icon={<PlusOutlined />}
-                  onClick={() => setVisible(true)}
-                />
-                <Button
-                  shape="circle"
-                  size="small"
-                  danger
-                  icon={<MinusOutlined />}
-                  onClick={() => removeElement(node.item, ctx)}
-                />
+                {ctx.view.treeManager.hasChildren(node.item) && (
+                  <Button
+                    shape="circle"
+                    size="small"
+                    icon={<PlusOutlined />}
+                    onClick={() => setVisible(true)}
+                  />
+                )}
+                {ctx.view.rootElement != node.item && (
+                  <Button
+                    shape="circle"
+                    size="small"
+                    danger
+                    icon={<MinusOutlined />}
+                    onClick={() => removeElement(node.item, ctx)}
+                  />
+                )}
               </Space>
             </div>
           );
         }}
         onDrop={info => {
+          const target = (info.node as any).item;
+          if (!ctx.view.treeManager.hasChildren(target)) {
+            message.error('非布局节点，其下无法放置！');
+            return;
+          }
           const positions = info.node.pos.split('-');
           ctx.view.moveELement(
             (info.dragNode as any).item,
-            (info.node as any).item,
+            target,
             Number(positions[positions.length - 1]),
           );
         }}
