@@ -49,7 +49,7 @@ export default class DesignerManager
   ): E {
     const e = this.treeManager.createElement(kind, name, parentId, params);
     this.currentElement = e;
-    this.emitter('props', 'change');
+    this.emitter('all', 'change');
     return e as any;
   }
 
@@ -58,8 +58,8 @@ export default class DesignerManager
     this.currentElement = null;
   }
 
-  moveELement(e: PageElement, target: PageElement) {
-    this.treeManager.moveElement(e, target);
-    this.currentElement = null;
+  moveELement(e: PageElement, target: PageElement, position: number) {
+    this.treeManager.moveElement(e, target, position);
+    this.emitter('all', 'change');
   }
 }

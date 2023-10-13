@@ -1,5 +1,5 @@
 import { Button, Tabs } from 'antd';
-import React from 'react';
+import React, { useState } from 'react';
 import { DesignContext, PageContext } from '../render/PageContext';
 import Coder from './context';
 
@@ -17,6 +17,8 @@ export interface DesignerProps {
 
 export function DesignerHost({ ctx }: DesignerProps) {
   const currentElement = useComputed(() => ctx.view.currentElement);
+  const [status, setStatus] = useState(false);
+  ctx.view.subscribe(() => setStatus(!status));
 
   console.log('re-render');
 

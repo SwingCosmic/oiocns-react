@@ -109,10 +109,10 @@ export default class ElementTreeManager {
     return false;
   }
 
-  moveElement(e: PageElementView, target: PageElementView) {
+  moveElement(e: PageElementView, target: PageElementView, position: number) {
     this.removeElement(e, false);
     this.allElements[e.id] = e;
     this.changeParent([e], target.id);
-    target.children.push(e);
+    target.children.splice(position, 0, e);
   }
 }

@@ -63,7 +63,12 @@ const TreeManager: React.FC<IProps> = ({ ctx }) => {
           );
         }}
         onDrop={info => {
-          ctx.view.moveELement((info.dragNode as any).item, (info.node as any).item);
+          const positions = info.node.pos.split('-');
+          ctx.view.moveELement(
+            (info.dragNode as any).item,
+            (info.node as any).item,
+            Number(positions[positions.length - 1]),
+          );
         }}
       />
       <AddElementModal
