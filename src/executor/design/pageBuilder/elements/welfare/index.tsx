@@ -70,7 +70,7 @@ export default defineElement({
                     </Col>
                   );
                 }
-                return <Empty description={'未放置组件'} />;
+                return <Empty key={item.id} description={'未放置组件'} />;
               })}
             </Row>
           </div>
@@ -114,7 +114,7 @@ export default defineElement({
         typeName: 'slot',
       } as ExistTypeMeta<PageElement | undefined>,
     },
-    hasChildren: false,
+    type: '元素',
     label: '公物仓',
   },
 });

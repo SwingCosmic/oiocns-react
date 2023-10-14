@@ -44,7 +44,7 @@ export default defineElement({
         default: 'scroll',
       } as EnumTypeMeta<'scroll' | 'full'>,
     },
-    hasChildren: true,
+    type: '布局',
     label: '模板根元素',
   },
 });

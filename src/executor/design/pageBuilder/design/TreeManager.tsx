@@ -16,8 +16,8 @@ interface IProps {
 const buildElementTree = (
   element: PageElement,
   ctx: DesignContext,
-  isSlot: boolean = false,
   parent?: PageElement,
+  isSlot: boolean = false,
 ): any => {
   const meta = ctx.view.treeManager.factory.getMeta(element.kind);
   const slots: PageElement[] = [];
@@ -42,12 +42,12 @@ const buildElementTree = (
     title: element.name,
     item: element,
     isLeaf: element.children.length === 0 && slots.length == 0,
-    typeName: isSlot ? '插槽' : meta?.hasChildren ? '布局' : '节点',
+    typeName: isSlot ? '插槽' : meta?.type,
     icon: <EntityIcon entityId={element.id} size={18} />,
     parent: parent,
     children: [
-      ...element.children.map((item) => buildElementTree(item, ctx, false, element)),
-      ...slots.map((item) => buildElementTree(item, ctx, true, element)),
+      ...element.children.map((item) => buildElementTree(item, ctx, element, false)),
+      ...slots.map((item) => buildElementTree(item, ctx, element, true)),
     ],
   };
 };
@@ -76,6 +76,7 @@ const TreeManager: React.FC<IProps> = ({ ctx }) => {
         }}
         selectedKeys={[ctx.view.currentElement?.id ?? '']}
         titleRender={(node: any) => {
+          const meta = ctx.view.treeManager.factory.getMeta(node.item.kind);
           return (
             <div className={cls.node}>
               <Space size={0}>
@@ -85,7 +86,7 @@ const TreeManager: React.FC<IProps> = ({ ctx }) => {
                 {node.item.props.seize && <Tag color="red">未放置</Tag>}
               </Space>
               <Space>
-                {ctx.view.treeManager.hasChildren(node.item) && (
+                {meta?.type == '布局' && (
                   <Button
                     shape="circle"
                     size="small"
@@ -108,7 +109,8 @@ const TreeManager: React.FC<IProps> = ({ ctx }) => {
         }}
         onDrop={(info) => {
           const target = (info.node as any).item;
-          if (!ctx.view.treeManager.hasChildren(target)) {
+          const meta = ctx.view.treeManager.factory.getMeta(target);
+          if (meta?.type != '布局') {
             message.error('非布局节点，其下无法放置！');
             return;
           }

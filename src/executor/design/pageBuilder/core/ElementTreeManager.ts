@@ -125,8 +125,4 @@ export default class ElementTreeManager {
     this.changeParent([e], target.id);
     target.children.splice(position, 0, e);
   }
-
-  hasChildren(e: PageElementView) {
-    return this.factory.getMeta(e.kind)?.hasChildren;
-  }
 }

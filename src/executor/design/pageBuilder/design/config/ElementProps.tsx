@@ -125,7 +125,7 @@ export default function ElementProps({ element }: Props) {
       <AddElementModal
         visible={addVisible}
         parentId={ctx.view.currentElement?.id!}
-        onVisibleChange={v => setAddVisible(v)}
+        onVisibleChange={(v) => setAddVisible(v)}
       />
     </div>
   );

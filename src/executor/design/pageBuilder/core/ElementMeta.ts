@@ -5,6 +5,7 @@
 export type PrimitiveType = 'string' | 'number' | 'boolean' | 'date';
 export type ComplexType = 'enum' | 'array' | 'object' | 'type';
 export type DataType = PrimitiveType | ComplexType;
+export type ElementType = '元素' | '布局';
 
 export interface TypeMetaBase<T extends DataType> {
   type: T;
@@ -53,8 +54,8 @@ export interface ElementMeta {
   props: Dictionary<TypeMeta>;
   /** 组件中文名 */
   label: string;
-  /** 是否有 Children */
-  hasChildren: boolean;
+  /** 元素类型 */
+  type: ElementType;
 }
 
 /**
