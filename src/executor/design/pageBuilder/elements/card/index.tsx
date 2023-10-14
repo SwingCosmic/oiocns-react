@@ -16,16 +16,15 @@ interface DataProps extends PosProps {
 }
 
 const Content: React.FC<DataProps> = ({ data, property }) => {
-  console.log(property);
   let value = property.name + ':';
-  if (data && data[property.code]) {
-    value += data[property.code];
+  if (data && data['T' + property.id]) {
+    value += data['T' + property.id];
   }
   return <div style={{ overflow: 'hidden', textOverflow: 'ellipsis' }}>{value}</div>;
 };
 
 const ImageContent: React.FC<DataProps> = ({ data, property }) => {
-  let shareLink = data?.[property.code];
+  let shareLink = data?.['T' + property.id];
   return <Image height={200} src={shareLink ? shareOpenLink(shareLink) : Asset} />;
 };
 
