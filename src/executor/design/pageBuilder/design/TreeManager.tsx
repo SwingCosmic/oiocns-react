@@ -66,8 +66,8 @@ const TreeManager: React.FC<IProps> = ({ ctx }) => {
           const node = info.node as any;
           if (node.typeName == '插槽' && node.item.props.seize) {
             ctx.view.currentElement = node.parent;
-            setVisible(true);
             prop.current = node.prop;
+            setVisible(true);
             return;
           }
           ctx.view.currentElement = node.item;

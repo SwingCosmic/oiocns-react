@@ -1028,6 +1028,12 @@ export type Mapping = {
   source: string;
   // 目标
   target: string;
+  // 原 Id 字段名称
+  idName: string;
+  // 原 Name 字段名称
+  nameName: string;
+  // 映射类型
+  mappingType: MappingType;
   // 映射
   mappings: SubMapping[];
 } & Node;
@@ -1038,6 +1044,8 @@ export type SubMapping = {
   source: string;
   // 目标对象
   target: string;
+  // 类型
+  typeName?: string;
   // 子映射
   mappings?: SubMapping[];
 };
@@ -1048,8 +1056,6 @@ export type Store = {
   directoryId: string;
   // 办事
   workId: string;
-  // 表单
-  formIds: string[];
   // 是否直接存入平台
   directIs: boolean;
 } & Node;
@@ -1058,6 +1064,12 @@ export type Store = {
 export type SubTransfer = {
   // 子配置 ID
   nextId: string;
+} & Node;
+
+// 表单
+export type Form = {
+  // 表单 ID
+  formId: string;
 } & Node;
 
 // 选择
@@ -1102,6 +1114,9 @@ export type NodeType = '表单' | '表格' | '请求' | '子图' | '映射' | '�
 
 // 脚本位置
 export type Pos = 'pre' | 'post';
+
+// 映射类型（外部系统 => 内部系统，外部系统 => 外部系统，内部系统 => 外部系统，内部系统 => 内部系统）
+export type MappingType = 'OToI' | 'OToO' | 'IToO' | 'IToI';
 
 // 键值对
 export type KeyValue = { [key: string]: string | undefined };
@@ -1187,9 +1202,6 @@ export type SchemaType = {
   properties: Record<string, object>;
   column: 1 | 2 | 3;
 };
-
-// 页面设计
-export * from "./pageModel";
 
 export type DiskInfoType = {
   // 状态
