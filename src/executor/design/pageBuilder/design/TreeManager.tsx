@@ -86,7 +86,7 @@ const TreeManager: React.FC<IProps> = ({ ctx }) => {
                 {node.item.props.seize && <Tag color="red">未放置</Tag>}
               </Space>
               <Space>
-                {meta?.type == '布局' && (
+                {meta?.type == '容器' && (
                   <Button
                     shape="circle"
                     size="small"
@@ -110,7 +110,7 @@ const TreeManager: React.FC<IProps> = ({ ctx }) => {
         onDrop={(info) => {
           const target = (info.node as any).item;
           const meta = ctx.view.treeManager.factory.getMeta(target);
-          if (meta?.type != '布局') {
+          if (meta?.type != '容器') {
             message.error('非布局节点，其下无法放置！');
             return;
           }
