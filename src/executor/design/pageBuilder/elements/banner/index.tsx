@@ -1,3 +1,5 @@
+import { schema } from '@/ts/base';
+import { ExistTypeMeta } from '../../core/ElementMeta';
 import { defineElement } from '../defineElement';
 import React from 'react';
 
@@ -7,7 +9,7 @@ export default defineElement({
       <div
         style={{
           position: 'relative',
-          background: `no-repeat url(${props.url}) #fafafa center `,
+          background: `no-repeat url(${props.url?.id}) #fafafa center `,
           backgroundSize: 'cover',
           height: props.height,
         }}>
@@ -35,8 +37,10 @@ export default defineElement({
         type: 'string',
       },
       url: {
-        type: 'string',
-      },
+        type: 'type',
+        label: '关联图片',
+        typeName: 'picFile',
+      } as ExistTypeMeta<schema.XEntity | undefined>,
     },
     label: '横幅',
     type: '元素',

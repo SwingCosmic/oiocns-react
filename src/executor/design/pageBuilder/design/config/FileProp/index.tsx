@@ -47,4 +47,8 @@ export const FormFileProp: React.FC<IExistTypeProps<schema.XEntity>> = (props) =
   );
 };
 
+export const PicFileProp: React.FC<IExistTypeProps<schema.XEntity>> = (props) => {
+  return <FileProp accepts={['图片']} value={props.value} onChange={props.onChange} />;
+};
+
 export default FileProp;

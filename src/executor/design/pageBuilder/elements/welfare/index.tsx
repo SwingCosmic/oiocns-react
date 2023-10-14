@@ -65,7 +65,7 @@ export default defineElement({
                     ctx.view.mode,
                   );
                   return (
-                    <Col key={item.id} className={cls.contentCard}>
+                    <Col key={item.id} span={props.span} className={cls.contentCard}>
                       <Render element={props.card} data={item} />
                     </Col>
                   );
@@ -107,6 +107,11 @@ export default defineElement({
       pageSize: {
         type: 'number',
         label: '每页个数',
+      },
+      span: {
+        type: 'number',
+        label: '行卡片占比',
+        default: 4,
       },
       card: {
         type: 'type',

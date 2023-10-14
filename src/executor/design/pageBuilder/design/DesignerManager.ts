@@ -74,7 +74,6 @@ export default class DesignerManager
   removeSlot(e: PageElement, prop: string) {
     this.treeManager.removeSlot(e, prop);
     this.currentElement = null;
-    this.emitter('all', 'change');
   }
 
   moveElement(e: PageElement, target: PageElement, position: number) {

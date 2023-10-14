@@ -131,7 +131,6 @@ export default function ElementProps({ element }: Props) {
               prop={prop}
               meta={meta}
               onValueChange={() => {
-                console.log(element);
                 ctx.view.emitter('props', 'change', element.id);
               }}
             />

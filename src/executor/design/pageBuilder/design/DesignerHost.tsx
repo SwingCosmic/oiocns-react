@@ -53,13 +53,7 @@ export function DesignerHost({ ctx }: DesignerProps) {
       <PageContext.Provider value={ctx}>
         <div className={css.pageHostDesign}>
           <div className={css.top}>
-            <Button
-              onClick={() => {
-                // ctx.current = design;
-                ctx.view.update();
-              }}>
-              保存
-            </Button>
+            <Button onClick={() => ctx.view.update()}>保存</Button>
           </div>
           <div className={css.content}>
             <div className={css.designConfig}>

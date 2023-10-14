@@ -101,9 +101,6 @@ export class StandardFiles {
       });
       this.templates = data.map((i) => new PageTemplate(i, this.directory));
     }
-    if (this.templates.length > 0) {
-      console.log(this.directory.name, this.templates.length);
-    }
     return this.templates;
   }
   async createForm(data: schema.XForm): Promise<schema.XForm | undefined> {

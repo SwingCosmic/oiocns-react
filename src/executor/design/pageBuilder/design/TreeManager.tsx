@@ -64,16 +64,14 @@ const TreeManager: React.FC<IProps> = ({ ctx }) => {
         draggable
         onSelect={(_, info) => {
           const node = info.node as any;
-          switch (node.typeName) {
-            case '插槽':
-              ctx.view.currentElement = node.parent;
-              setVisible(true);
-              prop.current = node.prop;
-              break;
-            default:
-              ctx.view.currentElement = node.item;
-              break;
+          if (node.typeName == '插槽' && node.item.props.seize) {
+            ctx.view.currentElement = node.parent;
+            setVisible(true);
+            prop.current = node.prop;
+            return;
           }
+          ctx.view.currentElement = node.item;
+          prop.current = undefined;
         }}
         selectedKeys={[ctx.view.currentElement?.id ?? '']}
         titleRender={(node: any) => {
@@ -116,18 +114,20 @@ const TreeManager: React.FC<IProps> = ({ ctx }) => {
           );
         }}
         onDrop={(info) => {
+          const dragNode = info.dragNode as any;
+          const drag = dragNode.item;
           const target = (info.node as any).item;
           const meta = ctx.view.treeManager.factory.getMeta(target.kind);
+          if (dragNode.typeName == '插槽') {
+            message.error('插槽节点不能拖拽！');
+            return;
+          }
           if (meta?.type != '容器') {
-            message.error('非布局节点，其下无法放置！');
+            message.error('非布局节点，无法放置！');
             return;
           }
           const positions = info.node.pos.split('-');
-          ctx.view.moveElement(
-            (info.dragNode as any).item,
-            target,
-            Number(positions[positions.length - 1]),
-          );
+          ctx.view.moveElement(drag, target, Number(positions[positions.length - 1]));
         }}
       />
       <AddElementModal
