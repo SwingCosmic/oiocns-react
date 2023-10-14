@@ -12,18 +12,8 @@ export default defineElement({
           background: `no-repeat url(${props.url?.id}) #fafafa center `,
           backgroundSize: 'cover',
           height: props.height,
-        }}>
-        <div
-          style={{
-            position: 'absolute',
-            fontSize: 22,
-            left: '50%',
-            top: '30%',
-            transform: 'translateX(-50%)',
-          }}>
-          {props.title}
-        </div>
-      </div>
+        }}
+      />
     );
   },
   displayName: 'HeadBanner',
@@ -32,9 +22,6 @@ export default defineElement({
       height: {
         type: 'number',
         default: 200,
-      },
-      title: {
-        type: 'string',
       },
       url: {
         type: 'type',
