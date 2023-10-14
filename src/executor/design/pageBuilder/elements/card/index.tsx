@@ -45,7 +45,7 @@ export default defineElement({
           hoverable
           cover={<ImageContent data={data} property={image} />}
           actions={[
-            <Content key={'third'} data={data} property={third} />,
+            <Content key={'fourth'} data={data} property={fourth} />,
             <Content key={'fifth'} data={data} property={fifth} />,
           ]}>
           <Card.Meta
