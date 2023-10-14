@@ -1,4 +1,4 @@
-import { Button, Tabs, message } from 'antd';
+import { Tabs } from 'antd';
 import React, { useState } from 'react';
 import { DesignContext, PageContext } from '../render/PageContext';
 import Coder from './context';
@@ -7,9 +7,10 @@ import { useComputed } from '@preact/signals-react';
 import type { Tab } from 'rc-tabs/lib/interface';
 import { DndProvider } from 'react-dnd';
 import { HTML5Backend } from 'react-dnd-html5-backend';
+import ToolBar from './ToolBar';
+import TreeManager from './TreeManager';
 import ElementProps from './config/ElementProps';
 import css from './designer.module.less';
-import TreeManager from './TreeManager';
 
 export interface DesignerProps {
   ctx: DesignContext;
@@ -53,14 +54,7 @@ export function DesignerHost({ ctx }: DesignerProps) {
       <PageContext.Provider value={ctx}>
         <div className={css.pageHostDesign}>
           <div className={css.top}>
-            <Button
-              onClick={async () => {
-                if (await ctx.view.update()) {
-                  message.success('更新成功！');
-                }
-              }}>
-              保存
-            </Button>
+            <ToolBar ctx={ctx} />
           </div>
           <div className={css.content}>
             <div className={css.designConfig}>
@@ -69,7 +63,6 @@ export function DesignerHost({ ctx }: DesignerProps) {
                 defaultActiveKey="tree"
                 items={renderTabs()}></Tabs>
             </div>
-
             <div className="o-page-host" style={{ flex: 'auto' }}>
               <RootRender element={ctx.view.rootElement} />
             </div>

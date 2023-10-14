@@ -19,9 +19,9 @@ const TemplateView: React.FC<IProps> = ({ current, finished }) => {
       bodyHeight={'80vh'}
       destroyOnClose
       title={'页面预览'}
-      onCancel={() => finished()}
-      children={<ViewerHost ctx={{ view: new ViewerManager(current) }} />}
-    />
+      onCancel={() => finished()}>
+      <ViewerHost ctx={{ view: new ViewerManager(current) }} />
+    </FullScreenModal>
   );
 };
 
