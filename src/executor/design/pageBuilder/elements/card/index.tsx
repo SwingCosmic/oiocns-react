@@ -2,39 +2,38 @@ import { schema } from '@/ts/base';
 import { Card, Image, Space } from 'antd';
 import React from 'react';
 import { ExistTypeMeta } from '../../core/ElementMeta';
-import { PosVal } from '../../type';
 import { defineElement } from '../defineElement';
 import Asset from '/img/banner/1.png';
 import { shareOpenLink } from '@/utils/tools';
+import { XProperty } from '@/ts/base/schema';
 
 interface PosProps {
-  pos: PosVal;
+  property: XProperty;
 }
 
 interface DataProps extends PosProps {
-  data?: schema.XThing;
+  data: schema.XThing | undefined;
 }
 
-const Content: React.FC<DataProps> = ({ data, pos }) => {
-  return (
-    <div style={{ overflow: 'hidden', textOverflow: 'ellipsis' }}>
-      {pos.field?.name}：{data && pos.field ? data[pos.field.code] : ''}
-    </div>
-  );
+const Content: React.FC<DataProps> = ({ data, property }) => {
+  console.log(property);
+  let value = property.name + ':';
+  if (data && data[property.code]) {
+    value += data[property.code];
+  }
+  return <div style={{ overflow: 'hidden', textOverflow: 'ellipsis' }}>{value}</div>;
 };
 
-const ImageContent: React.FC<DataProps> = ({ data, pos }) => {
-  const shareLink = data && pos.field?.code ? data[pos.field.code] : '';
-  return (
-    <Image height={200} src={shareLink ? shareOpenLink(String(shareLink)) : Asset} />
-  );
+const ImageContent: React.FC<DataProps> = ({ data, property }) => {
+  let shareLink = data?.[property.code];
+  return <Image height={200} src={shareLink ? shareOpenLink(shareLink) : Asset} />;
 };
 
-const Position: React.FC<PosProps> = ({ pos }) => {
-  return <>{pos.field?.name ?? pos.label}</>;
+const Position: React.FC<PosProps> = ({ property }) => {
+  return <>{property.name}</>;
 };
 
-const ImagePosition: React.FC<PosProps> = ({ pos }) => {
+const ImagePosition: React.FC<PosProps> = () => {
   return <Image src={Asset} height={200} />;
 };
 
@@ -44,17 +43,17 @@ export default defineElement({
       return (
         <Card
           hoverable
-          cover={<ImageContent data={data} pos={image} />}
+          cover={<ImageContent data={data} property={image} />}
           actions={[
-            <Content key={'first'} data={data} pos={first} />,
-            <Content key={'second'} data={data} pos={second} />,
+            <Content key={'third'} data={data} property={third} />,
+            <Content key={'fifth'} data={data} property={fifth} />,
           ]}>
           <Card.Meta
-            title={<Content data={data} pos={third} />}
+            title={<Content data={data} property={first} />}
             description={
               <Space direction="vertical">
-                <Content data={data} pos={fourth} />
-                <Content data={data} pos={fifth} />
+                <Content key={'second'} data={data} property={second} />
+                <Content key={'third'} data={data} property={third} />
               </Space>
             }
           />
@@ -64,17 +63,17 @@ export default defineElement({
     return (
       <Card
         hoverable
-        cover={<ImagePosition pos={image} />}
+        cover={<ImagePosition property={image} />}
         actions={[
-          <Position key={'first'} pos={first} />,
-          <Position key={'second'} pos={second} />,
+          <Position key={'fourth'} property={fourth} />,
+          <Position key={'fifth'} property={fifth} />,
         ]}>
         <Card.Meta
-          title={<Position pos={third} />}
+          title={<Position property={first} />}
           description={
             <Space direction="vertical">
-              <Position pos={fourth} />
-              <Position pos={fifth} />
+              <Position key={'second'} property={second} />
+              <Position key={'third'} property={third} />
             </Space>
           }
         />
@@ -84,11 +83,6 @@ export default defineElement({
   displayName: 'MetaCard',
   meta: {
     props: {
-      formId: {
-        type: 'type',
-        typeName: 'attr',
-        label: '表单字段',
-      } as ExistTypeMeta<string>,
       data: {
         type: 'type',
         typeName: 'empty',
@@ -96,40 +90,40 @@ export default defineElement({
       } as ExistTypeMeta<schema.XThing>,
       image: {
         type: 'type',
-        typeName: 'position',
+        typeName: 'propFile',
         label: '图片',
-        default: { position: 'image', label: '主图片' },
-      } as ExistTypeMeta<PosVal>,
+        default: { name: '主图片' },
+      } as ExistTypeMeta<XProperty>,
       first: {
         type: 'type',
-        typeName: 'position',
+        typeName: 'propFile',
         label: '位置-1',
-        default: { position: 'first', label: '位置-1' },
-      } as ExistTypeMeta<PosVal>,
+        default: { name: '位置-1' },
+      } as ExistTypeMeta<XProperty>,
       second: {
         type: 'type',
-        typeName: 'position',
+        typeName: 'propFile',
         label: '位置-2',
-        default: { position: 'second', label: '位置-2' },
-      } as ExistTypeMeta<PosVal>,
+        default: { name: '位置-2' },
+      } as ExistTypeMeta<XProperty>,
       third: {
         type: 'type',
-        typeName: 'position',
+        typeName: 'propFile',
         label: '位置-3',
-        default: { position: 'third', label: '位置-3' },
-      } as ExistTypeMeta<PosVal>,
+        default: { name: '位置-3' },
+      } as ExistTypeMeta<XProperty>,
       fourth: {
         type: 'type',
-        typeName: 'position',
+        typeName: 'propFile',
         label: '位置-4',
-        default: { position: 'fourth', label: '位置-4' },
-      } as ExistTypeMeta<PosVal>,
+        default: { name: '位置-4' },
+      } as ExistTypeMeta<XProperty>,
       fifth: {
         type: 'type',
-        typeName: 'position',
+        typeName: 'propFile',
         label: '位置-5',
-        default: { position: 'fifth', label: '位置-5' },
-      } as ExistTypeMeta<PosVal>,
+        default: { name: '位置-5' },
+      } as ExistTypeMeta<XProperty>,
     },
     type: '元素',
     label: '实体详情',

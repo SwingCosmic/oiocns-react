@@ -9,7 +9,7 @@ interface IProps extends IExistTypeProps<schema.XEntity> {
   accepts: string[];
 }
 
-const FileProp: React.FC<IProps> = ({ accepts, value, onChange }) => {
+const File: React.FC<IProps> = ({ accepts, value, onChange }) => {
   const ctx = useContext(PageContext);
   const [center, setCenter] = useState(<></>);
   const close = () => setCenter(<></>);
@@ -37,12 +37,16 @@ const FileProp: React.FC<IProps> = ({ accepts, value, onChange }) => {
   );
 };
 
-export const FormFileProp: React.FC<IExistTypeProps<schema.XEntity>> = (props) => {
-  return <FileProp {...props} accepts={['实体配置', '事项配置']} />;
+export const FormFile: React.FC<IExistTypeProps<schema.XEntity>> = (props) => {
+  return <File {...props} accepts={['实体配置', '事项配置']} />;
 };
 
-export const PicFileProp: React.FC<IExistTypeProps<schema.XEntity>> = (props) => {
-  return <FileProp {...props} accepts={['图片']} />;
+export const PicFile: React.FC<IExistTypeProps<schema.XEntity>> = (props) => {
+  return <File {...props} accepts={['图片']} />;
 };
 
-export default FileProp;
+export const PropFile: React.FC<IExistTypeProps<schema.XEntity>> = (props) => {
+  return <File {...props} accepts={['属性']} />;
+};
+
+export default File;

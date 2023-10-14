@@ -1,4 +1,4 @@
-import { Button, Tabs } from 'antd';
+import { Button, Tabs, message } from 'antd';
 import React, { useState } from 'react';
 import { DesignContext, PageContext } from '../render/PageContext';
 import Coder from './context';
@@ -53,7 +53,14 @@ export function DesignerHost({ ctx }: DesignerProps) {
       <PageContext.Provider value={ctx}>
         <div className={css.pageHostDesign}>
           <div className={css.top}>
-            <Button onClick={() => ctx.view.update()}>保存</Button>
+            <Button
+              onClick={async () => {
+                if (await ctx.view.update()) {
+                  message.success('更新成功！');
+                }
+              }}>
+              保存
+            </Button>
           </div>
           <div className={css.content}>
             <div className={css.designConfig}>
