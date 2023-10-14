@@ -28,7 +28,7 @@ export interface ElementRenderProps {
  * @returns ReactNode所需的属性对象
  */
 export function mergeProps(e: PageElement, c: ElementFC, data?: any) {
-  const props = { ...e.props, ...e.slots };
+  const props = { ...e.props };
 
   let className = e.className;
   if (Array.isArray(className)) {

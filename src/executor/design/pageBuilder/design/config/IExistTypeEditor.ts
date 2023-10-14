@@ -1,6 +1,7 @@
 import { FC } from 'react';
 
 export interface IExistTypeProps<T = string> {
+  prop: string;
   value?: T;
   onChange: (value?: T | undefined) => any;
 }

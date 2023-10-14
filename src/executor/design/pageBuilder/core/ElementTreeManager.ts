@@ -41,24 +41,14 @@ export default class ElementTreeManager {
 
   initElements(elements: PageElement[], parentId = '') {
     for (const e of elements) {
-      this.setElement(e, parentId);
-      if (e.slots) {
-        for (const key in e.slots) {
-          const item = e.slots[key];
-          this.setElement(item, parentId);
-        }
-      }
+      Object.defineProperty(e, 'parentId', {
+        value: parentId,
+        configurable: true,
+        enumerable: false,
+      });
+      this.allElements[e.id] = e;
       this.initElements(e.children, e.id);
     }
-  }
-
-  setElement(e: PageElement, parentId = '') {
-    Object.defineProperty(e, 'parentId', {
-      value: parentId,
-      configurable: true,
-      enumerable: false,
-    });
-    this.allElements[e.id] = e;
   }
 
   /** 批量修改元素的直接上级，不处理子级 */
@@ -106,8 +96,7 @@ export default class ElementTreeManager {
 
     const e = this.factory.create(kind, name, params);
     this.initElements([e], parent.id);
-    parent.slots = parent.slots ?? {};
-    parent.slots[prop] = e;
+    parent.props[prop] = e;
 
     return e;
   }
@@ -132,8 +121,8 @@ export default class ElementTreeManager {
   }
 
   removeSlot(e: PageElementView, key: string) {
-    const item = e.slots?.[key];
-    delete e.slots?.[key];
+    const item = e.props[key];
+    delete e.props[key];
     if (item) {
       delete this.allElements[item.id];
     }

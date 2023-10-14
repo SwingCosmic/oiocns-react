@@ -24,8 +24,8 @@ const buildElementTree = (
   const slots: { ele: PageElement; prop: string }[] = [];
   if (meta) {
     for (const key of Object.keys(meta.props)) {
-      const prop = meta.props[key];
-      let ele = element.slots?.[key];
+      let prop = meta.props[key];
+      let ele = element.props[key];
       if (prop.type == 'type' && prop.typeName == 'slot') {
         if (!ele) {
           ele = ctx.view.treeManager.factory.create('Any', prop.label ?? '插槽');

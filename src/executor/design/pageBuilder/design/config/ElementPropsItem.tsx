@@ -12,6 +12,7 @@ interface Props {
 }
 
 export default function ElementPropsItem(props: Props) {
+  console.log('target', props.target);
   const [value, setValue] = useState<any>(props.target[props.prop] ?? props.meta.default);
   // 相当于watch props.target[props.prop]
   useEffect(() => {
@@ -31,7 +32,12 @@ export default function ElementPropsItem(props: Props) {
       return <Input value={value} onChange={(e) => onValueChange(e.target.value)} />;
     }
     return (
-      <Editor {...(meta.editorConfig || {})} value={value} onChange={onValueChange} />
+      <Editor
+        {...(meta.editorConfig || {})}
+        prop={props.prop}
+        value={value}
+        onChange={onValueChange}
+      />
     );
   }
 

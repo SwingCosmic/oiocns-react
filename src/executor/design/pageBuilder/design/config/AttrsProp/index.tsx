@@ -8,15 +8,15 @@ import FormProp from '../StandardProp';
 import cls from './index.module.less';
 import { IExistTypeProps } from '../IExistTypeEditor';
 
-const AttrsProp: React.FC<IExistTypeProps> = ({ value, onChange }) => {
-  const form = ShareIdSet.get(value + '*') as IForm | undefined;
+const AttrsProp: React.FC<IExistTypeProps> = (props) => {
+  const form = ShareIdSet.get(props.value + '*') as IForm | undefined;
   const [fields, setFields] = useState(form?.fields ?? []);
   useEffect(() => {
     form?.loadContent().then(() => setFields(form.fields));
   });
   return (
     <div className={cls.attrsContainer}>
-      <FormProp value={value} onChange={onChange} />
+      <FormProp {...props} />
       <Row className={cls.fields}>
         {fields.map((field) => {
           return <Field key={field.id} field={field} />;
