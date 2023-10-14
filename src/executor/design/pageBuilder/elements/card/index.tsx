@@ -24,7 +24,14 @@ const Content: React.FC<DataProps> = ({ data, property }) => {
 };
 
 const ImageContent: React.FC<DataProps> = ({ data, property }) => {
-  let shareLink = data?.['T' + property.id];
+  let file = data?.['T' + property.id];
+  let shareLink = '';
+  if (file) {
+    const parsedFile = JSON.parse(file);
+    if (parsedFile.length > 0) {
+      shareLink = parsedFile[0].shareLink;
+    }
+  }
   return <Image height={200} src={shareLink ? shareOpenLink(shareLink) : Asset} />;
 };
 
