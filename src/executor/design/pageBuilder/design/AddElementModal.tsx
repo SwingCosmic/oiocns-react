@@ -3,13 +3,14 @@ import { defineFC } from '@/utils/react/fc';
 import { useSignalEffect } from '@preact/signals-react';
 import { Form, Input, Modal, Select } from 'antd';
 import React, { useContext, useEffect, useMemo } from 'react';
-import { ElementMeta } from '../core/ElementMeta';
+import { ElementMeta, TypeMeta } from '../core/ElementMeta';
 import { DesignContext, PageContext } from '../render/PageContext';
 
 interface Props {
   visible: boolean;
   parentId: string;
   onVisibleChange: (v: boolean) => void;
+  prop?: string;
 }
 
 export default defineFC({
@@ -62,7 +63,11 @@ export default defineFC({
     async function handleCreate() {
       const res = await formInst.validateFields();
       const { kind, name } = res;
-      ctx.view.addElement(kind, name, props.parentId);
+      if (props.prop) {
+        ctx.view.addSlot(kind, name, props.prop, props.parentId);
+      } else {
+        ctx.view.addElement(kind, name, props.parentId);
+      }
       visibleChange(false);
     }
 

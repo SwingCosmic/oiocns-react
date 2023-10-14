@@ -73,20 +73,41 @@ export default class ElementTreeManager {
     }
   }
 
+  getParent(parentId?: string) {
+    const parent = parentId ? this.allElements[parentId] : this.root;
+    if (!parent) {
+      throw new ReferenceError('找不到父级：' + parentId);
+    }
+    return parent;
+  }
+
   createElement<E extends PageElement>(
     kind: E['kind'],
     name: string,
     parentId?: string,
     params: ElementInit<E> = {},
   ): PageElementView {
-    const parent = parentId ? this.allElements[parentId] : this.root;
-    if (!parent) {
-      throw new ReferenceError('找不到父级：' + parentId);
-    }
-
+    const parent = this.getParent(parentId);
     const e: PageElementView = this.factory.create(kind, name, params);
     this.initElements([e], parent.id);
     parent.children.push(e);
+
+    return e;
+  }
+
+  createSlot<E extends PageElement>(
+    kind: E['kind'],
+    name: string,
+    prop: string,
+    parentId?: string,
+    params: ElementInit<E> = {},
+  ): PageElementView {
+    const parent = this.getParent(parentId);
+
+    const e = this.factory.create(kind, name, params);
+    this.initElements([e], parent.id);
+    parent.slots = parent.slots ?? {};
+    parent.slots[prop] = e;
 
     return e;
   }
@@ -108,6 +129,14 @@ export default class ElementTreeManager {
 
     delete this.allElements[e.id];
     console.log(`删除 ${e.id}`);
+  }
+
+  removeSlot(e: PageElementView, key: string) {
+    const item = e.slots?.[key];
+    delete e.slots?.[key];
+    if (item) {
+      delete this.allElements[item.id];
+    }
   }
 
   removeElementById(id: string, recursive = true) {

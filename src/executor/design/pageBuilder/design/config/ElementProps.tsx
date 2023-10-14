@@ -30,6 +30,23 @@ export async function removeElement(element: PageElement | null, ctx: DesignCont
   ctx.view.removeElement(element, true);
 }
 
+export async function removeSlot(
+  element: PageElement | null,
+  ctx: DesignContext,
+  prop: string,
+) {
+  if (!element) {
+    return;
+  }
+  await $confirm({
+    title: '提示',
+    okText: '确定',
+    cancelText: '取消',
+    content: `确实要移除元素 ${element.name} 及其所有下级？`,
+  });
+  ctx.view.removeSlot(element, prop);
+}
+
 export default function ElementProps({ element }: Props) {
   const ctx = useContext<DesignContext>(PageContext as any);
 
