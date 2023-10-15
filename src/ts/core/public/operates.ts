@@ -195,7 +195,7 @@ export const directoryNew = {
     directoryOperates.NewApp,
     directoryOperates.NewForm,
     directoryOperates.NewTransferConfig,
-    directoryOperates.NewPageTemplate
+    directoryOperates.NewPageTemplate,
   ],
 };
 

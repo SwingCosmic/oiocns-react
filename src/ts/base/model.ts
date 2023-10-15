@@ -996,7 +996,10 @@ export type Request = {
 } & Node;
 
 // 表格
-export type Tables = { formIds: string[]; file?: FileItemModel } & Node;
+export type Tables = {
+  forms: XForm[];
+  file?: FileItemModel;
+} & Node;
 
 // 页
 export type Sheet<T> = {
@@ -1025,9 +1028,9 @@ export interface Column {
 // 映射
 export type Mapping = {
   // 源
-  source: string;
+  source?: XForm;
   // 目标
-  target: string;
+  target?: XForm;
   // 原 Id 字段名称
   idName: string;
   // 原 Name 字段名称
@@ -1224,35 +1227,4 @@ export type DiskInfoType = {
   fsTotalSize: number;
   // 查询时间
   getTime: string;
-}
-
-export interface IPageTemplate<T extends string> {
-  kind: T;
-  // 其他属性通过模块补充增加
-}
-
-
-export interface ShopTemplate extends IPageTemplate<"shop"> {
-
-}
-export interface NewsTemplate extends IPageTemplate<"news"> {
-
-}
-
-export interface PageTemplatePresetMap {
-  "shop": ShopTemplate;
-  "news": NewsTemplate;
-}
-
-export type PageTemplatePreset = PageTemplatePresetMap[keyof PageTemplatePresetMap];
-
-/** 类型保护，判断一个模板是不是内置模板 */
-export function isPageTemplatePreset(template: PageTemplate): template is PageTemplatePreset {
-  return ["shop", "news"].includes(template.kind);
-}
-
-export type PageTemplate<T extends string = string> =  T extends keyof PageTemplatePresetMap
-  ? PageTemplatePresetMap[T]
-  : IPageTemplate<T>;
-
-export type XPageTemplate<T extends string = string> = XStandard & PageTemplate<T>;
+};

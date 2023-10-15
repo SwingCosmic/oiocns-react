@@ -24,8 +24,8 @@ export interface PageElement<
   props: NoFunctionPropertyObject<P>;
 }
 
-declare module '@/ts/base/model' {
-  interface IPageTemplate<T extends string> {
+declare module '@/ts/base/schema' {
+  interface XPageTemplate {
     rootElement: PageElement;
   }
 }

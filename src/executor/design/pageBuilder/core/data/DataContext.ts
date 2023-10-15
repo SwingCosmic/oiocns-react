@@ -6,7 +6,7 @@ export interface DataContext<T extends string = string> {
 }
 
 declare module '@/ts/base/schema' {
-  interface IPageTemplate {
+  interface XPageTemplate {
     data?: DataContext[];
   }
 }

@@ -1,11 +1,11 @@
 import SchemaForm from '@/components/SchemaForm';
 import { model } from '@/ts/base';
-import { IDirectory, ITransfer } from '@/ts/core';
+import { ITransfer } from '@/ts/core';
 import { ProFormColumnsType, ProFormInstance } from '@ant-design/pro-components';
 import { javascript } from '@codemirror/lang-javascript';
 import CodeMirror from '@uiw/react-codemirror';
-import React, { createRef, useState } from 'react';
-import { MenuItem, expand, loadFormsMenu } from '../menus';
+import { Input } from 'antd';
+import React, { createRef, useEffect } from 'react';
 
 interface IProps {
   transfer: ITransfer;
@@ -13,15 +13,21 @@ interface IProps {
   finished: () => void;
 }
 
-const getExpandKeys = (treeData: MenuItem[]) => {
-  return expand(treeData, ['事项配置', '实体配置']);
-};
-
 const MappingForm: React.FC<IProps> = ({ transfer, current, finished }) => {
-  const formRef = createRef<ProFormInstance>();
-  const [treeData, setTreeData] = useState<MenuItem[]>([
-    loadFormsMenu(transfer.directory.target.directory),
-  ]);
+  const form = createRef<ProFormInstance>();
+  useEffect(() => {
+    const id = transfer.command.subscribe((type, cmd, args) => {
+      if (type == 'data' && cmd == 'fileCollect') {
+        const { prop, files } = args;
+        if (files && files.length > 0) {
+          form.current?.setFieldValue(prop, files[0].metadata);
+        }
+      }
+    });
+    return () => {
+      transfer.command.unsubscribe(id);
+    };
+  });
   const selector = (
     title: string,
     dataIndex: string,
@@ -29,29 +35,22 @@ const MappingForm: React.FC<IProps> = ({ transfer, current, finished }) => {
     return {
       title: title,
       dataIndex: dataIndex,
-      valueType: 'treeSelect',
       colProps: { span: 24 },
       formItemProps: {
         rules: [{ required: true, message: title + '为必填项' }],
       },
-      fieldProps: {
-        fieldNames: {
-          label: 'label',
-          value: 'key',
-          children: 'children',
-        },
-        showSearch: true,
-        loadData: async (node: MenuItem): Promise<void> => {
-          if (!node.isLeaf) {
-            let forms = await (node.item as IDirectory).standard.forms;
-            if (forms.length > 0) {
-              setTreeData([loadFormsMenu(transfer.directory.target.directory)]);
-            }
-          }
-        },
-        treeNodeFilterProp: 'label',
-        treeDefaultExpandedKeys: getExpandKeys(treeData),
-        treeData: treeData,
+      renderFormItem: (_, __, form) => {
+        return (
+          <Input
+            value={form.getFieldValue(dataIndex)?.name}
+            onClick={() => {
+              transfer.command.emitter('data', 'file', {
+                prop: dataIndex,
+                accepts: ['实体配置', '事项配置'],
+              });
+            }}
+          />
+        );
       },
     };
   };
@@ -99,11 +98,11 @@ const MappingForm: React.FC<IProps> = ({ transfer, current, finished }) => {
       renderFormItem: () => {
         return (
           <CodeMirror
-            value={formRef.current?.getFieldValue('preScripts')}
+            value={form.current?.getFieldValue('preScripts')}
             height={'200px'}
             extensions={[javascript()]}
             onChange={(code: string) => {
-              formRef.current?.setFieldValue('preScripts', code);
+              form.current?.setFieldValue('preScripts', code);
             }}
           />
         );
@@ -123,11 +122,11 @@ const MappingForm: React.FC<IProps> = ({ transfer, current, finished }) => {
       renderFormItem: () => {
         return (
           <CodeMirror
-            value={formRef.current?.getFieldValue('postScripts')}
+            value={form.current?.getFieldValue('postScripts')}
             height={'200px'}
             extensions={[javascript()]}
             onChange={(code: string) => {
-              formRef.current?.setFieldValue('postScripts', code);
+              form.current?.setFieldValue('postScripts', code);
             }}
           />
         );
@@ -142,7 +141,7 @@ const MappingForm: React.FC<IProps> = ({ transfer, current, finished }) => {
   ];
   return (
     <SchemaForm<model.Mapping>
-      formRef={formRef}
+      formRef={form}
       open
       title="映射定义"
       width={640}

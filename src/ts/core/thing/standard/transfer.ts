@@ -1,5 +1,4 @@
 import { sleep } from '@/ts/base/common';
-import { XForm } from '@/ts/base/schema';
 import { formatDate } from 'devextreme/localization';
 import { Command, common, kernel, model, schema } from '../../../base';
 import { IDirectory } from '../directory';
@@ -88,6 +87,8 @@ export class Transfer extends StandardFileInfo<model.Transfer> implements ITrans
   get cacheFlag(): string {
     return 'transfers';
   }
+
+  canDesign: boolean = true;
 
   async execute(status: model.GStatus, event: model.GEvent): Promise<void> {
     this.curTask = new Task(this, event, status);
@@ -201,27 +202,28 @@ export class Transfer extends StandardFileInfo<model.Transfer> implements ITrans
         if (work && work.node) {
           const apply = await work.createApply();
           if (apply) {
-            const map = new Map<string, model.FormEditData>();
-            const editForm: model.FormEditData = {
-              before: [],
-              after: [],
-              nodeId: work.node.id,
-              creator: apply.belong.userId,
-              createTime: formatDate(new Date(), 'yyyy-MM-dd hh:mm:ss.S'),
-            };
             const belongId = this.directory.belongId;
             const allForms = [...work.primaryForms, ...work.detailForms];
             for (const key of Object.keys(array)) {
               for (const form of allForms) {
                 if (key == form.id) {
+                  const map = new Map<string, model.FormEditData>();
+                  const editForm: model.FormEditData = {
+                    before: [],
+                    after: [],
+                    formName: form.name,
+                    nodeId: work.node.id,
+                    creator: apply.belong.userId,
+                    createTime: formatDate(new Date(), 'yyyy-MM-dd hh:mm:ss.S'),
+                  };
                   for (const item of array[key]) {
                     editForm.after.push({ ...item });
                   }
+                  map.set(key, editForm);
+                  await apply.createApply(belongId, '自动写入', map);
                 }
               }
-              map.set(key, editForm);
             }
-            await apply.createApply(belongId, '自动写入', map);
           }
         }
       }
@@ -231,11 +233,10 @@ export class Transfer extends StandardFileInfo<model.Transfer> implements ITrans
 
   async mapping(node: model.Node, array: any[]): Promise<{ [key: string]: any[] }> {
     const data = node as model.Mapping;
-    const ans: model.AnyThingModel[] = [];
-    const sourceForm = this.findMetadata<XForm>(data.source);
-    if (sourceForm) {
+    const ans: schema.XThing[] = [];
+    if (data.source && data.target) {
       const sourceMap = new Map<string, schema.XAttribute>();
-      sourceForm.attributes.forEach((attr) => sourceMap.set(attr.code, attr));
+      data.source.attributes.forEach((attr) => sourceMap.set(attr.code, attr));
       for (let item of array) {
         let oldItem: { [key: string]: any } = {};
         let newItem: any = { id: item[data.idName] };
@@ -262,49 +263,46 @@ export class Transfer extends StandardFileInfo<model.Transfer> implements ITrans
         }
         ans.push(newItem);
       }
+      return { [data.target.id]: ans };
     }
-    return { [data.target]: ans };
+    return {};
   }
 
   async template<T>(node: model.Node): Promise<model.Sheet<T>[]> {
     const tables = node as model.Tables;
     const ans: model.Sheet<T>[] = [];
-    for (const formId of tables.formIds) {
-      const form = this.getEntity<IForm>(formId);
-      if (form) {
-        await form.loadContent();
-        const columns: model.Column[] = [];
-        for (const field of form.fields) {
-          columns.push({
-            title: field.name,
-            dataIndex: field.id,
-            valueType: field.valueType,
-          });
-        }
-        ans.push({
-          name: form.name,
-          columns: columns,
-          data: [],
+    for (const form of tables.forms) {
+      const columns: model.Column[] = [];
+      for (const field of form.attributes) {
+        columns.push({
+          title: field.name,
+          dataIndex: field.id,
+          valueType: field.property?.valueType ?? '描述型',
         });
       }
+      ans.push({
+        name: form.name,
+        columns: columns,
+        data: [],
+      });
     }
     return ans;
   }
 
   async reading(node: model.Node): Promise<boolean> {
-    return new Promise(() => {});
-    // const table = node as model.Tables;
-    // if (table.file) {
-    //   const url = `/orginone/kernel/load/${table.file.shareLink}?download=1`;
-    //   const res = await axios.request({
-    //     method: 'GET',
-    //     url: url,
-    //     responseType: 'blob',
-    //   });
-    //   const sheets = await this.template<any>(node);
-    //   readXlsx(res.data as Blob, sheets);
-    // }
-    // return false;
+    return new Promise((resolve, reject) => {
+      try {
+        const table = node as model.Tables;
+        const id = this.command.subscribe((type, cmd, args) => {
+          if (type == 'data' && cmd == 'readingCall') {
+            this.command.unsubscribe(id);
+          }
+        });
+        this.command.emitter('data', 'reading', table);
+      } catch (error) {
+        reject(error);
+      }
+    });
   }
 
   async inputting(node: model.Node): Promise<any> {
@@ -748,7 +746,8 @@ export const getDefaultTableNode = (): model.Tables => {
     code: 'table',
     name: '表格',
     typeName: '表格',
-    formIds: [],
+    forms: [],
+    file: undefined,
   };
 };
 
@@ -777,8 +776,6 @@ export const getDefaultMappingNode = (): model.Mapping => {
     typeName: '映射',
     idName: 'id',
     nameName: 'name',
-    source: '',
-    target: '',
     mappingType: 'OToI',
     mappings: [],
   };

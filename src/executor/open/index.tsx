@@ -55,7 +55,7 @@ const ExecutorOpen: React.FC<IOpenProps> = (props: IOpenProps) => {
       case '迁移配置':
         return <TransferView current={props.entity as any} finished={props.finished} />;
       case '页面模板':
-        return <TemplateView current={props.entity as any} finished={props.finished} />
+        return <TemplateView current={props.entity as any} finished={props.finished} />;
       case '办事':
         return <WorkStart current={props.entity as any} finished={props.finished} />;
       case '报表':

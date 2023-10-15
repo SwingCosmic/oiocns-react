@@ -63,28 +63,22 @@ module.exports = {
     // 对于自定义扩展FC的类型，eslint会误判，并且使用ts时不需要
     'react/prop-types': 'off',
 
-    'no-fallthrough': "warn",
-    'prefer-const': "off",
-    'no-useless-escape': "warn",
-    'no-var': "warn",//自己的代码中不应该使用var，但第三方库可能会用到
-    'no-redeclare': "warn",
-    'prefer-rest-params': "warn",
-    'no-mixed-spaces-and-tabs': "error",
-    'no-unused-vars': "warn",//部分情况下需要导入成员供typescript和编译器处理
+    'no-fallthrough': 'warn',
+    'prefer-const': 'off',
+    'no-useless-escape': 'warn',
+    'no-var': 'warn', //自己的代码中不应该使用var，但第三方库可能会用到
+    'no-redeclare': 'warn',
+    'prefer-rest-params': 'warn',
+    'no-mixed-spaces-and-tabs': 'error',
+    'no-unused-vars': 'warn', //部分情况下需要导入成员供typescript和编译器处理
 
-    '@typescript-eslint/ban-types': "off",
-    '@typescript-eslint/camelcase': "warn",
-    '@typescript-eslint/member-delimiter-style': "off",
-    '@typescript-eslint/no-explicit-any': "off",
-    '@typescript-eslint/no-extra-semi': "error",
-    '@typescript-eslint/no-empty-function': "warn",
-    '@typescript-eslint/no-non-null-assertion': "off",
-    '@typescript-eslint/no-unused-vars': "off",
-    '@typescript-eslint/no-var-requires': "warn",
-    '@typescript-eslint/no-inferrable-types': "off",
-    "@typescript-eslint/no-this-alias": "warn",
-    '@typescript-eslint/prefer-as-const': "warn",
-    '@typescript-eslint/type-annotation-spacing': "off",
-    '@typescript-eslint/no-empty-interface': "off"
+    '@typescript-eslint/ban-types': 'off',
+    '@typescript-eslint/member-delimiter-style': 'off',
+    '@typescript-eslint/no-explicit-any': 'off',
+    '@typescript-eslint/no-non-null-assertion': 'off',
+    '@typescript-eslint/no-unused-vars': 'off',
+    '@typescript-eslint/no-inferrable-types': 'off',
+    '@typescript-eslint/type-annotation-spacing': 'off',
+    '@typescript-eslint/no-empty-interface': 'off',
   },
 };
