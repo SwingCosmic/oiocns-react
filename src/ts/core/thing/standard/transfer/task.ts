@@ -136,7 +136,7 @@ export class Task implements ITask {
   async iterateRoots(data?: any): Promise<void> {
     if (await this.tryRunning()) {
       const not = this.metadata.edges.map((item) => item.end);
-      const roots = this.nodes.filter((item) => not.includes(item.metadata.id));
+      const roots = this.nodes.filter((item) => !not.includes(item.metadata.id));
       await Promise.all(roots.map((root) => this.visitNode(root, data)));
     }
   }

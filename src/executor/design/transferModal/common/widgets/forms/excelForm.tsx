@@ -26,19 +26,10 @@ const ExcelForm: React.FC<IProps> = ({ transfer, current, finished }) => {
       if (type == 'data' && cmd == 'fileCollect') {
         const { prop, files } = args;
         if (files && files.length > 0) {
-          switch (prop) {
-            case 'formIds':
-              {
-                const formIds: string[] = files.map((file: any) => file.metadata.id);
-                transfer.loadForms(formIds).then(() => {
-                  form.current?.setFieldValue(prop, formIds);
-                });
-              }
-              break;
-            case 'file':
-              form.current?.setFieldValue(prop, files[0].filedata);
-              break;
-          }
+          const formIds: string[] = files.map((file: any) => file.metadata.id);
+          transfer.loadForms(formIds).then(() => {
+            form.current?.setFieldValue(prop, formIds);
+          });
         }
       }
     });
@@ -86,27 +77,6 @@ const ExcelForm: React.FC<IProps> = ({ transfer, current, finished }) => {
               下载模板
             </Button>
           </Space.Compact>
-        );
-      },
-    },
-    {
-      title: '文件',
-      dataIndex: 'file',
-      colProps: { span: 24 },
-      formItemProps: {
-        rules: [{ required: true, message: '表格文件为必填项' }],
-      },
-      renderFormItem: (_, __, form) => {
-        return (
-          <Input
-            value={form.getFieldValue('file')?.name}
-            onClick={() => {
-              transfer.command.emitter('data', 'file', {
-                prop: 'file',
-                accepts: ['Office'],
-              });
-            }}
-          />
         );
       },
     },

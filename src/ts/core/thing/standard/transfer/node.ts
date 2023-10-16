@@ -99,13 +99,13 @@ export class TablesNode extends Node<model.Tables> {
           throw new Error('未选择文件！');
         }
         const id = this.command.subscribe((type, cmd, args) => {
-          this.command.unsubscribe(id);
-          if (args instanceof Error) {
-            reject(args);
-            return;
-          }
           if (type == 'data' && cmd == 'readingCall') {
-            resolve(args);
+            if (args instanceof Error) {
+              reject(args);
+            } else {
+              resolve(args);
+            }
+            this.command.unsubscribe(id);
             return;
           }
         });
@@ -124,13 +124,14 @@ export class MappingNode extends Node<model.Mapping> {
       this.source = task.transfer.forms[node.source];
     }
     if (node.target) {
-      this.source = task.transfer.forms[node.target];
+      this.target = task.transfer.forms[node.target];
     }
   }
   source?: IForm;
   target?: IForm;
 
   async function(data: { array: any[] }): Promise<{ [id: string]: schema.XThing[] }> {
+    console.log(this);
     if (!this.source) {
       throw new Error('未获取到原表单信息！');
     }
