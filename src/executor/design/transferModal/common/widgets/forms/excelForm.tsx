@@ -28,10 +28,14 @@ const ExcelForm: React.FC<IProps> = ({ transfer, current, finished }) => {
         const { prop, files } = args;
         if (files && files.length > 0) {
           switch (prop) {
-            case 'forms':
-              for (const file of files) {
-                form.current?.setFieldValue(prop, file.metadata.id);
-                transfer.forms[file.metadata.id] = new Form(file, transfer.directory);
+            case 'formIds':
+              {
+                const formIds: string[] = [];
+                for (const file of files) {
+                  formIds.push(file.metadata.id);
+                  transfer.forms[file.metadata.id] = new Form(file, transfer.directory);
+                }
+                form.current?.setFieldValue(prop, formIds);
               }
               break;
             case 'file':
@@ -50,19 +54,20 @@ const ExcelForm: React.FC<IProps> = ({ transfer, current, finished }) => {
     CodeColumn,
     {
       title: '表单',
-      dataIndex: 'forms',
+      dataIndex: 'formIds',
       colProps: { span: 24 },
       formItemProps: {
         rules: [{ required: true, message: '编码为必填项' }],
       },
       renderFormItem: (_, __, form) => {
+        const formIds = form.getFieldValue('formIds') ?? [];
         return (
           <Space.Compact style={{ width: '100%' }}>
             <Input
-              value={form.getFieldValue('forms')?.map((item: any) => item.name)}
+              value={formIds?.map((item: any) => transfer.forms[item].name)}
               onClick={() => {
                 transfer.command.emitter('data', 'file', {
-                  prop: 'forms',
+                  prop: 'formIds',
                   multiple: true,
                   accepts: ['实体配置', '事项配置'],
                 });
@@ -71,11 +76,16 @@ const ExcelForm: React.FC<IProps> = ({ transfer, current, finished }) => {
             <Button
               size="small"
               onClick={async () => {
+                console.log(current);
                 let forms = current.formIds.map((item) => transfer.forms[item]);
-                let sheets = await transfer.template<schema.XThing>(forms);
-                let root = transfer.directory.target.directory;
+                console.log(forms);
+                let sheets = transfer.template<schema.XThing>(forms);
+                console.log(sheets);
+                let root = transfer.directory;
                 let map = (sheet: any) => new AnyHandler({ ...sheet, dir: root });
+                console.log(map);
                 let handlers = sheets.map(map);
+                console.log(handlers);
                 generateXlsx(new Excel(handlers), '表单模板');
               }}>
               下载模板
