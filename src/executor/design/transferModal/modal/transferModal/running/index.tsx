@@ -1,6 +1,6 @@
 import { ITransfer } from '@/ts/core';
 import React from 'react';
-import { Center, FullModal } from '../../../common';
+import { FullModal } from '../../../common';
 import { GraphView } from './graphView';
 import { ToolViews } from './toolsView';
 
@@ -14,7 +14,6 @@ export const TransferRunning: React.FC<IProps> = ({ current, finished }) => {
     <FullModal title={'迁移运行'} finished={finished}>
       <GraphView current={current} />
       <ToolViews current={current} />
-      <Center current={current} />
     </FullModal>
   );
 };
