@@ -27,6 +27,7 @@ function useNode<T extends model.Node>(node: Node, graph: Graph) {
   const transfer = store?.transfer;
   const item = transfer?.nodes.find((item) => item.id == node.id);
   const [data, setData] = useState((item ?? node.getData()) as T);
+  const [tag, refresh] = useState(false);
   useEffect(() => {
     const id = transfer?.command.subscribe(async (type, cmd, args) => {
       switch (type) {
@@ -39,7 +40,8 @@ function useNode<T extends model.Node>(node: Node, graph: Graph) {
               break;
             case 'update':
               if (args.id == node.id) {
-                setData({ ...args });
+                setData(args);
+                refresh(!tag);
               }
               break;
           }
