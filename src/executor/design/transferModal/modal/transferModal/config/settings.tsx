@@ -78,7 +78,7 @@ const Settings: React.FC<IProps> = ({ current }) => {
     };
   });
   return (
-    <div style={{ position: 'absolute', right: 20, top: 64 }}>
+    <div className={cls.settings}>
       <Table rowKey={'index'} columns={columns} dataSource={kvs} />
     </div>
   );

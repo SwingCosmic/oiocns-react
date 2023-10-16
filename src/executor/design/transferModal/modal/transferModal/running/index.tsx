@@ -4,6 +4,7 @@ import { FullModal } from '../../../common';
 import { GraphView } from './graphView';
 import { ToolViews } from './toolsView';
 import { generateUuid } from '@/ts/base/common';
+import { Spin } from 'antd';
 
 interface IProps {
   current: ITransfer;
@@ -12,7 +13,9 @@ interface IProps {
 
 export const TransferRunning: React.FC<IProps> = ({ current, finished }) => {
   const [key, setKey] = useState(generateUuid());
+  const [loading, setLoading] = useState(true);
   useEffect(() => {
+    current.initializing().then(() => setLoading(false));
     const id = current.subscribe(() => setKey(generateUuid()));
     return () => {
       current.unsubscribe(id);
@@ -20,8 +23,10 @@ export const TransferRunning: React.FC<IProps> = ({ current, finished }) => {
   }, [current.metadata]);
   return (
     <FullModal key={key} title={'迁移运行'} finished={finished}>
-      <GraphView current={current} />
-      <ToolViews current={current} />
+      <Spin spinning={loading}>
+        <GraphView current={current} />
+        <ToolViews current={current} />
+      </Spin>
     </FullModal>
   );
 };
