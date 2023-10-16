@@ -8,13 +8,9 @@ import {
   XSpeciesItem,
   XTarget,
   Xbase,
-} from '../../base/schema';
-import {
-  BucketOpreates,
-  ChatMessageType,
-  Transfer,
   XPageTemplate,
-} from '@/ts/base/model';
+} from '../../base/schema';
+import { BucketOpreates, ChatMessageType, Transfer } from '@/ts/base/model';
 import { kernel, model } from '@/ts/base';
 import { blobToDataUrl, encodeKey, generateUuid, sliceFile } from '@/ts/base/common';
 
