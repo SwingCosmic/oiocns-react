@@ -15,12 +15,13 @@ export const EnvSelector: React.FC<IProps> = ({ current }) => {
       return {
         value: item.id,
         label: (
-          <Space>
+          <Space key={item.id}>
             {item.name}
             <CloseOutlined
               onClick={(e) => {
                 e.preventDefault();
-                current.envs = current.envs.filter((env) => env.id == item.id);
+                current.metadata.envs = current.envs.filter((env) => env.id == item.id);
+                current.command.emitter('environments', 'refresh');
               }}
             />
             <EditOutlined
@@ -67,7 +68,10 @@ export const EnvSelector: React.FC<IProps> = ({ current }) => {
       disabled={status == 'Running'}
       placeholder="选择运行环境"
       value={curEnv}
-      onChange={(value) => (current.metadata.curEnv = value)}
+      onChange={(value) => {
+        current.metadata.curEnv = value;
+        current.command.emitter('environments', 'refresh');
+      }}
       options={options}
     />
   );

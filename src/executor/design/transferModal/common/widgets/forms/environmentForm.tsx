@@ -97,7 +97,7 @@ const EnvironmentForm: React.FC<IProps> = ({ formType, transfer, current, finish
         kvs.filter((item) => item.k).forEach((item) => (params[item.k!] = item.v));
         switch (formType) {
           case 'newEnvironment':
-            transfer.envs.push({ ...values, params: params });
+            transfer.envs.push({ ...values, id: generateUuid(), params: params });
             break;
           case 'updateEnvironment':
             if (current) {

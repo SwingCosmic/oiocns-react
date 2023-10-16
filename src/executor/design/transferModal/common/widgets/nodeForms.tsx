@@ -81,7 +81,7 @@ export const NodeForms: React.FC<IProps> = ({ current }) => {
                 current={entry[1]}
                 finished={() => {
                   remove(entry[0]);
-                  current.command.emitter('tasks', 'refresh');
+                  current.command.emitter('environments', 'refresh');
                 }}
               />
             );
