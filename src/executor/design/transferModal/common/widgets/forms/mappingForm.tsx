@@ -1,7 +1,6 @@
 import SchemaForm from '@/components/SchemaForm';
 import { model } from '@/ts/base';
 import { ITransfer } from '@/ts/core';
-import { Form } from '@/ts/core/thing/standard/form';
 import { ProFormColumnsType, ProFormInstance } from '@ant-design/pro-components';
 import { Input } from 'antd';
 import React, { createRef, useEffect } from 'react';
@@ -27,8 +26,9 @@ const MappingForm: React.FC<IProps> = ({ transfer, current, finished }) => {
         const { prop, files } = args;
         if (files && files.length > 0) {
           const item = files[0].metadata;
-          form.current?.setFieldValue(prop, item.id);
-          transfer.forms[item.id] = new Form(item, transfer.directory);
+          transfer.loadForms([item.id]).then(() => {
+            form.current?.setFieldValue(prop, item.id);
+          });
         }
       }
     });
@@ -71,11 +71,11 @@ const MappingForm: React.FC<IProps> = ({ transfer, current, finished }) => {
       dataIndex: 'mappingType',
       valueType: 'select',
       colProps: { span: 24 },
-      initialValue: 'OToI',
       formItemProps: {
         rules: [{ required: true, message: '编码为必填项' }],
       },
       fieldProps: {
+        defaultValue: 'OToI',
         options: [
           { label: '外部系统 => 内部系统', value: 'OToI' },
           { label: '内部系统 => 内部系统', value: 'IToI' },

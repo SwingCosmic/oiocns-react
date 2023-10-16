@@ -11,7 +11,6 @@ import {
   PreScriptColumn,
   RemarkColumn,
 } from './common';
-import { Form } from '@/ts/core/thing/standard/form';
 
 interface IProps {
   transfer: ITransfer;
@@ -27,8 +26,9 @@ export const EnterForm: React.FC<IProps> = ({ transfer, current, finished }) => 
         const { prop, files } = args;
         if (files && files.length > 0) {
           const item = files[0].metadata;
-          form.current?.setFieldValue(prop, '_' + item.id);
-          transfer.forms['_' + item.id] = new Form(item, transfer.directory);
+          transfer.loadForms([item.id]).then(() => {
+            form.current?.setFieldValue(prop, item.id);
+          });
         }
       }
     });

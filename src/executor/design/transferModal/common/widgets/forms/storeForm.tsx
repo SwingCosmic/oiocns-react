@@ -1,7 +1,6 @@
 import SchemaForm from '@/components/SchemaForm';
 import { model } from '@/ts/base';
 import { ITransfer } from '@/ts/core';
-import { Form } from '@/ts/core/thing/standard/form';
 import { ProFormColumnsType, ProFormInstance } from '@ant-design/pro-components';
 import { Input } from 'antd';
 import React, { createRef, useEffect } from 'react';
@@ -27,9 +26,10 @@ export const StoreForm: React.FC<IProps> = ({ transfer, current, finished }) => 
         const { prop, files } = args;
         if (files && files.length > 0 && prop == 'workId') {
           const meta = files[0].metadata;
-          form.current?.setFieldValue('applicationId', meta.applicationId);
-          form.current?.setFieldValue('workId', meta.id);
-          transfer.forms[meta.id] = new Form(meta, transfer.directory);
+          transfer.loadWorks([meta.applicationId], [meta.id]).then(() => {
+            form.current?.setFieldValue('applicationId', meta.applicationId);
+            form.current?.setFieldValue('workId', meta.id);
+          });
         }
       }
     });
@@ -54,9 +54,9 @@ export const StoreForm: React.FC<IProps> = ({ transfer, current, finished }) => 
             value={item?.name}
             onClick={() => {
               transfer.command.emitter('data', 'file', {
-                prop: 'forms',
+                prop: 'workId',
                 multiple: true,
-                accepts: ['实体配置', '事项配置'],
+                accepts: ['办事'],
               });
             }}
           />
@@ -69,7 +69,7 @@ export const StoreForm: React.FC<IProps> = ({ transfer, current, finished }) => 
   ];
   return (
     <SchemaForm<model.Store>
-      ref={form}
+      formRef={form}
       open
       title="存储配置"
       width={640}

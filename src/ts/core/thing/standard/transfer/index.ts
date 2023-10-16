@@ -7,6 +7,8 @@ import { Form, IForm } from '../form';
 import { ITask, Task } from './task';
 import { IWork } from '../../../work';
 
+type NullableString = string | undefined;
+
 export interface ITransfer extends IStandardFileInfo<model.Transfer> {
   /** 触发器 */
   command: Command;
@@ -24,12 +26,18 @@ export interface ITransfer extends IStandardFileInfo<model.Transfer> {
   curTask?: ITask;
   /** 关联的表单 */
   forms: { [id: string]: IForm };
+  /** 加载表单 */
+  loadForms(formIds?: NullableString[]): Promise<void>;
   /** 关联的迁移配置 */
   transfers: { [id: string]: ITransfer };
+  /** 加载迁移配置 */
+  loadTransfers(transferIds?: NullableString[]): Promise<void>;
   /** 关联的应用 */
   applications: { [id: string]: IApplication };
   /** 关联的办事配置 */
   works: { [id: string]: IWork };
+  /** 加载应用办事 */
+  loadWorks(aIds?: NullableString[], wIds?: NullableString[]): Promise<void>;
   /** 取图数据 */
   getData?: () => any;
   /** 是否有环 */
@@ -106,7 +114,7 @@ export class Transfer extends StandardFileInfo<model.Transfer> implements ITrans
     return false;
   }
 
-  async loadForms(formIds?: (string | undefined)[]) {
+  async loadForms(formIds?: NullableString[]) {
     const forms: string[] = [];
     formIds?.forEach((item) => {
       if (item && !this.forms[item]) {
@@ -125,7 +133,7 @@ export class Transfer extends StandardFileInfo<model.Transfer> implements ITrans
     }
   }
 
-  async loadTransfers(transferIds?: (string | undefined)[]) {
+  async loadTransfers(transferIds?: NullableString[]) {
     const transfers: string[] = [];
     transferIds?.forEach((item) => {
       if (item && !this.transfers[item]) {
@@ -144,7 +152,7 @@ export class Transfer extends StandardFileInfo<model.Transfer> implements ITrans
     }
   }
 
-  async loadWorks(appIds?: (string | undefined)[], workIds?: (string | undefined)[]) {
+  async loadWorks(appIds?: NullableString[], workIds?: NullableString[]) {
     const applications: string[] = [];
     appIds?.forEach((item) => {
       if (item && !this.applications[item]) {
@@ -168,10 +176,10 @@ export class Transfer extends StandardFileInfo<model.Transfer> implements ITrans
   }
 
   async initializing(): Promise<boolean> {
-    const formIds: (string | undefined)[] = [];
-    const transferIds: (string | undefined)[] = [];
-    const appIds: (string | undefined)[] = [];
-    const workIds: (string | undefined)[] = [];
+    const formIds: NullableString[] = [];
+    const transferIds: NullableString[] = [];
+    const appIds: NullableString[] = [];
+    const workIds: NullableString[] = [];
     for (const node of this.nodes) {
       switch (node.typeName) {
         case '子图':

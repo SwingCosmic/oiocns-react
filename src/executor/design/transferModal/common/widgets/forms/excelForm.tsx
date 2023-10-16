@@ -1,7 +1,6 @@
 import SchemaForm from '@/components/SchemaForm';
 import { model, schema } from '@/ts/base';
 import { ITransfer } from '@/ts/core';
-import { Form } from '@/ts/core/thing/standard/form';
 import { AnyHandler, Excel, generateXlsx } from '@/utils/excel';
 import { ProFormColumnsType, ProFormInstance } from '@ant-design/pro-components';
 import { Button, Input, Space } from 'antd';
@@ -30,12 +29,10 @@ const ExcelForm: React.FC<IProps> = ({ transfer, current, finished }) => {
           switch (prop) {
             case 'formIds':
               {
-                const formIds: string[] = [];
-                for (const file of files) {
-                  formIds.push(file.metadata.id);
-                  transfer.forms[file.metadata.id] = new Form(file, transfer.directory);
-                }
-                form.current?.setFieldValue(prop, formIds);
+                const formIds: string[] = files.map((file: any) => file.metadata.id);
+                transfer.loadForms(formIds).then(() => {
+                  form.current?.setFieldValue(prop, formIds);
+                });
               }
               break;
             case 'file':
@@ -76,17 +73,15 @@ const ExcelForm: React.FC<IProps> = ({ transfer, current, finished }) => {
             <Button
               size="small"
               onClick={async () => {
-                console.log(current);
                 let forms = current.formIds.map((item) => transfer.forms[item]);
-                console.log(forms);
-                let sheets = transfer.template<schema.XThing>(forms);
-                console.log(sheets);
-                let root = transfer.directory;
-                let map = (sheet: any) => new AnyHandler({ ...sheet, dir: root });
-                console.log(map);
-                let handlers = sheets.map(map);
-                console.log(handlers);
-                generateXlsx(new Excel(handlers), '表单模板');
+                generateXlsx(
+                  new Excel(
+                    transfer.template<schema.XThing>(forms).map((sheet) => {
+                      return new AnyHandler({ ...sheet, dir: transfer.directory });
+                    }),
+                  ),
+                  '表单模板',
+                );
               }}>
               下载模板
             </Button>
