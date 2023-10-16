@@ -1021,8 +1021,8 @@ export interface Column {
   dataIndex: string;
   // 类型
   valueType: string;
-  // 是否隐藏
-  hide?: boolean;
+  // 映射
+  lookups?: { id: string; text: string }[];
 }
 
 // 映射

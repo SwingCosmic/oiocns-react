@@ -259,12 +259,15 @@ export class Transfer extends StandardFileInfo<model.Transfer> implements ITrans
   template<T>(forms: IForm[]): model.Sheet<T>[] {
     const ans: model.Sheet<T>[] = [];
     for (const form of forms) {
-      const columns: model.Column[] = [];
-      for (const field of form.attributes) {
+      const columns: model.Column[] = [
+        { title: 'id', dataIndex: 'id', valueType: '描述型' },
+      ];
+      for (const field of form.fields) {
         columns.push({
           title: field.name,
-          dataIndex: field.id,
-          valueType: field.property!.valueType,
+          dataIndex: field.code,
+          valueType: field.valueType ?? '描述型',
+          lookups: field.lookups,
         });
       }
       ans.push({
