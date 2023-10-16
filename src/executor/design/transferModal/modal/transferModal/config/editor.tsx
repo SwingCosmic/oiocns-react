@@ -14,7 +14,7 @@ export interface IProps {
  * 返回一个图编辑器
  * @returns
  */
-const GraphEditor: React.FC<IProps> = ({ current, options }) => {
+const Editor: React.FC<IProps> = ({ current, options }) => {
   const ref = createRef<HTMLDivElement>();
   useEffect(() => {
     const graph = createGraph(ref, options);
@@ -105,4 +105,4 @@ const GraphEditor: React.FC<IProps> = ({ current, options }) => {
   return <div className={cls.link} ref={ref} />;
 };
 
-export default GraphEditor;
+export default Editor;

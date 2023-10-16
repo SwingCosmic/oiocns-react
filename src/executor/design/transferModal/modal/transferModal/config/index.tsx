@@ -1,7 +1,7 @@
 import { ITransfer } from '@/ts/core';
 import React from 'react';
 import { FullModal, Center, NodeForms } from '../../../common';
-import GraphEditor from './graphEditor';
+import Editor from './editor';
 import Tools from './tools';
 import Settings from './settings';
 import Nodes from './nodes';
@@ -15,7 +15,7 @@ interface IProps {
 export const TransferModal: React.FC<IProps> = ({ current, finished }) => {
   return (
     <FullModal title={'迁移配置'} finished={finished}>
-      <GraphEditor current={current} />
+      <Editor current={current} />
       <Tools current={current} />
       <Settings current={current} />
       <Nodes current={current} />
