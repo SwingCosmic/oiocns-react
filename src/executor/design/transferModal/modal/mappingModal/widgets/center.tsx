@@ -1,8 +1,7 @@
-import EntityIcon from '@/components/Common/GlobalComps/entityIcon';
+import { ShareIconItem } from '@/components/Common/GlobalComps/entityIcon';
 import { model, schema } from '@/ts/base';
 import { generateUuid } from '@/ts/base/common';
 import { ITransfer } from '@/ts/core';
-import { ShareIdSet } from '@/ts/core/public/entity';
 import { Button, Space, Table, message } from 'antd';
 import React, { ReactNode, useEffect, useRef, useState } from 'react';
 import { FullModal } from '../../../common';
@@ -10,6 +9,7 @@ import cls from './../index.module.less';
 import { getSpecies } from './dict';
 import { DictMapper } from './mapper';
 import { getMappingField } from './util';
+import { getAttrs } from './fields';
 
 interface IProps {
   transfer: ITransfer;
@@ -24,13 +24,35 @@ const Center: React.FC<IProps> = ({ transfer, current }) => {
   const dataMap = useRef<Map<string, schema.XAttribute>>(new Map());
   const choosing = useRef<MappingType>({ source: undefined, target: undefined });
   const setDataMap = (target: 'source' | 'target') => {
-    if (ShareIdSet.has(current[target])) {
-      const form = ShareIdSet.get(current[target]) as schema.XForm;
-      form.attributes.forEach((item) => dataMap.current.set(item.id, item));
+    const field = current[target];
+    if (field) {
+      const form = transfer.forms[field];
+      form?.attributes.forEach((item) => dataMap.current.set(item.id, item));
     }
   };
   setDataMap('source');
   setDataMap('target');
+  const mapping = () => {
+    if (choosing.current.source && choosing.current.target) {
+      const clear = () => {
+        transfer.command.emitter('fields', 'clear');
+        transfer.command.emitter('fields', 'refresh');
+      };
+      const source = choosing.current.source;
+      const target = choosing.current.target;
+      if (source?.property?.valueType != target?.property?.valueType) {
+        message.warning('字段类型必须相同！');
+        clear();
+        return;
+      }
+      current.mappings.unshift({
+        source: choosing.current.source.id,
+        target: choosing.current.target.id,
+        typeName: target.property?.valueType,
+      });
+      clear();
+    }
+  };
   useEffect(() => {
     const cmdId = transfer.command.subscribe(async (type, cmd, args) => {
       if (type != 'fields') return;
@@ -39,30 +61,10 @@ const Center: React.FC<IProps> = ({ transfer, current }) => {
           setMappings([...current.mappings]);
           break;
         case 'choose':
-          const pos = args[0] as 'source' | 'target';
-          choosing.current[pos] = args[1];
-          if (choosing.current.source && choosing.current.target) {
-            const finished = async (mapping: model.SubMapping) => {
-              current.mappings.unshift(mapping);
-              await transfer.updNode(current);
-            };
-            const clear = () => {
-              transfer.command.emitter('fields', 'clear');
-              transfer.command.emitter('fields', 'refresh');
-            };
-            const source = choosing.current.source;
-            const target = choosing.current.target;
-            if (source?.property?.valueType != target?.property?.valueType) {
-              message.warning('字段类型必须相同！');
-              clear();
-              return;
-            }
-            await finished({
-              source: choosing.current.source.id,
-              target: choosing.current.target.id,
-              typeName: target.property?.valueType,
-            });
-            clear();
+          {
+            const pos = args[0] as 'source' | 'target';
+            choosing.current[pos] = args[1];
+            mapping();
           }
           break;
         case 'clear':
@@ -77,11 +79,35 @@ const Center: React.FC<IProps> = ({ transfer, current }) => {
   }, [current]);
   return (
     <div style={{ flex: 2 }} className={cls['flex-column']}>
-      <EntityIcon entityId={'映射关系'} showName />
+      <ShareIconItem share={{ name: '映射关系', typeName: '映射' }} showName />
+      <Space style={{ width: '100%' }}>
+        <Button
+          onClick={() => {
+            let tag = true;
+            while (tag) {
+              const sourceAttr = getAttrs(transfer, current, 'source');
+              const targetAttr = getAttrs(transfer, current, 'target');
+              for (const source of sourceAttr) {
+                for (const target of targetAttr) {
+                  if (source.property?.id == target.property?.id) {
+                    choosing.current.source = source;
+                    choosing.current.target = target;
+                    mapping();
+                    tag = true;
+                    continue;
+                  }
+                }
+              }
+              tag = false;
+            }
+          }}>
+          自动映射
+        </Button>
+      </Space>
       <Table
-        style={{ width: '100%' }}
+        style={{ marginTop: 16, width: '100%' }}
         dataSource={mappings}
-        rowKey={(_) => generateUuid()}
+        rowKey={() => generateUuid()}
         columns={[
           {
             title: '原字段',
@@ -122,7 +148,6 @@ const Center: React.FC<IProps> = ({ transfer, current }) => {
                     size="small"
                     onClick={async () => {
                       current.mappings.splice(index, 1);
-                      await transfer.updNode(current);
                       transfer.command.emitter('fields', 'refresh');
                     }}>
                     删除
@@ -136,15 +161,13 @@ const Center: React.FC<IProps> = ({ transfer, current }) => {
                           <FullModal
                             fullScreen={false}
                             title={'字典映射'}
-                            finished={() => setDictModal(<></>)}
-                            children={
-                              <DictMapper
-                                transfer={transfer}
-                                node={current}
-                                current={item}
-                              />
-                            }
-                          />,
+                            finished={() => setDictModal(<></>)}>
+                            <DictMapper
+                              transfer={transfer}
+                              node={current}
+                              current={item}
+                            />
+                          </FullModal>,
                         );
                       }}>
                       映射
@@ -179,7 +202,7 @@ export const DictCenter: React.FC<DictProps> = ({ transfer, node, current }) => 
     target: 'source' | 'target',
     setData: (items: { [key: string]: schema.XSpeciesItem }) => void,
   ) => {
-    const species = await getSpecies(node, current, target);
+    const species = await getSpecies(transfer, node, current, target);
     const data: { [key: string]: schema.XSpeciesItem } = {};
     species?.items.forEach((item) => {
       switch (target) {
@@ -203,23 +226,21 @@ export const DictCenter: React.FC<DictProps> = ({ transfer, node, current }) => 
           setMappings([...(current.mappings ?? [])]);
           break;
         case 'choose':
-          const pos = args[0] as 'source' | 'target';
-          choosing.current[pos] = args[1];
-          if (choosing.current.source && choosing.current.target) {
-            const finished = async (mapping: model.SubMapping) => {
+          {
+            const pos = args[0] as 'source' | 'target';
+            choosing.current[pos] = args[1];
+            if (choosing.current.source && choosing.current.target) {
+              const clear = () => {
+                transfer.command.emitter('items', 'clear');
+                transfer.command.emitter('items', 'refresh');
+              };
               current.mappings = current.mappings || [];
-              current.mappings.unshift(mapping);
-              await transfer.updNode(node);
-            };
-            const clear = () => {
-              transfer.command.emitter('items', 'clear');
-              transfer.command.emitter('items', 'refresh');
-            };
-            await finished({
-              source: choosing.current.source[sourceField],
-              target: choosing.current.target[targetField],
-            });
-            clear();
+              current.mappings.unshift({
+                source: choosing.current.source[sourceField],
+                target: choosing.current.target[targetField],
+              });
+              clear();
+            }
           }
           break;
         case 'clear':
@@ -234,11 +255,11 @@ export const DictCenter: React.FC<DictProps> = ({ transfer, node, current }) => 
   }, []);
   return (
     <div style={{ flex: 2 }} className={cls['flex-column']}>
-      <EntityIcon entityId={'字典关系'} showName />
+      <ShareIconItem share={{ name: '字典关系', typeName: '映射' }} showName />
       <Table
         style={{ width: '100%' }}
         dataSource={mappings}
-        rowKey={(_) => generateUuid()}
+        rowKey={() => generateUuid()}
         columns={[
           {
             title: '原选择项',
@@ -279,7 +300,6 @@ export const DictCenter: React.FC<DictProps> = ({ transfer, node, current }) => 
                     size="small"
                     onClick={async () => {
                       current.mappings?.splice(index, 1);
-                      await transfer.updNode(node);
                       transfer.command.emitter('items', 'refresh');
                     }}>
                     删除

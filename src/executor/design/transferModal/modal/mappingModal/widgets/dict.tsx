@@ -1,8 +1,8 @@
-import EntityIcon from '@/components/Common/GlobalComps/entityIcon';
+import { ShareIconItem } from '@/components/Common/GlobalComps/entityIcon';
 import { model, schema } from '@/ts/base';
 import { generateUuid } from '@/ts/base/common';
-import { IForm, ISpecies, ITransfer } from '@/ts/core';
-import { ShareIdSet } from '@/ts/core/public/entity';
+import { ISpecies, ITransfer } from '@/ts/core';
+import { Species } from '@/ts/core/thing/standard/species';
 import { Radio, Space } from 'antd';
 import React, { useEffect, useState } from 'react';
 import cls from './../index.module.less';
@@ -15,23 +15,27 @@ interface IProps {
   target: 'source' | 'target';
 }
 
-const getForm = (current: model.Mapping, target: 'source' | 'target') => {
-  return ShareIdSet.get(current[target] + '*') as IForm | undefined;
-};
-
 export const getSpecies = async (
+  transfer: ITransfer,
   node: model.Mapping,
   current: model.SubMapping,
   target: 'source' | 'target',
 ) => {
-  const form = getForm(node, target);
-  const attr = form?.attributes.filter((attr) => attr.id == current[target]);
-  if (attr?.length == 1) {
-    const species = ShareIdSet.get((attr[0].property?.speciesId ?? '') + '*') as
-      | ISpecies
-      | undefined;
-    await species?.loadItems();
-    return species;
+  const field = node[target];
+  if (field) {
+    const form = transfer.forms[field];
+    const attr = form?.attributes.filter((attr) => attr.id == current[target]);
+    if (attr?.length == 1) {
+      const speciesId = attr[0].property?.speciesId;
+      if (speciesId) {
+        const meta = await transfer.directory.resource.speciesColl.find([speciesId]);
+        if (meta.length > 0) {
+          const species = new Species(meta[0], transfer.directory);
+          await species?.loadItems();
+          return species;
+        }
+      }
+    }
   }
 };
 
@@ -58,7 +62,7 @@ const Dict: React.FC<IProps> = ({ transfer, node, current, target }) => {
     };
   }, []);
   const refreshItems = () => {
-    getSpecies(node, current, target).then((res) => {
+    getSpecies(transfer, node, current, target).then((res) => {
       setSpecies(res);
       const used = new Set(current.mappings?.map((item) => item[target]));
       setItems(
@@ -75,7 +79,10 @@ const Dict: React.FC<IProps> = ({ transfer, node, current, target }) => {
   };
   return (
     <div style={{ flex: 1 }} className={cls['flex-column']}>
-      <EntityIcon entityId={species?.name} showName />
+      <ShareIconItem
+        share={{ name: species?.name ?? '字典', typeName: '映射' }}
+        showName
+      />
       <div className={cls['dicts']}>
         <Radio.Group value={value} buttonStyle="outline">
           <Space direction="vertical">

@@ -1,7 +1,5 @@
-import EntityIcon from '@/components/Common/GlobalComps/entityIcon';
+import { ShareIconItem } from '@/components/Common/GlobalComps/entityIcon';
 import { model } from '@/ts/base';
-import { generateUuid } from '@/ts/base/common';
-import { XAttribute } from '@/ts/base/schema';
 import { ITransfer } from '@/ts/core';
 import { Radio, Space, Tag } from 'antd';
 import React, { useEffect, useState } from 'react';
@@ -13,18 +11,23 @@ interface IProps {
   target: 'source' | 'target';
 }
 
-const getAttrs = (
+export const getAttrs = (
   transfer: ITransfer,
   current: model.Mapping,
   target: 'source' | 'target',
 ) => {
+  const formId = current[target];
   const used = new Set(current.mappings.map((item) => item[target]));
-  return transfer.forms[target]?.attributes.filter((field) => !used.has(field.id)) ?? [];
+  if (formId) {
+    const form = transfer.forms[formId];
+    return form?.attributes.filter((field) => !used.has(field.id)) ?? [];
+  }
+  return [];
 };
 
 const Fields: React.FC<IProps> = ({ transfer, current, target }) => {
-  const [attrs, setAttrs] = useState<XAttribute[]>(getAttrs(transfer, current, target));
-  const [value, setValue] = useState<string>('');
+  const [attrs, setAttrs] = useState(getAttrs(transfer, current, target));
+  const [value, setValue] = useState('');
   useEffect(() => {
     const id = transfer.command.subscribe((type, cmd) => {
       if (type != 'fields') return;
@@ -41,25 +44,28 @@ const Fields: React.FC<IProps> = ({ transfer, current, target }) => {
       transfer.command.unsubscribe(id);
     };
   });
+  const formId = current[target];
   return (
     <div style={{ flex: 1 }} className={cls['flex-column']}>
-      <EntityIcon entityId={transfer.forms[target]?.name} showName />
-      <div className={cls['fields']}>
+      <ShareIconItem
+        share={{ name: formId ? transfer.forms[formId]?.name : '', typeName: '映射' }}
+        showName
+      />
+      <div className={cls.fields}>
         <Radio.Group value={value} buttonStyle="outline">
           <Space direction="vertical">
             {attrs.map((item) => (
               <Radio
-                key={generateUuid()}
-                className={cls['field']}
+                key={item.id}
                 value={item.id}
                 onChange={(e) => {
                   setValue(e.target.value);
                   transfer.command.emitter('fields', 'choose', [target, item]);
                 }}>
-                <Space>
+                <div className={cls.tagName}>
                   <Tag color="cyan">{item.property?.valueType}</Tag>
                   {item.name + ' ' + item.property?.info}
-                </Space>
+                </div>
               </Radio>
             ))}
           </Space>
