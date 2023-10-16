@@ -18,7 +18,6 @@ export class PageTemplate
   constructor(_metadata: schema.XPageTemplate, _directory: IDirectory) {
     super(_metadata, _directory, _directory.resource.templateColl);
     this.command = new Command();
-    this.setEntity();
   }
   async copy(destination: IDirectory): Promise<boolean> {
     if (this.allowCopy(destination)) {

@@ -3,8 +3,6 @@ import { model } from '@/ts/base';
 import { ITransfer } from '@/ts/core';
 import { Form } from '@/ts/core/thing/standard/form';
 import { ProFormColumnsType, ProFormInstance } from '@ant-design/pro-components';
-import { javascript } from '@codemirror/lang-javascript';
-import CodeMirror from '@uiw/react-codemirror';
 import { Input } from 'antd';
 import React, { createRef, useEffect } from 'react';
 import {
@@ -29,7 +27,7 @@ const MappingForm: React.FC<IProps> = ({ transfer, current, finished }) => {
         const { prop, files } = args;
         if (files && files.length > 0) {
           const item = files[0].metadata;
-          form.current?.setFieldValue(prop, item);
+          form.current?.setFieldValue(prop, item.id);
           transfer.forms[item.id] = new Form(item, transfer.directory);
         }
       }
@@ -88,23 +86,6 @@ const MappingForm: React.FC<IProps> = ({ transfer, current, finished }) => {
     },
     selector('源表单', 'source'),
     selector('目标表单', 'target'),
-    {
-      title: '前置脚本',
-      dataIndex: 'preScripts',
-      colProps: { span: 24 },
-      renderFormItem: () => {
-        return (
-          <CodeMirror
-            value={form.current?.getFieldValue('preScripts')}
-            height={'200px'}
-            extensions={[javascript()]}
-            onChange={(code: string) => {
-              form.current?.setFieldValue('preScripts', code);
-            }}
-          />
-        );
-      },
-    },
     {
       title: '原 id 字段名称',
       dataIndex: 'idName',

@@ -23,7 +23,6 @@ export interface IForm extends IStandardFileInfo<schema.XForm> {
 export class Form extends StandardFileInfo<schema.XForm> implements IForm {
   constructor(_metadata: schema.XForm, _directory: IDirectory) {
     super(_metadata, _directory, _directory.resource.formColl);
-    this.setEntity();
   }
   canDesign: boolean = true;
   private _fieldsLoaded: boolean = false;
