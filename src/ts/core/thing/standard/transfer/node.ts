@@ -80,6 +80,7 @@ export abstract class Node<T extends model.Node = model.Node> implements INode<T
       this.machine('Throw');
       this.task.visitedNodes.set(this.id, { code: this.code, data: error });
       this.command.emitter('running', 'error', [this.metadata, error]);
+      throw error;
     }
   }
 

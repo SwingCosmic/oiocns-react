@@ -186,7 +186,10 @@ export const Center: React.FC<IProps> = ({ current }) => {
                           current.command.emitter('data', 'readingCall', error);
                         }
                       }}
-                      onCancel={setEmpty}
+                      onCancel={() => {
+                        setEmpty();
+                        current.command.emitter('data', 'readingCall', new Error('取消'));
+                      }}
                     />,
                   );
                 }

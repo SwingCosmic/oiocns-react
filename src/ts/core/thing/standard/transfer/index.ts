@@ -168,6 +168,7 @@ export class Transfer extends StandardFileInfo<model.Transfer> implements ITrans
           for (const work of await application.loadWorks()) {
             if (workIds?.includes(work.id)) {
               this.works[work.id] = work;
+              await work.loadContent();
             }
           }
         }
