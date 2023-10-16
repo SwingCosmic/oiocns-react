@@ -3,7 +3,7 @@ import LabelsModal from '@/executor/design/labelsModal';
 import OfficeView from '@/executor/open/office';
 import { schema } from '@/ts/base';
 import { generateUuid } from '@/ts/base/common';
-import { ITransfer } from '@/ts/core';
+import { IFile, ITransfer } from '@/ts/core';
 import { AnyHandler, AnySheet, Excel, readXlsx } from '@/utils/excel';
 import { message } from 'antd';
 import axios from 'axios';
@@ -143,32 +143,52 @@ export const Center: React.FC<IProps> = ({ current }) => {
                 break;
               case 'reading':
                 {
-                  try {
-                    const res = await axios.request({
-                      method: 'GET',
-                      url: args.file.shareLink,
-                      responseType: 'blob',
-                    });
-                    const forms = args.formIds.map((item: string) => current.forms[item]);
-                    const sheets = await current.template<schema.XThing>(forms);
-                    const excel = await readXlsx(
-                      res.data as Blob,
-                      new Excel(
-                        sheets.map((sheet) => {
-                          return new AnyHandler(
-                            new AnySheet(sheet.name, sheet.columns, current.directory),
+                  setCenter(
+                    <OpenFileDialog
+                      key={generateUuid()}
+                      accepts={['Office']}
+                      rootKey={current.spaceKey}
+                      onOk={async (files: IFile[]) => {
+                        setCenter(<></>);
+                        try {
+                          if (files.length == 0) {
+                            throw new Error('请选择一个文件！');
+                          }
+                          const res = await axios.request({
+                            method: 'GET',
+                            url: files[0].metadata.id,
+                            responseType: 'blob',
+                          });
+                          const forms = args.formIds.map(
+                            (item: string) => current.forms[item],
                           );
-                        }),
-                      ),
-                    );
-                    const map: { [key: string]: schema.XThing[] } = {};
-                    excel.handlers.forEach(
-                      (item) => (map[item.sheet.name] = item.sheet.data),
-                    );
-                    current.command.emitter('data', 'readingCall', map);
-                  } catch (error) {
-                    current.command.emitter('data', 'readingCall', error);
-                  }
+                          const sheets = current.template<schema.XThing>(forms);
+                          const excel = await readXlsx(
+                            res.data as Blob,
+                            new Excel(
+                              sheets.map((sheet) => {
+                                return new AnyHandler(
+                                  new AnySheet(
+                                    sheet.name,
+                                    sheet.columns,
+                                    current.directory,
+                                  ),
+                                );
+                              }),
+                            ),
+                          );
+                          const map: { [key: string]: schema.XThing[] } = {};
+                          excel.handlers.forEach(
+                            (item) => (map[item.sheet.name] = item.sheet.data),
+                          );
+                          current.command.emitter('data', 'readingCall', map);
+                        } catch (error) {
+                          current.command.emitter('data', 'readingCall', error);
+                        }
+                      }}
+                      onCancel={setEmpty}
+                    />,
+                  );
                 }
                 break;
               case 'file':

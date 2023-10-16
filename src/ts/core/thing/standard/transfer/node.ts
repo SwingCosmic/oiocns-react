@@ -32,6 +32,14 @@ export abstract class Node<T extends model.Node = model.Node> implements INode<T
     this.metadata = meta;
   }
 
+  get id() {
+    return this.metadata.id;
+  }
+
+  get code() {
+    return this.metadata.code;
+  }
+
   get command() {
     return this.task.command;
   }
@@ -66,9 +74,11 @@ export abstract class Node<T extends model.Node = model.Node> implements INode<T
         next = { ...next, ...this.transfer.running(this.metadata.postScript, next, env) };
       }
       this.machine('Completed');
+      this.task.visitedNodes.set(this.id, { code: this.code, data: next });
       this.command.emitter('running', 'completed', [this.metadata]);
     } catch (error) {
       this.machine('Throw');
+      this.task.visitedNodes.set(this.id, { code: this.code, data: error });
       this.command.emitter('running', 'error', [this.metadata, error]);
     }
   }
