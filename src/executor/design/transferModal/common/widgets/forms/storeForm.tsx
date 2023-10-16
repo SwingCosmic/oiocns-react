@@ -41,11 +41,20 @@ export const StoreForm: React.FC<IProps> = ({ transfer, current, finished }) => 
     NameColumn,
     CodeColumn,
     {
-      title: '应用（办事）',
+      title: '应用',
+      dataIndex: 'applicationId',
+      colProps: { span: 12 },
+      renderFormItem: (_, __, form) => {
+        const item = transfer.applications[form.getFieldValue('applicationId')];
+        return <Input disabled value={item?.name} />;
+      },
+    },
+    {
+      title: '办事',
       dataIndex: 'workId',
-      colProps: { span: 24 },
+      colProps: { span: 12 },
       formItemProps: {
-        rules: [{ required: true, message: '应用（办事）为必填项' }],
+        rules: [{ required: true, message: '办事为必填项' }],
       },
       renderFormItem: (_, __, form) => {
         const item = transfer.works[form.getFieldValue('workId')];
@@ -55,7 +64,6 @@ export const StoreForm: React.FC<IProps> = ({ transfer, current, finished }) => 
             onClick={() => {
               transfer.command.emitter('data', 'file', {
                 prop: 'workId',
-                multiple: true,
                 accepts: ['办事'],
               });
             }}
