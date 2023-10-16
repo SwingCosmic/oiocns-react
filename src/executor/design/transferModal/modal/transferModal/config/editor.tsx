@@ -27,7 +27,6 @@ const Editor: React.FC<IProps> = ({ current, options }) => {
       current.nodes.push(args.cell.getData());
       current.command.emitter('tools', 'update', args.cell.getData());
     });
-    graph.on('node:moved', () => current.update(current.metadata));
     graph.on('node:removed', async (args) => {
       const index = current.nodes.findIndex((item) => item.id == args.cell.id);
       if (index != -1) {
@@ -51,7 +50,6 @@ const Editor: React.FC<IProps> = ({ current, options }) => {
         }
       }
     });
-    graph.on('edge:moved', () => current.update(current.metadata));
     graph.on('edge:removed', async (args) => {
       const index = current.edges.findIndex((item) => item.id == args.cell.id);
       if (index != -1) {
