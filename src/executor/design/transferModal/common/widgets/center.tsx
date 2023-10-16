@@ -169,6 +169,7 @@ export const Center: React.FC<IProps> = ({ current }) => {
                               sheets.map((sheet) => {
                                 return new AnyHandler(
                                   new AnySheet(
+                                    sheet.id,
                                     sheet.name,
                                     sheet.columns,
                                     current.directory,
@@ -179,7 +180,7 @@ export const Center: React.FC<IProps> = ({ current }) => {
                           );
                           const map: { [key: string]: schema.XThing[] } = {};
                           excel.handlers.forEach(
-                            (item) => (map[item.sheet.name] = item.sheet.data),
+                            (item) => (map[item.sheet.id] = item.sheet.data),
                           );
                           current.command.emitter('data', 'readingCall', map);
                         } catch (error) {

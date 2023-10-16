@@ -1,9 +1,11 @@
+import { generateUuid } from '@/ts/base/common';
 import * as i from '../impl';
 import * as t from '../type';
 
 export class DirectorySheet extends i.Sheet<t.Directory> {
   constructor(dir: t.IDirectory) {
     super(
+      generateUuid(),
       '目录',
       [
         { title: '上级目录代码', dataIndex: 'directoryCode', valueType: '描述型' },

@@ -1,9 +1,11 @@
+import { generateUuid } from '@/ts/base/common';
 import * as i from '../impl';
 import * as t from '../type';
 
 export class FormSheet extends i.Sheet<t.Form> {
   constructor(directory: t.IDirectory) {
     super(
+      generateUuid(),
       '表单定义',
       [
         { title: '目录代码', dataIndex: 'directoryCode', valueType: '描述型' },
@@ -26,6 +28,7 @@ export class FormSheet extends i.Sheet<t.Form> {
 export class AttrSheet extends i.Sheet<t.Attribute> {
   constructor(directory: t.IDirectory) {
     super(
+      generateUuid(),
       '表单特性',
       [
         { title: '表单代码', dataIndex: 'formCode', valueType: '描述型' },

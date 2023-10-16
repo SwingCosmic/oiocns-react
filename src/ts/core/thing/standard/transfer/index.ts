@@ -265,12 +265,13 @@ export class Transfer extends StandardFileInfo<model.Transfer> implements ITrans
       for (const field of form.fields) {
         columns.push({
           title: field.name,
-          dataIndex: field.code,
+          dataIndex: field.id,
           valueType: field.valueType ?? '描述型',
           lookups: field.lookups,
         });
       }
       ans.push({
+        id: form.id,
         name: form.name,
         columns: columns,
         data: [],

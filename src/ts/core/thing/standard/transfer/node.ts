@@ -1,6 +1,6 @@
 /* eslint-disable no-unused-vars */
 import { ITransfer } from '.';
-import { model, schema } from '../../../../base';
+import { kernel, model, schema } from '../../../../base';
 import { formatDate, generateUuid, sleep } from '../../../../base/common';
 import { IWork } from '../../../work';
 import { IForm } from '../form';
@@ -142,7 +142,6 @@ export class MappingNode extends Node<model.Mapping> {
   target?: IForm;
 
   async function(data: { array: any[] }): Promise<{ [id: string]: schema.XThing[] }> {
-    console.log(this);
     if (!this.source) {
       throw new Error('未获取到原表单信息！');
     }
@@ -191,7 +190,7 @@ export class StoreNode extends Node<model.Store> {
   }
   work?: IWork;
 
-  async function(data: { [key: string]: schema.XThing[] }): Promise<void> {
+  async function(data: { [key: string]: schema.XThing[] }): Promise<any> {
     if (!this.work) {
       throw new Error('未获取到办事定义！');
     }
@@ -216,13 +215,18 @@ export class StoreNode extends Node<model.Store> {
             createTime: formatDate(new Date(), 'yyyy-MM-dd hh:mm:ss.S'),
           };
           for (const item of data[key]) {
-            editForm.after.push({ ...item });
+            if (!item.id) {
+              const thing = await kernel.createThing(apply.belong.id, [], '');
+              Object.assign(item, thing.data);
+            }
+            editForm.after.push(item);
           }
           map.set(key, editForm);
         }
       }
     }
     await apply.createApply(apply.belong.id, '自动写入', map);
+    return data;
   }
 }
 

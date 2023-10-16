@@ -1,9 +1,11 @@
+import { generateUuid } from '@/ts/base/common';
 import * as i from '../impl';
 import * as t from '../type';
 
 export class PropSheet extends i.Sheet<t.Property> {
   constructor(directory: t.IDirectory) {
     super(
+      generateUuid(),
       '属性定义',
       [
         { title: '目录代码', dataIndex: 'directoryCode', valueType: '描述型' },

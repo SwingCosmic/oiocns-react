@@ -1003,6 +1003,8 @@ export type Tables = {
 
 // 页
 export type Sheet<T> = {
+  // 主键
+  id: string;
   // 名称
   name: string;
   // 列信息

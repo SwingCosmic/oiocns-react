@@ -1,6 +1,6 @@
 import { ITransfer } from '@/ts/core';
 import React, { useEffect, useState } from 'react';
-import { FullModal } from '../../../common';
+import { Center, FullModal } from '../../../common';
 import { GraphView } from './graphView';
 import { ToolViews } from './toolsView';
 import { generateUuid } from '@/ts/base/common';
@@ -26,6 +26,7 @@ export const TransferRunning: React.FC<IProps> = ({ current, finished }) => {
       <Spin spinning={loading}>
         <GraphView current={current} />
         <ToolViews current={current} />
+        <Center current={current} />
       </Spin>
     </FullModal>
   );
