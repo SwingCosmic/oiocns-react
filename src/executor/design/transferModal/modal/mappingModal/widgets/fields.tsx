@@ -2,8 +2,7 @@ import EntityIcon from '@/components/Common/GlobalComps/entityIcon';
 import { model } from '@/ts/base';
 import { generateUuid } from '@/ts/base/common';
 import { XAttribute } from '@/ts/base/schema';
-import { IForm, ITransfer } from '@/ts/core';
-import { ShareIdSet } from '@/ts/core/public/entity';
+import { ITransfer } from '@/ts/core';
 import { Radio, Space, Tag } from 'antd';
 import React, { useEffect, useState } from 'react';
 import cls from './../index.module.less';
@@ -14,19 +13,17 @@ interface IProps {
   target: 'source' | 'target';
 }
 
-const getForm = (current: model.Mapping, target: 'source' | 'target') => {
-  return ShareIdSet.get(current[target] + '*') as IForm | undefined;
-};
-
-const getAttrs = (current: model.Mapping, target: 'source' | 'target') => {
+const getAttrs = (
+  transfer: ITransfer,
+  current: model.Mapping,
+  target: 'source' | 'target',
+) => {
   const used = new Set(current.mappings.map((item) => item[target]));
-  const form = getForm(current, target);
-  return form?.attributes.filter((field) => !used.has(field.id)) ?? [];
+  return transfer.forms[target]?.attributes.filter((field) => !used.has(field.id)) ?? [];
 };
 
 const Fields: React.FC<IProps> = ({ transfer, current, target }) => {
-  const form = getForm(current, target);
-  const [attrs, setAttrs] = useState<XAttribute[]>(getAttrs(current, target));
+  const [attrs, setAttrs] = useState<XAttribute[]>(getAttrs(transfer, current, target));
   const [value, setValue] = useState<string>('');
   useEffect(() => {
     const id = transfer.command.subscribe((type, cmd) => {
@@ -36,7 +33,7 @@ const Fields: React.FC<IProps> = ({ transfer, current, target }) => {
           setValue('');
           break;
         case 'refresh':
-          setAttrs(getAttrs(current, target));
+          setAttrs(getAttrs(transfer, current, target));
           break;
       }
     });
@@ -46,7 +43,7 @@ const Fields: React.FC<IProps> = ({ transfer, current, target }) => {
   });
   return (
     <div style={{ flex: 1 }} className={cls['flex-column']}>
-      <EntityIcon entityId={form?.name} showName />
+      <EntityIcon entityId={transfer.forms[target]?.name} showName />
       <div className={cls['fields']}>
         <Radio.Group value={value} buttonStyle="outline">
           <Space direction="vertical">

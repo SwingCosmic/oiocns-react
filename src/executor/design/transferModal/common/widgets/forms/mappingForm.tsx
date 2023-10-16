@@ -1,11 +1,19 @@
 import SchemaForm from '@/components/SchemaForm';
 import { model } from '@/ts/base';
 import { ITransfer } from '@/ts/core';
+import { Form } from '@/ts/core/thing/standard/form';
 import { ProFormColumnsType, ProFormInstance } from '@ant-design/pro-components';
 import { javascript } from '@codemirror/lang-javascript';
 import CodeMirror from '@uiw/react-codemirror';
 import { Input } from 'antd';
 import React, { createRef, useEffect } from 'react';
+import {
+  CodeColumn,
+  NameColumn,
+  PostScriptColumn,
+  PreScriptColumn,
+  RemarkColumn,
+} from './common';
 
 interface IProps {
   transfer: ITransfer;
@@ -20,7 +28,9 @@ const MappingForm: React.FC<IProps> = ({ transfer, current, finished }) => {
       if (type == 'data' && cmd == 'fileCollect') {
         const { prop, files } = args;
         if (files && files.length > 0) {
-          form.current?.setFieldValue(prop, files[0].metadata);
+          const item = files[0].metadata;
+          form.current?.setFieldValue(prop, item);
+          transfer.forms[item.id] = new Form(item, transfer.directory);
         }
       }
     });
@@ -40,9 +50,10 @@ const MappingForm: React.FC<IProps> = ({ transfer, current, finished }) => {
         rules: [{ required: true, message: title + '为必填项' }],
       },
       renderFormItem: (_, __, form) => {
+        const item = transfer.forms[form.getFieldValue(dataIndex)];
         return (
           <Input
-            value={form.getFieldValue(dataIndex)?.name}
+            value={item?.name}
             onClick={() => {
               transfer.command.emitter('data', 'file', {
                 prop: dataIndex,
@@ -55,22 +66,8 @@ const MappingForm: React.FC<IProps> = ({ transfer, current, finished }) => {
     };
   };
   const columns: ProFormColumnsType<model.Mapping>[] = [
-    {
-      title: '名称',
-      dataIndex: 'name',
-      colProps: { span: 12 },
-      formItemProps: {
-        rules: [{ required: true, message: '名称为必填项' }],
-      },
-    },
-    {
-      title: '编码',
-      dataIndex: 'code',
-      colProps: { span: 12 },
-      formItemProps: {
-        rules: [{ required: true, message: '编码为必填项' }],
-      },
-    },
+    NameColumn,
+    CodeColumn,
     {
       title: '映射类型',
       dataIndex: 'mappingType',
@@ -115,29 +112,9 @@ const MappingForm: React.FC<IProps> = ({ transfer, current, finished }) => {
         rules: [{ required: true, message: '原 Id 字段名称为必填项' }],
       },
     },
-    {
-      title: '后置脚本',
-      dataIndex: 'postScripts',
-      colProps: { span: 24 },
-      renderFormItem: () => {
-        return (
-          <CodeMirror
-            value={form.current?.getFieldValue('postScripts')}
-            height={'200px'}
-            extensions={[javascript()]}
-            onChange={(code: string) => {
-              form.current?.setFieldValue('postScripts', code);
-            }}
-          />
-        );
-      },
-    },
-    {
-      title: '备注',
-      dataIndex: 'remark',
-      valueType: 'textarea',
-      colProps: { span: 24 },
-    },
+    PreScriptColumn,
+    PostScriptColumn,
+    RemarkColumn,
   ];
   return (
     <SchemaForm<model.Mapping>
@@ -157,7 +134,7 @@ const MappingForm: React.FC<IProps> = ({ transfer, current, finished }) => {
         }
       }}
       onFinish={async (values) => {
-        await transfer.updNode({ ...current, ...values });
+        Object.assign(current, values);
         finished();
       }}
     />

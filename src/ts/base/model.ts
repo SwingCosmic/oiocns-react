@@ -947,7 +947,7 @@ export type LoadOptions = {
 };
 
 export type DirectoryContent = {
-  forms: XForm[];
+  forms: string[];
   specieses: XSpecies[];
   propertys: XProperty[];
   applications: XApplication[];
@@ -971,11 +971,11 @@ export type Node = {
   // 名称
   name: string;
   // 类型
-  typeName: string;
+  typeName: NodeType;
   // 前置脚本
-  preScripts?: string;
+  preScript?: string;
   // 后置脚本
-  postScripts?: string;
+  postScript?: string;
   // 状态
   status?: NStatus;
 };
@@ -997,7 +997,7 @@ export type Request = {
 
 // 表格
 export type Tables = {
-  forms: XForm[];
+  formIds: string[];
   file?: FileItemModel;
 } & Node;
 
@@ -1028,13 +1028,11 @@ export interface Column {
 // 映射
 export type Mapping = {
   // 源
-  source?: XForm;
+  source?: string;
   // 目标
-  target?: XForm;
+  target?: string;
   // 原 Id 字段名称
   idName: string;
-  // 原 Name 字段名称
-  nameName: string;
   // 映射类型
   mappingType: MappingType;
   // 映射
@@ -1055,24 +1053,22 @@ export type SubMapping = {
 
 // 存储
 export type Store = {
-  // 存储目录
-  directoryId: string;
+  // 应用
+  applicationId?: string;
   // 办事
-  workId: string;
-  // 是否直接存入平台
-  directIs: boolean;
+  workId?: string;
 } & Node;
 
 // 子配置
 export type SubTransfer = {
   // 子配置 ID
-  nextId: string;
+  transferId?: string;
 } & Node;
 
 // 表单
 export type Form = {
   // 表单 ID
-  formId: string;
+  formId?: string;
 } & Node;
 
 // 选择
@@ -1104,13 +1100,13 @@ export type Script = {
 export type GStatus = 'Editable' | 'Viewable' | 'Running' | 'Completed' | 'Error';
 
 // 图事件
-export type GEvent = 'EditRun' | 'ViewRun' | 'Throw' | 'Completed';
+export type GEvent = 'Prepare' | 'Run' | 'Throw' | 'Completed';
 
 // 节点状态
 export type NStatus = GStatus;
 
 // 节点事件
-export type NEvent = '';
+export type NEvent = GEvent;
 
 // 节点类型
 export type NodeType = '表单' | '表格' | '请求' | '子图' | '映射' | '存储';

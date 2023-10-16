@@ -22,10 +22,11 @@ interface IProps {
   graph: Graph;
 }
 
-const useNode = (node: Node, graph: Graph) => {
+function useNode<T extends model.Node>(node: Node, graph: Graph) {
   const store = graph.getPlugin<Store>('TransferStore');
   const transfer = store?.transfer;
-  const [data, setData] = useState(transfer?.getNode(node.id) ?? node.getData());
+  const item = transfer?.nodes.find((item) => item.id == node.id);
+  const [data, setData] = useState((item ?? node.getData()) as T);
   useEffect(() => {
     const id = transfer?.command.subscribe(async (type, cmd, args) => {
       switch (type) {
@@ -38,7 +39,7 @@ const useNode = (node: Node, graph: Graph) => {
               break;
             case 'update':
               if (args.id == node.id) {
-                setData(args);
+                setData({ ...args });
               }
               break;
           }
@@ -56,11 +57,14 @@ const useNode = (node: Node, graph: Graph) => {
     store,
     transfer,
   };
-};
+}
 
 export const GraphNode: React.FC<IProps> = memo(({ node, graph }: IProps) => {
-  const { store, transfer, data } = useNode(node, graph);
-  const nextTransfer = transfer?.getTransfer((data as model.SubTransfer).nextId);
+  const { store, transfer, data } = useNode<model.SubTransfer>(node, graph);
+  let nextTransfer = undefined;
+  if (data.transferId) {
+    nextTransfer = transfer?.transfers[data.transferId];
+  }
   return (
     <div
       className={`${cls.transferNode} ${cls['border']}`}

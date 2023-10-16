@@ -1,12 +1,17 @@
+import SchemaForm from '@/components/SchemaForm';
 import { model } from '@/ts/base';
 import { ITransfer } from '@/ts/core';
+import { Transfer } from '@/ts/core/thing/standard/transfer';
 import { ProFormColumnsType, ProFormInstance } from '@ant-design/pro-components';
-import React, { useEffect, useRef, useState } from 'react';
-import CodeMirror from '@uiw/react-codemirror';
-import { javascript } from '@codemirror/lang-javascript';
-import SchemaForm from '@/components/SchemaForm';
-import { MenuItem, expand, loadTransfersMenu } from '../menus';
-import { message } from 'antd';
+import { Input } from 'antd';
+import React, { useEffect, useRef } from 'react';
+import {
+  NameColumn,
+  CodeColumn,
+  PreScriptColumn,
+  PostScriptColumn,
+  RemarkColumn,
+} from './common';
 
 interface IProps {
   transfer: ITransfer;
@@ -14,24 +19,17 @@ interface IProps {
   finished: () => void;
 }
 
-const getTransferTrees = (transfer: ITransfer): MenuItem[] => {
-  const tree = [loadTransfersMenu(transfer.directory.target.directory)];
-  return tree;
-};
-
-const getExpandKeys = (treeData: MenuItem[]) => {
-  return expand(treeData, ['迁移配置']);
-};
-
 export const SubTransferForm: React.FC<IProps> = ({ transfer, current, finished }) => {
-  const formRef = useRef<ProFormInstance>();
-  const [transferTree, setTransferTree] = useState<MenuItem[]>(
-    getTransferTrees(transfer),
-  );
+  const form = useRef<ProFormInstance>();
   useEffect(() => {
     const id = transfer.command.subscribe((type, cmd, args) => {
-      if (type == 'node' && cmd == 'update') {
-        formRef.current?.setFieldsValue(args);
+      if (type == 'data' && cmd == 'fileCollect') {
+        const { prop, files } = args;
+        if (files && files.length > 0) {
+          const meta = files[0].metadata;
+          form.current?.setFieldValue(prop, meta.id);
+          transfer.transfers[meta.id] = new Transfer(meta, transfer.directory);
+        }
       }
     });
     return () => {
@@ -39,92 +37,39 @@ export const SubTransferForm: React.FC<IProps> = ({ transfer, current, finished 
     };
   });
   const columns: ProFormColumnsType<model.SubTransfer>[] = [
-    {
-      title: '名称',
-      dataIndex: 'name',
-      formItemProps: {
-        rules: [{ required: true, message: '名称为必填项' }],
-      },
-    },
-    {
-      title: '编码',
-      dataIndex: 'code',
-      formItemProps: {
-        rules: [{ required: true, message: '编码为必填项' }],
-      },
-    },
+    NameColumn,
+    CodeColumn,
     {
       title: '绑定子图',
       dataIndex: 'nextId',
-      valueType: 'treeSelect',
       colProps: { span: 24 },
       formItemProps: {
         rules: [{ required: true, message: '子图为必填项' }],
       },
-      fieldProps: {
-        fieldNames: {
-          label: 'label',
-          value: 'key',
-          children: 'children',
-        },
-        showSearch: true,
-        loadData: async (node: MenuItem): Promise<void> => {
-          if (!node.isLeaf) {
-            setTransferTree(getTransferTrees(transfer));
-          }
-        },
-        treeDefaultExpandedKeys: getExpandKeys(transferTree),
-        treeNodeFilterProp: 'label',
-        treeData: transferTree,
-      },
-    },
-    {
-      title: '前置脚本',
-      dataIndex: 'preScripts',
-      valueType: 'select',
-      colProps: { span: 24 },
-      renderFormItem: () => {
+      renderFormItem: (_, __, form) => {
+        const item = transfer.transfers[form.getFieldValue('nextId')];
         return (
-          <CodeMirror
-            value={formRef.current?.getFieldValue('preScripts')}
-            height={'200px'}
-            extensions={[javascript()]}
-            onChange={(code: string) => {
-              formRef.current?.setFieldValue('preScripts', code);
+          <Input
+            value={item?.name}
+            onClick={() => {
+              transfer.command.emitter('data', 'file', {
+                prop: 'forms',
+                multiple: true,
+                accepts: ['实体配置', '事项配置'],
+              });
             }}
           />
         );
       },
     },
-    {
-      title: '后置脚本',
-      dataIndex: 'postScripts',
-      valueType: 'select',
-      colProps: { span: 24 },
-      renderFormItem: () => {
-        return (
-          <CodeMirror
-            value={formRef.current?.getFieldValue('postScripts')}
-            height={'200px'}
-            extensions={[javascript()]}
-            onChange={(code: string) => {
-              formRef.current?.setFieldValue('postScripts', code);
-            }}
-          />
-        );
-      },
-    },
-    {
-      title: '备注',
-      dataIndex: 'remark',
-      valueType: 'textarea',
-      colProps: { span: 24 },
-    },
+    PreScriptColumn,
+    PostScriptColumn,
+    RemarkColumn,
   ];
   return (
     <SchemaForm<model.SubTransfer>
       open
-      formRef={formRef}
+      formRef={form}
       title="子图定义"
       width={800}
       columns={columns}
@@ -139,12 +84,7 @@ export const SubTransferForm: React.FC<IProps> = ({ transfer, current, finished 
         }
       }}
       onFinish={async (values) => {
-        const node = { ...current, ...values };
-        if (node.nextId == transfer.id) {
-          message.error('无法嵌入当前配置！');
-          return;
-        }
-        await transfer.updNode(node);
+        Object.assign(current, values);
         finished();
       }}
     />

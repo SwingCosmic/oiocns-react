@@ -52,7 +52,14 @@ export const NodeForms: React.FC<IProps> = ({ current }) => {
       current.command.unsubscribe(id);
     };
   });
-  const finished = (id?: string) => {
+  const finished = (args: [string, any]) => {
+    const [id, data] = args;
+    if (id) {
+      remove(id);
+      current.command.emitter('node', 'update', data);
+    }
+  };
+  const remove = (id?: string) => {
     if (id) {
       delete entities[id];
       delete commands[id];
@@ -72,7 +79,10 @@ export const NodeForms: React.FC<IProps> = ({ current }) => {
                 formType={commands[entry[0]]}
                 transfer={current}
                 current={entry[1]}
-                finished={() => finished(entry[0])}
+                finished={() => {
+                  remove(entry[0]);
+                  current.command.emitter('tasks', 'refresh');
+                }}
               />
             );
           case 'updateRequest':
@@ -81,9 +91,7 @@ export const NodeForms: React.FC<IProps> = ({ current }) => {
                 key={generateUuid()}
                 transfer={current}
                 current={entry[1]}
-                finished={() => {
-                  finished(entry[0]);
-                }}
+                finished={() => finished(entry)}
               />
             );
           case 'updateMapping':
@@ -92,9 +100,7 @@ export const NodeForms: React.FC<IProps> = ({ current }) => {
                 key={generateUuid()}
                 transfer={current}
                 current={entry[1]}
-                finished={() => {
-                  finished(entry[0]);
-                }}
+                finished={() => finished(entry)}
               />
             );
           case 'updateStore':
@@ -103,9 +109,7 @@ export const NodeForms: React.FC<IProps> = ({ current }) => {
                 key={generateUuid()}
                 transfer={current}
                 current={entry[1]}
-                finished={() => {
-                  finished(entry[0]);
-                }}
+                finished={() => finished(entry)}
               />
             );
           case 'updateTransfer':
@@ -114,9 +118,7 @@ export const NodeForms: React.FC<IProps> = ({ current }) => {
                 key={generateUuid()}
                 transfer={current}
                 current={entry[1]}
-                finished={() => {
-                  finished(entry[0]);
-                }}
+                finished={() => finished(entry)}
               />
             );
           case 'updateTable':
@@ -125,9 +127,7 @@ export const NodeForms: React.FC<IProps> = ({ current }) => {
                 key={generateUuid()}
                 transfer={current}
                 current={entry[1]}
-                finished={() => {
-                  finished(entry[0]);
-                }}
+                finished={() => finished(entry)}
               />
             );
           case 'updateForm':
@@ -136,9 +136,7 @@ export const NodeForms: React.FC<IProps> = ({ current }) => {
                 key={generateUuid()}
                 transfer={current}
                 current={entry[1]}
-                finished={() => {
-                  finished(entry[0]);
-                }}
+                finished={() => finished(entry)}
               />
             );
         }

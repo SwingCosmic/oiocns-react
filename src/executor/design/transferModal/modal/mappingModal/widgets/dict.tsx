@@ -89,9 +89,7 @@ const Dict: React.FC<IProps> = ({ transfer, node, current, target }) => {
                     setValue(e.target.value);
                     transfer.command.emitter('items', 'choose', [target, item]);
                   }}>
-                  <Space>
-                    {item.info + ' ' + item?.name}
-                  </Space>
+                  <Space>{item.info + ' ' + item?.name}</Space>
                 </Radio>
               );
             })}

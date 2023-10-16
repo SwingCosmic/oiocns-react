@@ -1,9 +1,13 @@
-import { model } from '@/ts/base';
+import OpenFileDialog from '@/components/OpenFileDialog';
+import LabelsModal from '@/executor/design/labelsModal';
+import OfficeView from '@/executor/open/office';
+import { schema } from '@/ts/base';
 import { generateUuid } from '@/ts/base/common';
 import { ITransfer } from '@/ts/core';
-import { ShareIdSet } from '@/ts/core/public/entity';
+import { AnyHandler, AnySheet, Excel, readXlsx } from '@/utils/excel';
 import { message } from 'antd';
-import React, { ReactNode, useEffect, useState } from 'react';
+import axios from 'axios';
+import React, { useEffect, useState } from 'react';
 import {
   InputModal,
   MappingModal,
@@ -12,15 +16,13 @@ import {
   StoreModal,
   TransferRunning,
 } from '../..';
-import OfficeView from '@/executor/open/office';
-import LabelsModal from '@/executor/design/labelsModal';
 
 interface IProps {
   current: ITransfer;
 }
 
 export const Center: React.FC<IProps> = ({ current }) => {
-  const [center, setCenter] = useState<ReactNode>();
+  const [center, setCenter] = useState(<></>);
   const setEmpty = () => setCenter(<></>);
   useEffect(() => {
     const id = current.command.subscribe(async (type, cmd, args) => {
@@ -60,34 +62,31 @@ export const Center: React.FC<IProps> = ({ current }) => {
                   );
                   break;
                 case '子图':
-                  setCenter(
-                    <TransferRunning
-                      key={generateUuid()}
-                      current={current.getTransfer(args.nextId)!}
-                      finished={setEmpty}
-                    />,
-                  );
-                  break;
-                case '表格':
                   {
-                    const tables = args as model.Tables;
-                    if (tables.file) {
+                    const transfer = current.transfers[args.nextId];
+                    if (transfer) {
                       setCenter(
-                        <OfficeView
+                        <TransferRunning
                           key={generateUuid()}
-                          share={tables.file}
+                          current={transfer}
                           finished={setEmpty}
                         />,
                       );
                     } else {
-                      message.error('未上传文件');
+                      message.error('未绑定配置');
                     }
+                  }
+                  break;
+                case '表格':
+                  if (args.file) {
+                    setCenter(<OfficeView share={args.file} finished={setEmpty} />);
+                  } else {
+                    message.error('未上传文件');
                   }
                   break;
                 case '表单':
                   {
-                    const formNode = args as model.Form;
-                    const form = ShareIdSet.get(formNode.formId + '*');
+                    const form = current.forms[args.formId];
                     if (form) {
                       setCenter(
                         <LabelsModal
@@ -103,8 +102,6 @@ export const Center: React.FC<IProps> = ({ current }) => {
                   break;
               }
               break;
-            case 'open':
-              break;
           }
           break;
         case 'data':
@@ -118,8 +115,8 @@ export const Center: React.FC<IProps> = ({ current }) => {
                       key={generateUuid()}
                       current={form}
                       finished={(value) => {
-                        setEmpty();
                         current.command.emitter('data', 'inputCall', { value, formNode });
+                        setEmpty();
                       }}
                     />,
                   );
@@ -146,17 +143,51 @@ export const Center: React.FC<IProps> = ({ current }) => {
                 break;
               case 'reading':
                 {
-                  // const table = args as model.Tables;
-                  // if (table.file) {
-                  //   const url = `/orginone/kernel/load/${table.file.shareLink}?download=1`;
-                  //   const res = await axios.request({
-                  //     method: 'GET',
-                  //     url: url,
-                  //     responseType: 'blob',
-                  //   });
-                  //   const sheets = await this.template<any>(node);
-                  //   readXlsx(res.data as Blob, sheets);
-                  // }
+                  try {
+                    const res = await axios.request({
+                      method: 'GET',
+                      url: args.file.shareLink,
+                      responseType: 'blob',
+                    });
+                    const forms = args.formIds.map((item: string) => current.forms[item]);
+                    const sheets = await current.template<schema.XThing>(forms);
+                    const excel = await readXlsx(
+                      res.data as Blob,
+                      new Excel(
+                        sheets.map((sheet) => {
+                          return new AnyHandler(
+                            new AnySheet(sheet.name, sheet.columns, current.directory),
+                          );
+                        }),
+                      ),
+                    );
+                    const map: { [key: string]: schema.XThing[] } = {};
+                    excel.handlers.forEach(
+                      (item) => (map[item.sheet.name] = item.sheet.data),
+                    );
+                    current.command.emitter('data', 'readingCall', map);
+                  } catch (error) {
+                    current.command.emitter('data', 'readingCall', error);
+                  }
+                }
+                break;
+              case 'file':
+                {
+                  setCenter(
+                    <OpenFileDialog
+                      accepts={args.accepts}
+                      rootKey={current.directory.target.directory.key}
+                      multiple={args.multiple ?? false}
+                      onOk={(files) => {
+                        current.command.emitter('data', 'fileCollect', {
+                          prop: args.prop,
+                          files: files,
+                        });
+                        setEmpty();
+                      }}
+                      onCancel={setEmpty}
+                    />,
+                  );
                 }
                 break;
             }

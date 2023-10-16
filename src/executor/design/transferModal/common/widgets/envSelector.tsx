@@ -20,7 +20,7 @@ export const EnvSelector: React.FC<IProps> = ({ current }) => {
             <CloseOutlined
               onClick={(e) => {
                 e.preventDefault();
-                current.delEnv(item.id);
+                current.envs = current.envs.filter((env) => env.id == item.id);
               }}
             />
             <EditOutlined
@@ -67,7 +67,7 @@ export const EnvSelector: React.FC<IProps> = ({ current }) => {
       disabled={status == 'Running'}
       placeholder="选择运行环境"
       value={curEnv}
-      onChange={(value) => current.changeEnv(value)}
+      onChange={(value) => (current.metadata.curEnv = value)}
       options={options}
     />
   );

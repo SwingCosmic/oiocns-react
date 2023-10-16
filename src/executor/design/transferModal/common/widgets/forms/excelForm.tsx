@@ -1,12 +1,18 @@
 import SchemaForm from '@/components/SchemaForm';
 import { model, schema } from '@/ts/base';
 import { ITransfer } from '@/ts/core';
+import { Form } from '@/ts/core/thing/standard/form';
 import { AnyHandler, Excel, generateXlsx } from '@/utils/excel';
 import { ProFormColumnsType, ProFormInstance } from '@ant-design/pro-components';
-import { javascript } from '@codemirror/lang-javascript';
-import CodeMirror from '@uiw/react-codemirror';
 import { Button, Input, Space } from 'antd';
 import React, { useEffect, useRef } from 'react';
+import {
+  CodeColumn,
+  NameColumn,
+  PostScriptColumn,
+  PreScriptColumn,
+  RemarkColumn,
+} from './common';
 
 interface IProps {
   transfer: ITransfer;
@@ -23,10 +29,10 @@ const ExcelForm: React.FC<IProps> = ({ transfer, current, finished }) => {
         if (files && files.length > 0) {
           switch (prop) {
             case 'forms':
-              form.current?.setFieldValue(
-                prop,
-                files.map((item: any) => item.metadata),
-              );
+              for (const file of files) {
+                form.current?.setFieldValue(prop, file.metadata.id);
+                transfer.forms[file.metadata.id] = new Form(file, transfer.directory);
+              }
               break;
             case 'file':
               form.current?.setFieldValue(prop, files[0].filedata);
@@ -40,22 +46,8 @@ const ExcelForm: React.FC<IProps> = ({ transfer, current, finished }) => {
     };
   });
   const columns: ProFormColumnsType<model.Tables>[] = [
-    {
-      title: '名称',
-      dataIndex: 'name',
-      colProps: { span: 12 },
-      formItemProps: {
-        rules: [{ required: true, message: '名称为必填项' }],
-      },
-    },
-    {
-      title: '编码',
-      dataIndex: 'code',
-      colProps: { span: 12 },
-      formItemProps: {
-        rules: [{ required: true, message: '编码为必填项' }],
-      },
-    },
+    NameColumn,
+    CodeColumn,
     {
       title: '表单',
       dataIndex: 'forms',
@@ -79,7 +71,8 @@ const ExcelForm: React.FC<IProps> = ({ transfer, current, finished }) => {
             <Button
               size="small"
               onClick={async () => {
-                let sheets = await transfer.template<schema.XThing>(current);
+                let forms = current.formIds.map((item) => transfer.forms[item]);
+                let sheets = await transfer.template<schema.XThing>(forms);
                 let root = transfer.directory.target.directory;
                 let map = (sheet: any) => new AnyHandler({ ...sheet, dir: root });
                 let handlers = sheets.map(map);
@@ -112,46 +105,9 @@ const ExcelForm: React.FC<IProps> = ({ transfer, current, finished }) => {
         );
       },
     },
-    {
-      title: '前置脚本',
-      dataIndex: 'preScripts',
-      colProps: { span: 24 },
-      renderFormItem: (_, __, form) => {
-        return (
-          <CodeMirror
-            value={form.getFieldValue('preScripts')}
-            height={'200px'}
-            extensions={[javascript()]}
-            onChange={(code: string) => {
-              form.setFieldValue('preScripts', code);
-            }}
-          />
-        );
-      },
-    },
-    {
-      title: '后置脚本',
-      dataIndex: 'postScripts',
-      colProps: { span: 24 },
-      renderFormItem: (_, __, form) => {
-        return (
-          <CodeMirror
-            value={form.getFieldValue('postScripts')}
-            height={'200px'}
-            extensions={[javascript()]}
-            onChange={(code: string) => {
-              form.setFieldValue('postScripts', code);
-            }}
-          />
-        );
-      },
-    },
-    {
-      title: '备注',
-      dataIndex: 'remark',
-      valueType: 'textarea',
-      colProps: { span: 24 },
-    },
+    PreScriptColumn,
+    PostScriptColumn,
+    RemarkColumn,
   ];
   return (
     <SchemaForm<model.Tables>
@@ -171,7 +127,7 @@ const ExcelForm: React.FC<IProps> = ({ transfer, current, finished }) => {
         }
       }}
       onFinish={async (values) => {
-        await transfer.updNode({ ...current, ...values });
+        Object.assign(current, values);
         finished();
       }}
     />

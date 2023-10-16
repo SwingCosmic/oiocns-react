@@ -1,9 +1,17 @@
 import SchemaForm from '@/components/SchemaForm';
 import { model } from '@/ts/base';
-import { IDirectory, ITransfer } from '@/ts/core';
+import { ITransfer } from '@/ts/core';
 import { ProFormColumnsType, ProFormInstance } from '@ant-design/pro-components';
-import React, { useRef, useState } from 'react';
-import { MenuItem, expand, loadFormsMenu } from '../menus';
+import { Input } from 'antd';
+import React, { useEffect, useRef } from 'react';
+import {
+  CodeColumn,
+  NameColumn,
+  PostScriptColumn,
+  PreScriptColumn,
+  RemarkColumn,
+} from './common';
+import { Form } from '@/ts/core/thing/standard/form';
 
 interface IProps {
   transfer: ITransfer;
@@ -11,70 +19,56 @@ interface IProps {
   finished: () => void;
 }
 
-const getExpandKeys = (treeData: MenuItem[]) => {
-  return expand(treeData, ['事项配置', '实体配置']);
-};
-
 export const EnterForm: React.FC<IProps> = ({ transfer, current, finished }) => {
-  console.log(transfer, current, finished);
-  const formRef = useRef<ProFormInstance>();
-  const [treeData, setTreeData] = useState<MenuItem[]>([
-    loadFormsMenu(transfer.directory.target.directory),
-  ]);
+  const form = useRef<ProFormInstance>();
+  useEffect(() => {
+    const id = transfer.command.subscribe((type, cmd, args) => {
+      if (type == 'data' && cmd == 'fileCollect') {
+        const { prop, files } = args;
+        if (files && files.length > 0) {
+          const item = files[0].metadata;
+          form.current?.setFieldValue(prop, '_' + item.id);
+          transfer.forms['_' + item.id] = new Form(item, transfer.directory);
+        }
+      }
+    });
+    return () => {
+      transfer.command.unsubscribe(id);
+    };
+  });
   const columns: ProFormColumnsType<model.Form>[] = [
-    {
-      title: '名称',
-      dataIndex: 'name',
-      formItemProps: {
-        rules: [{ required: true, message: '名称为必填项' }],
-      },
-    },
-    {
-      title: '编码',
-      dataIndex: 'code',
-      formItemProps: {
-        rules: [{ required: true, message: '编码为必填项' }],
-      },
-    },
+    NameColumn,
+    CodeColumn,
     {
       title: '表单',
-      dataIndex: 'formId',
-      valueType: 'treeSelect',
+      dataIndex: 'form',
       formItemProps: {
         rules: [{ required: true, message: '表单为必填项' }],
       },
       colProps: { span: 24 },
-      fieldProps: {
-        fieldNames: {
-          label: 'label',
-          value: 'key',
-          children: 'children',
-        },
-        showSearch: true,
-        loadData: async (node: MenuItem): Promise<void> => {
-          if (!node.isLeaf) {
-            let forms = (node.item as IDirectory).standard.forms;
-            if (forms.length > 0) {
-              setTreeData([loadFormsMenu(transfer.directory)]);
-            }
-          }
-        },
-        treeNodeFilterProp: 'label',
-        treeDefaultExpandedKeys: getExpandKeys(treeData),
-        treeData: treeData,
+      renderFormItem: (_, __, form) => {
+        const item = transfer.forms[form.getFieldValue('form')];
+        return (
+          <Input
+            value={item?.name}
+            onClick={() => {
+              transfer.command.emitter('data', 'file', {
+                prop: 'form',
+                accepts: ['实体配置', '事项配置'],
+              });
+            }}
+          />
+        );
       },
     },
-    {
-      title: '备注',
-      dataIndex: 'remark',
-      valueType: 'textarea',
-      colProps: { span: 24 },
-    },
+    PreScriptColumn,
+    PostScriptColumn,
+    RemarkColumn,
   ];
   return (
     <SchemaForm<model.Form>
       open
-      formRef={formRef}
+      formRef={form}
       title="表单定义"
       width={800}
       columns={columns}
@@ -89,8 +83,7 @@ export const EnterForm: React.FC<IProps> = ({ transfer, current, finished }) => 
         }
       }}
       onFinish={async (values) => {
-        const node = { ...current, ...values };
-        await transfer.updNode(node);
+        Object.assign(current, values);
         finished();
       }}
     />

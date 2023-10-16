@@ -1,6 +1,6 @@
 import { model } from '@/ts/base';
 import { ITransfer } from '@/ts/core';
-import { Button, Space } from 'antd';
+import { Button, Space, message } from 'antd';
 import React, { useEffect, useState } from 'react';
 import { EnvSelector } from '../../..';
 import cls from './../index.module.less';
@@ -25,6 +25,15 @@ const Tools: React.FC<IProps> = ({ current }) => {
     <Space className={cls.tools}>
       <Button onClick={() => current.command.emitter('graph', 'center')}>中心</Button>
       <Button onClick={() => current.command.emitter('tasks', 'open')}>运行记录</Button>
+      <Button
+        disabled={status == 'Running'}
+        onClick={async () => {
+          if (await current.update(current.metadata)) {
+            message.success('保存成功！');
+          }
+        }}>
+        保存
+      </Button>
       <Button
         disabled={status == 'Running'}
         onClick={() => current.command.emitter('graph', 'executing')}>

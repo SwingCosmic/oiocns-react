@@ -18,11 +18,11 @@ export const GraphView: React.FC<IProps> = ({ current, options }) => {
       graph.fromJSON(current.metadata.graph);
     }
     graph.centerContent();
-    const id = current.command.subscribe((type: string, cmd: string, _: any) => {
+    const id = current.command.subscribe((type: string, cmd: string) => {
       if (type != 'graph') return;
       switch (cmd) {
         case 'executing':
-          current.execute('Viewable', 'ViewRun');
+          current.execute('Viewable', 'Prepare');
           break;
         case 'center':
           graph.centerContent();
@@ -34,7 +34,6 @@ export const GraphView: React.FC<IProps> = ({ current, options }) => {
     });
     return () => {
       current.command.unsubscribe(id);
-      current.unbinding();
       graph.dispose();
     };
   }, [ref]);

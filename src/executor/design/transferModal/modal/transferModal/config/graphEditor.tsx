@@ -24,12 +24,15 @@ const GraphEditor: React.FC<IProps> = ({ current, options }) => {
     }
     graph.centerContent();
     graph.on('node:added', async (args) => {
-      await current.addNode(args.cell.getData());
+      current.nodes.push(args.cell.getData());
       current.command.emitter('tools', 'update', args.cell.getData());
     });
     graph.on('node:moved', () => current.update(current.metadata));
     graph.on('node:removed', async (args) => {
-      await current.delNode(args.cell.getData().id);
+      const index = current.nodes.findIndex((item) => item.id == args.cell.id);
+      if (index != -1) {
+        current.nodes.splice(index, 1);
+      }
     });
     graph.on('node:contextmenu', (a) =>
       current.command.emitter('node', 'contextmenu', a),
@@ -37,12 +40,12 @@ const GraphEditor: React.FC<IProps> = ({ current, options }) => {
     graph.on('node:click', (a) => current.command.emitter('node', 'click', a));
     graph.on('edge:change:target', async (args) => {
       if ((args.current as any)?.cell) {
-        let success: boolean = await current.addEdge({
+        current.edges.push({
           id: args.edge.id,
           start: args.edge.getSourceCellId(),
           end: args.edge.getTargetCellId(),
         });
-        if (!success) {
+        if (current.hasLoop()) {
           message.error('检测到存在环状结构，自动删除！');
           graph.removeEdge(args.cell.id);
         }
@@ -50,7 +53,10 @@ const GraphEditor: React.FC<IProps> = ({ current, options }) => {
     });
     graph.on('edge:moved', () => current.update(current.metadata));
     graph.on('edge:removed', async (args) => {
-      await current.delEdge(args.cell.id);
+      const index = current.edges.findIndex((item) => item.id == args.cell.id);
+      if (index != -1) {
+        current.edges.splice(index, 1);
+      }
     });
     graph.on('edge:mouseenter', ({ cell }: any) => {
       cell.addTools([
@@ -73,13 +79,13 @@ const GraphEditor: React.FC<IProps> = ({ current, options }) => {
     graph.on('blank:contextmenu', (a) =>
       current.command.emitter('blank', 'contextmenu', a),
     );
-    current.binding(() => graph.toJSON());
+    current.getData = () => graph.toJSON();
     setTimeout(() => current.command.emitter('tools', 'initialized', graph), 200);
-    const id = current.command.subscribe((type: string, cmd: string, _: any) => {
+    const id = current.command.subscribe((type: string, cmd: string) => {
       if (type != 'graph') return;
       switch (cmd) {
         case 'executing':
-          current.execute('Editable', 'EditRun');
+          current.execute('Editable', 'Run');
           break;
         case 'center':
           graph.centerContent();
@@ -91,7 +97,7 @@ const GraphEditor: React.FC<IProps> = ({ current, options }) => {
     });
     return () => {
       current.command.unsubscribe(id);
-      current.unbinding();
+      current.getData = undefined;
       graph.off();
       graph.dispose();
     };
