@@ -167,7 +167,7 @@ export default class ElementTreeManager {
           if (Array.isArray(slots)) {
             slots.splice(slots.indexOf(e), 1);
           } else {
-            parent.slots![e.slotName!] = null!;
+            delete parent.slots![e.slotName!];
           }
         } else {
           throw new Error(`父级 ${parent.id} 没有插槽`);

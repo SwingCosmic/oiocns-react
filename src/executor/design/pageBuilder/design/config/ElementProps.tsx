@@ -1,11 +1,9 @@
 import { $confirm } from '@/utils/react/antd';
-import { MinusOutlined, PlusOutlined } from '@ant-design/icons';
-import { Button, Empty, Tag, message } from 'antd';
-import React, { useContext, useState } from 'react';
+import { Empty, Tag, message } from 'antd';
+import React, { useContext } from 'react';
 import { TypeMeta } from '../../core/ElementMeta';
 import { PageElement } from '../../core/PageElement';
 import { DesignContext, PageContext } from '../../render/PageContext';
-import AddElementModal from '../AddElementModal';
 import ElementPropsItem from './ElementPropsItem';
 import './index.less';
 
@@ -46,8 +44,6 @@ export async function removeSlot(element: PageElement | null, ctx: DesignContext
 export default function ElementProps({ element }: Props) {
   const ctx = useContext<DesignContext>(PageContext as any);
 
-  const [addVisible, setAddVisible] = useState(false);
-
   const commonTypeMeta: Dictionary<TypeMeta> = {
     id: {
       type: 'string',
@@ -69,10 +65,6 @@ export default function ElementProps({ element }: Props) {
     },
   };
 
-  function addElement() {
-    setAddVisible(true);
-  }
-
   if (!element) {
     return (
       <div>
@@ -92,20 +84,6 @@ export default function ElementProps({ element }: Props) {
           {meta.label || element.kind}
         </Tag>
         <div style={{ flex: 'auto' }}></div>
-        <Button
-          type="primary"
-          shape="circle"
-          size="small"
-          icon={<PlusOutlined />}
-          onClick={addElement}></Button>
-        <Button
-          type="primary"
-          shape="circle"
-          danger
-          style={{ marginLeft: '8px' }}
-          size="small"
-          icon={<MinusOutlined />}
-          onClick={() => removeElement(element, ctx)}></Button>
       </div>
       <div className="props-content">
         {Object.entries(commonTypeMeta).map(([prop, meta]) => {
@@ -133,12 +111,6 @@ export default function ElementProps({ element }: Props) {
           );
         })}
       </div>
-
-      <AddElementModal
-        visible={addVisible}
-        parentId={ctx.view.currentElement?.id!}
-        onVisibleChange={(v) => setAddVisible(v)}
-      />
     </div>
   );
 }
