@@ -44,15 +44,19 @@ export default class DesignerManager
   addElement<E extends PageElement>(
     kind: E['kind'],
     name: string,
+    slotName = 'default',
     parentId?: string,
     params: ElementInit<E> = {},
   ): E {
-    const e = this.treeManager.createElement(kind, name, parentId, params);
+    const e = this.treeManager.createElement(kind, name, slotName, parentId, params);
     this.currentElement = e;
     this.emitter('all', 'change');
     return e as any;
   }
 
+  /**
+   * @deprecated
+   */
   addSlot<E extends PageElement>(
     kind: E['kind'],
     name: string,
@@ -60,10 +64,11 @@ export default class DesignerManager
     parentId?: string,
     params: ElementInit<E> = {},
   ): E {
-    const e = this.treeManager.createSlot(kind, name, prop, parentId, params);
-    this.currentElement = e;
-    this.emitter('all', 'change');
-    return e as any;
+    // const e = this.treeManager.createSlot(kind, name, prop, parentId, params);
+    // this.currentElement = e;
+    // this.emitter('all', 'change');
+    // return e as any;
+    throw new Error("deprecated")
   }
 
   removeElement(e: PageElement, recursive?: boolean) {
@@ -71,9 +76,13 @@ export default class DesignerManager
     this.currentElement = null;
   }
 
+  /**
+   * @deprecated
+   */
   removeSlot(e: PageElement, prop: string) {
-    this.treeManager.removeSlot(e, prop);
-    this.currentElement = null;
+    // this.treeManager.removeSlot(e, prop);
+    // this.currentElement = null;
+    throw new Error("deprecated")
   }
 
   moveElement(e: PageElement, target: PageElement, position: number) {

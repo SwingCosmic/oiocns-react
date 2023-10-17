@@ -66,7 +66,7 @@ export default defineFC({
       if (props.prop) {
         ctx.view.addSlot(kind, name, props.prop, props.parentId);
       } else {
-        ctx.view.addElement(kind, name, props.parentId);
+        ctx.view.addElement(kind, name, 'default', props.parentId);
       }
       visibleChange(false);
     }
