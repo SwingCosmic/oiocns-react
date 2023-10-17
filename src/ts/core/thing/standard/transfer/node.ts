@@ -247,7 +247,6 @@ export class TransferNode extends Node<model.SubTransfer> {
         preTask,
         data,
       );
-      console.log(visitDataArr?.visitedDataArr);
       if (visitDataArr?.visitedDataArr instanceof Error) {
         throw visitDataArr.visitedDataArr;
       }
@@ -255,7 +254,7 @@ export class TransferNode extends Node<model.SubTransfer> {
       if (this.metadata.judge) {
         const res = this.transfer.running(
           this.metadata.judge,
-          preTask,
+          visitDataArr?.visitedDataArr,
           preTask?.metadata.env?.params,
         );
         if (res.success) {
