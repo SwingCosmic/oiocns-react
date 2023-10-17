@@ -1099,10 +1099,10 @@ export type Script = {
 };
 
 // 图状态
-export type GStatus = 'Editable' | 'Viewable' | 'Running';
+export type GStatus = 'Editable' | 'Viewable' | 'Running' | 'Error';
 
 // 图事件
-export type GEvent = 'Prepare' | 'Run' | 'Complete' | 'Edit';
+export type GEvent = 'Prepare' | 'Run' | 'Complete' | 'Edit' | 'Throw';
 
 // 节点状态
 export type NStatus = 'Stop' | 'Running' | 'Error' | 'Completed';

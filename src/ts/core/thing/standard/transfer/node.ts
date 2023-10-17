@@ -74,8 +74,10 @@ export abstract class Node<T extends model.Node = model.Node> implements INode<T
     } catch (error) {
       this.task.visitedNodes.set(this.id, { code: this.code, data: error });
       this.machine('Throw', [this.metadata, error]);
+      throw error;
+    } finally {
+      this.command.emitter('environments', 'refresh');
     }
-    this.command.emitter('environments', 'refresh');
   }
 
   abstract function(data: { [key: string]: any }, env?: model.KeyValue): Promise<any>;

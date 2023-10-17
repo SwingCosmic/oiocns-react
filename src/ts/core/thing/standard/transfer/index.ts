@@ -65,6 +65,7 @@ const Machine: model.Shift<model.GEvent, model.GStatus>[] = [
   { start: 'Editable', event: 'Prepare', end: 'Viewable' },
   { start: 'Viewable', event: 'Run', end: 'Running' },
   { start: 'Running', event: 'Complete', end: 'Viewable' },
+  { start: 'Running', event: 'Throw', end: 'Error' },
   { start: 'Viewable', event: 'Edit', end: 'Editable' },
 ];
 
@@ -318,19 +319,26 @@ export class Transfer extends StandardFileInfo<model.Transfer> implements ITrans
       this.machine('Prepare', this.curTask);
     }
     this.machine('Run', this.curTask);
-    await this.curTask.starting(data);
-    this.machine('Complete', this.curTask);
+    try {
+      await this.curTask.starting(data);
+      this.curTask.metadata.endTime = new Date();
+      this.machine('Complete', this.curTask);
+    } catch (error) {
+      this.machine('Throw', this.curTask);
+    }
     if (event == 'Prepare') {
-      this.machine('Edit', this.curTask);
+      this.machine('Edit');
     }
   }
 
-  machine(event: model.GEvent, task: ITask): void {
+  machine(event: model.GEvent, task?: ITask): void {
     for (const shift of Machine) {
       if (shift.start == this.status && event == shift.event) {
         this.status = shift.end;
         this.command.emitter('graph', 'status', this.status);
-        task.metadata.status = this.status;
+        if (task) {
+          task.metadata.status = this.status;
+        }
         this.command.emitter('tasks', 'refresh');
       }
     }

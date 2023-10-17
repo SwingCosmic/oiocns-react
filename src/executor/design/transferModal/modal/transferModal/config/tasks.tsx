@@ -3,7 +3,12 @@ import { ITransfer } from '@/ts/core';
 import { formatZhDate } from '@/utils/tools';
 import { Button, Drawer, Table } from 'antd';
 import React, { useEffect, useState } from 'react';
-import { Status } from '../cells/node';
+import {
+  PauseCircleOutlined,
+  LoadingOutlined,
+  CheckCircleOutlined,
+  StopOutlined,
+} from '@ant-design/icons';
 
 interface IProps {
   current: ITransfer;
@@ -43,7 +48,7 @@ const Tasks: React.FC<IProps> = ({ current }) => {
             title: '运行状态',
             dataIndex: 'status',
             render: (_, record) => {
-              return <Status status={record.status} />;
+              return <TaskStatus status={record.status} />;
             },
           },
           {
@@ -92,6 +97,19 @@ const Tasks: React.FC<IProps> = ({ current }) => {
       />
     </Drawer>
   );
+};
+
+export const TaskStatus: React.FC<{ status: model.GStatus }> = ({ status }) => {
+  switch (status) {
+    case 'Editable':
+      return <PauseCircleOutlined style={{ color: '#9498df', fontSize: 18 }} />;
+    case 'Viewable':
+      return <CheckCircleOutlined style={{ color: '#52c41a', fontSize: 18 }} />;
+    case 'Running':
+      return <LoadingOutlined style={{ color: '#9498df', fontSize: 18 }} />;
+    case 'Error':
+      return <StopOutlined style={{ color: '#ff4d4f', fontSize: 18 }} />;
+  }
 };
 
 export default Tasks;

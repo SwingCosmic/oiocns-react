@@ -124,7 +124,6 @@ export class Task implements ITask {
 
   async tryRunning(nextData?: any): Promise<boolean> {
     if (this.visitedNodes.size == this.metadata.nodes.length) {
-      this.metadata.endTime = new Date();
       await this.selfCircle(nextData);
       return false;
     }
