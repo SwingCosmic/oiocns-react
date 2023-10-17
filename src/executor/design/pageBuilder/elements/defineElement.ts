@@ -1,6 +1,6 @@
 import { FCOptions, defineFC } from '@/utils/react/fc';
 import { FC, HTMLAttributes, ReactNode, useContext } from 'react';
-import { ElementMeta, ExtractMetaToType } from '../core/ElementMeta';
+import { ElementMeta, ExtractMetaToType, ParameterInfo, SlotMeta } from '../core/ElementMeta';
 import { PageElement } from '../core/PageElement';
 import { Context, PageContext } from '../render/PageContext';
 
