@@ -80,6 +80,7 @@ export class Transfer extends StandardFileInfo<model.Transfer> implements ITrans
     this.works = {};
     this.canDesign = true;
     this.command = new Command();
+    this.isRunning = false;
   }
 
   command: Command;
@@ -91,6 +92,7 @@ export class Transfer extends StandardFileInfo<model.Transfer> implements ITrans
   works: { [id: string]: IWork };
   curTask?: ITask;
   getData?: () => any;
+  isRunning: boolean;
 
   get nodes() {
     return this.metadata.nodes;
@@ -313,6 +315,10 @@ export class Transfer extends StandardFileInfo<model.Transfer> implements ITrans
     pre?: ITask,
     data?: any,
   ): Promise<void> {
+    if (this.isRunning) {
+      throw new Error('正在运行中！');
+    }
+    this.isRunning = true;
     this.curTask = new Task(status, event, this, pre);
     this.taskList.push(this.curTask);
     if (event == 'Prepare') {
@@ -329,6 +335,7 @@ export class Transfer extends StandardFileInfo<model.Transfer> implements ITrans
     if (event == 'Prepare') {
       this.machine('Edit');
     }
+    this.isRunning = false;
   }
 
   machine(event: model.GEvent, task?: ITask): void {

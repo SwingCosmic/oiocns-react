@@ -36,7 +36,7 @@ const Tools: React.FC<IProps> = ({ current }) => {
       </Button>
       <Button
         disabled={status == 'Running'}
-        onClick={() => current.command.emitter('graph', 'executing')}>
+        onClick={() => current.execute('Editable', 'Prepare')}>
         运行
       </Button>
       <Button
