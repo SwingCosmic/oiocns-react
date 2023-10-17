@@ -4,6 +4,10 @@ import { deepClone, generateUuid } from '../../../../base/common';
 import { ITransfer } from './index';
 import { INode, createNode } from './node';
 
+type InitStatus = 'Editable' | 'Viewable';
+
+export type VisitedData = { code: string; data: any };
+
 export interface ITask {
   /** 触发器 */
   command: Command;
@@ -12,7 +16,7 @@ export interface ITask {
   /** 元数据 */
   metadata: model.Task;
   /** 已遍历点（存储数据） */
-  visitedNodes: Map<string, { code: string; data: any }>;
+  visitedNodes: Map<string, VisitedData>;
   /** 已遍历边 */
   visitedEdges: Set<string>;
   /** 节点 */
@@ -20,26 +24,16 @@ export interface ITask {
   /** 前置任务 */
   preTask?: ITask;
   /** 启动状态 */
-  status: model.GStatus;
+  status: InitStatus;
   /** 启动事件 */
   event: model.GEvent;
   /** 开始执行 */
-  starting(data?: any): Promise<void>;
+  starting(data?: any): Promise<VisitedData[]>;
 }
 
 export class Task implements ITask {
-  command: Command;
-  transfer: ITransfer;
-  metadata: model.Task;
-  visitedNodes: Map<string, { code: string; data: any }>;
-  visitedEdges: Set<string>;
-  nodes: INode[];
-  preTask?: ITask;
-  status: model.GStatus;
-  event: model.GEvent;
-
   constructor(
-    status: model.GStatus,
+    status: InitStatus,
     event: model.GEvent,
     transfer: ITransfer,
     task?: ITask,
@@ -72,19 +66,34 @@ export class Task implements ITask {
     this.preTask = task;
   }
 
-  async starting(data?: any): Promise<void> {
-    if (await this.tryRunning()) {
+  command: Command;
+  transfer: ITransfer;
+  metadata: model.Task;
+  visitedNodes: Map<string, { code: string; data: any }>;
+  visitedEdges: Set<string>;
+  nodes: INode[];
+  preTask?: ITask;
+  status: InitStatus;
+  event: model.GEvent;
+
+  async starting(data?: any): Promise<VisitedData[]> {
+    if (this.notCompleted()) {
       const not = this.metadata.edges.map((item) => item.end);
       const roots = this.nodes.filter((item) => !not.includes(item.metadata.id));
-      await Promise.all(roots.map((root) => this.visitNode(root, data)));
+      return await Promise.all(roots.map((root) => this.visitNode(root, data)));
     }
+    return [];
   }
 
-  async visitNode(node: INode, data?: any): Promise<void> {
-    await node.executing(data, this.transfer.curEnv?.params);
-    if (await this.tryRunning()) {
-      await this.next(node);
+  async visitNode(node: INode, data?: any): Promise<VisitedData> {
+    const visitedData = await node.executing(data, this.transfer.curEnv?.params);
+    if (this.notCompleted()) {
+      const next = await this.next(node);
+      if (next) {
+        return next;
+      }
     }
+    return visitedData;
   }
 
   private preCheck(node: INode): { s: boolean; d: { [key: string]: any } } {
@@ -106,7 +115,7 @@ export class Task implements ITask {
     return { s: true, d: data };
   }
 
-  async next(preNode: INode): Promise<void> {
+  async next(preNode: INode): Promise<VisitedData | undefined> {
     for (const edge of this.metadata.edges) {
       if (preNode.metadata.id == edge.start) {
         this.visitedEdges.add(edge.id);
@@ -114,7 +123,7 @@ export class Task implements ITask {
           if (node.metadata.id == edge.end) {
             const next = this.preCheck(node);
             if (next.s) {
-              await this.visitNode(node, next.d);
+              return await this.visitNode(node, next.d);
             }
           }
         }
@@ -122,24 +131,7 @@ export class Task implements ITask {
     }
   }
 
-  async tryRunning(nextData?: any): Promise<boolean> {
-    if (this.visitedNodes.size == this.metadata.nodes.length) {
-      await this.selfCircle(nextData);
-      return false;
-    }
-    return true;
-  }
-
-  async selfCircle(nextData?: any) {
-    if (this.transfer.metadata.isSelfCirculation) {
-      let judge = this.transfer.metadata.judge;
-      if (judge) {
-        let params = this.metadata.env?.params;
-        const res = this.transfer.running(judge, nextData, params);
-        if (res.success) {
-          await this.transfer.execute(this.status, this.event, this, nextData);
-        }
-      }
-    }
+  notCompleted(): boolean {
+    return this.visitedNodes.size != this.metadata.nodes.length;
   }
 }

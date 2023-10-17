@@ -4,7 +4,7 @@ import { kernel, model, schema } from '../../../../base';
 import { formatDate, generateUuid, sleep } from '../../../../base/common';
 import { IWork } from '../../../work';
 import { IForm } from '../form';
-import { ITask } from './task';
+import { ITask, VisitedData } from './task';
 
 /** 每个节点抽象 */
 export interface INode<T extends model.Node = model.Node> {
@@ -13,7 +13,7 @@ export interface INode<T extends model.Node = model.Node> {
   // 元数据
   metadata: T;
   // 开始运行
-  executing(data: any, env?: model.KeyValue): Promise<any>;
+  executing(data: any, env?: model.KeyValue): Promise<VisitedData>;
 }
 
 const NodeMachine: model.Shift<model.NEvent, model.NStatus>[] = [
@@ -58,7 +58,7 @@ export abstract class Node<T extends model.Node = model.Node> implements INode<T
     }
   }
 
-  async executing(data: any, env?: model.KeyValue): Promise<any> {
+  async executing(data: any, env?: model.KeyValue): Promise<VisitedData> {
     try {
       this.machine('Start', [this.metadata]);
       await sleep(500);
@@ -69,8 +69,10 @@ export abstract class Node<T extends model.Node = model.Node> implements INode<T
       if (this.metadata.postScript) {
         next = { ...next, ...this.transfer.running(this.metadata.postScript, next, env) };
       }
-      this.task.visitedNodes.set(this.id, { code: this.code, data: next });
+      const visitedData = { code: this.code, data: next };
+      this.task.visitedNodes.set(this.id, visitedData);
       this.machine('Complete', [this.metadata]);
+      return visitedData;
     } catch (error) {
       this.task.visitedNodes.set(this.id, { code: this.code, data: error });
       this.machine('Throw', [this.metadata, error]);
@@ -235,10 +237,33 @@ export class TransferNode extends Node<model.SubTransfer> {
   }
   subTransfer?: ITransfer;
 
-  async function(): Promise<any> {
+  async function(data: { [key: string]: any }): Promise<any> {
     if (!this.subTransfer) {
       throw new Error('未获取到迁移配置！');
     }
+    let preTask = undefined;
+    do {
+      const visitDataArr = await this.subTransfer.execute(
+        this.task.status,
+        this.task.event,
+        preTask,
+        data,
+      );
+      if (visitDataArr?.visitedDataArr instanceof Error) {
+        throw visitDataArr.visitedDataArr;
+      }
+      preTask = visitDataArr?.task;
+      if (this.metadata.judge) {
+        const res = this.transfer.running(
+          this.metadata.judge,
+          preTask,
+          preTask?.metadata.env?.params,
+        );
+        if (res.success) {
+          return visitDataArr?.visitedDataArr;
+        }
+      }
+    } while (this.metadata.isSelfCirculation);
   }
 }
 
@@ -361,5 +386,6 @@ export const getDefaultTransferNode = (): model.SubTransfer => {
     name: '子图',
     typeName: '子图',
     transferId: '',
+    isSelfCirculation: false,
   };
 };

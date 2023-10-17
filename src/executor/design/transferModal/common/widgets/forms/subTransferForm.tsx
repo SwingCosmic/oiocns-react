@@ -112,8 +112,11 @@ export const SubTransferForm: React.FC<IProps> = ({ transfer, current, finished 
         }
       }}
       onFinish={async (values) => {
-        if (await transfer.hasRefLoop({ ...current, ...values })) {
+        const combine = { ...current, ...values };
+        if (await transfer.hasRefLoop(combine)) {
           message.error('子图存在循环引用！');
+        } else if (combine.isSelfCirculation && !combine.judge) {
+          message.error('自循环节点必须填写退出判断！');
         } else {
           Object.assign(current, values);
           finished();

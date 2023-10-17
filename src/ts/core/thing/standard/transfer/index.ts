@@ -4,10 +4,12 @@ import { IDirectory } from '../../directory';
 import { IStandardFileInfo, StandardFileInfo } from '../../fileinfo';
 import { Application, IApplication } from '../application';
 import { Form, IForm } from '../form';
-import { ITask, Task } from './task';
+import { ITask, Task, VisitedData } from './task';
 import { IWork } from '../../../work';
 
 type NullableString = string | undefined;
+
+type VisitedReturn = { task: ITask; visitedDataArr: VisitedData[] | Error };
 
 export interface ITransfer extends IStandardFileInfo<model.Transfer> {
   /** 触发器 */
@@ -60,7 +62,7 @@ export interface ITransfer extends IStandardFileInfo<model.Transfer> {
     event: model.GEvent,
     task?: ITask,
     data?: any,
-  ): Promise<void>;
+  ): Promise<VisitedReturn | undefined>;
 }
 
 const Machine: model.Shift<model.GEvent, model.GStatus>[] = [
@@ -272,11 +274,13 @@ export class Transfer extends StandardFileInfo<model.Transfer> implements ITrans
   async update(data: model.Transfer): Promise<boolean> {
     if (this.getData) {
       data.graph = this.getData();
+      const cellIds: string[] = data.graph.cells.map((item: any) => item.id);
+      data.nodes = data.nodes.filter((item) => cellIds.includes(item.id));
+      data.edges = data.edges.filter((item) => cellIds.includes(item.id));
     }
     return await super.update(data);
   }
 
-  /** 模板 */
   template<T>(forms: IForm[]): model.Sheet<T>[] {
     const ans: model.Sheet<T>[] = [];
     for (const form of forms) {
@@ -321,7 +325,7 @@ export class Transfer extends StandardFileInfo<model.Transfer> implements ITrans
     event: model.GEvent,
     pre?: ITask,
     data?: any,
-  ): Promise<void> {
+  ): Promise<VisitedReturn | undefined> {
     if (this.isRunning) {
       throw new Error('正在运行中！');
     }
@@ -334,17 +338,20 @@ export class Transfer extends StandardFileInfo<model.Transfer> implements ITrans
     }
     this.machine('Run', this.curTask);
     try {
-      await this.curTask.starting(data);
+      const visitedDataArr = await this.curTask.starting(data);
       this.curTask.metadata.endTime = new Date();
       this.machine('Complete', this.curTask);
+      return { task: this.curTask, visitedDataArr: visitedDataArr };
     } catch (error) {
       this.machine('Throw', this.curTask);
       this.machine('Recover', this.curTask);
+      return { task: this.curTask, visitedDataArr: error as any };
+    } finally {
+      if (event == 'Prepare') {
+        this.machine('Edit');
+      }
+      this.isRunning = false;
     }
-    if (event == 'Prepare') {
-      this.machine('Edit');
-    }
-    this.isRunning = false;
   }
 
   machine(event: model.GEvent, task?: ITask): void {
@@ -361,19 +368,17 @@ export class Transfer extends StandardFileInfo<model.Transfer> implements ITrans
   }
 
   async hasRefLoop(node: model.SubTransfer): Promise<boolean> {
-    const hasLoop = async (
-      nodes: model.SubTransfer[],
-      chain: Set<string>,
-    ): Promise<boolean> => {
+    const hasLoop = async (nodes: model.Node[], chain: Set<string>): Promise<boolean> => {
       for (const node of nodes) {
-        if (node.transferId) {
-          await this.loadTransfers([node.transferId]);
-          const transfer = this.transfers[node.transferId];
+        const sub = node as model.SubTransfer;
+        if (sub.transferId) {
+          await this.loadTransfers([sub.transferId]);
+          const transfer = this.transfers[sub.transferId];
           if (transfer) {
-            if (chain.has(node.transferId)) {
+            if (chain.has(sub.transferId)) {
               return true;
             } else {
-              const next = new Set([...chain, node.transferId]);
+              const next = new Set([...chain, sub.transferId]);
               if (await hasLoop(transfer.nodes, next)) {
                 return true;
               }

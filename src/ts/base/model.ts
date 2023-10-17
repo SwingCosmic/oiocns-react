@@ -1065,6 +1065,10 @@ export type Store = {
 export type SubTransfer = {
   // 子配置 ID
   transferId?: string;
+  // 是否自循环
+  isSelfCirculation: boolean;
+  // 退出循环脚本
+  judge?: string;
 } & Node;
 
 // 表单
@@ -1146,10 +1150,6 @@ export type Transfer = {
   edges: Edge[];
   // 图数据
   graph: any;
-  // 是否自循环
-  isSelfCirculation: boolean;
-  // 退出循环脚本
-  judge: string;
 } & XStandard;
 
 // 任务
