@@ -3,7 +3,7 @@ import { defineFC } from '@/utils/react/fc';
 import { useSignalEffect } from '@preact/signals-react';
 import { Form, Input, Modal, Select } from 'antd';
 import React, { useContext, useEffect, useMemo } from 'react';
-import { ElementMeta, TypeMeta } from '../core/ElementMeta';
+import { ElementMeta } from '../core/ElementMeta';
 import { DesignContext, PageContext } from '../render/PageContext';
 
 interface Props {
@@ -63,7 +63,7 @@ export default defineFC({
     async function handleCreate() {
       const res = await formInst.validateFields();
       const { kind, name } = res;
-      ctx.view.addElement(kind, name, 'default', props.parentId);
+      ctx.view.addElement(kind, name, props.prop, props.parentId);
       visibleChange(false);
     }
 

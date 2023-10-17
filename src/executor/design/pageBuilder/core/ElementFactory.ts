@@ -28,6 +28,7 @@ export default class ElementFactory {
     } as any;
     e.props ||= {};
     e.children ||= [];
+    e.slots ||= {};
     return e;
   }
 }

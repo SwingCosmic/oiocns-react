@@ -108,15 +108,10 @@ export default defineElement({
         label: '行卡片占比',
         default: 4,
       },
-      // card: {
-      //   type: 'type',
-      //   label: '卡片模板',
-      //   typeName: 'slot',
-      // } as ExistTypeMeta<>,
     },
     slots: {
       content: {
-        label: "子元素内容插槽",
+        label: '子元素内容插槽',
         single: true,
         params: {
           card: {

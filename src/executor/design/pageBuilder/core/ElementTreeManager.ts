@@ -31,6 +31,7 @@ export default class ElementTreeManager {
       name: '模板根节点',
       children: [],
       props: {},
+      slots: {},
     };
   }
 

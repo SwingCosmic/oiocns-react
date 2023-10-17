@@ -17,21 +17,25 @@ const buildElementTree = (
   element: PageElement,
   ctx: DesignContext,
   parent?: PageElement,
-  isSlot: boolean = false,
+  typeName?: string,
   prop?: string,
+  children: PageElement[] = [],
 ): any => {
   const meta = ctx.view.treeManager.factory.getMeta(element.kind);
-  const slots: { ele: PageElement; prop: string }[] = [];
-  if (meta) {
-    for (const key of Object.keys(meta.props)) {
-      let prop = meta.props[key];
-      let ele = element.props[key];
-      if (prop.type == 'type' && prop.typeName == 'slot') {
+  const slots: { ele: PageElement; prop: string; single: boolean }[] = [];
+  if (meta && meta.slots) {
+    for (const key of Object.keys(meta.slots)) {
+      let slot = meta.slots[key];
+      let ele = element.slots?.[key];
+      if (slot.single) {
         if (!ele) {
-          ele = ctx.view.treeManager.factory.create('Any', prop.label ?? '插槽');
+          ele = ctx.view.treeManager.factory.create('Any', slot.label ?? '插槽');
           ele.props.seize = true;
         }
-        slots.push({ ele, prop: key });
+        slots.push({ ele: ele as PageElement, prop: key, single: true });
+      } else {
+        ele = ctx.view.treeManager.factory.create('Any', slot.label ?? '数组插槽');
+        slots.push({ ele: ele, prop: key, single: false });
       }
     }
   }
@@ -39,14 +43,28 @@ const buildElementTree = (
     key: element.id,
     title: element.name,
     item: element,
-    isLeaf: element.children.length === 0 && slots.length == 0,
-    typeName: isSlot ? '插槽' : meta?.type,
+    isLeaf: element.children.length === 0 && slots.length == 0 && children.length == 0,
+    typeName: typeName ?? meta?.type,
     icon: <EntityIcon entityId={element.id} size={18} />,
     parent: parent,
     prop: prop,
     children: [
-      ...element.children.map((item) => buildElementTree(item, ctx, element, false)),
-      ...slots.map((item) => buildElementTree(item.ele, ctx, element, true, item.prop)),
+      ...children,
+      ...element.children.map((item) => buildElementTree(item, ctx, element)),
+      ...slots.map((item) => {
+        if (item.single) {
+          return buildElementTree(item.ele, ctx, element, '插槽', item.prop);
+        } else {
+          return buildElementTree(
+            item.ele,
+            ctx,
+            element,
+            '数组插槽',
+            item.prop,
+            element.slots?.[item.prop] as PageElement[],
+          );
+        }
+      }),
     ],
   };
 };

@@ -2,8 +2,6 @@
 /* prettier-ignore */
 /** 不要格式化此文件，会对阅读源码造成严重影响 */
 
-import { PageElement } from "./PageElement";
-
 export type PrimitiveType = "string" | "number" | "boolean" | "date";
 export type ComplexType = "enum" | "array" | "object" | "type";
 export type DataType = PrimitiveType | ComplexType;
@@ -87,6 +85,7 @@ export interface ElementMeta {
   label: string;
   /** 元素类型 */
   type: ElementType;
+  /** 元素插槽 */
   slots?: Dictionary<SlotMeta>;
 }
 

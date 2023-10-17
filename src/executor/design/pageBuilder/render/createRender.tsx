@@ -24,16 +24,16 @@ export interface ElementRenderProps {
   readonly slotParams?: Dictionary<any>;
 }
 
-
 export function createSlotRender(slot: PageElement | PageElement[]) {
   if (Array.isArray(slot)) {
     return (params: Dictionary<any> = {}) => {
-      return slot.map(s => <Slot key={s.id} child={s} params={params}/>);
-    }
+      return slot.map((s) => <Slot key={s.id} child={s} params={params} />);
+    };
   }
-  return (params: Dictionary<any> = {}) => {
-    return <Slot child={slot} params={params}/>
-  }
+  const render = (params: Dictionary<any> = {}) => {
+    return <Slot child={slot} params={params} />;
+  };
+  return render;
 }
 
 /**

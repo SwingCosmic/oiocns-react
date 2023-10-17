@@ -24,7 +24,9 @@ export default defineElement({
         ) : (
           <></>
         )}
-        {props.children.map((c) => <Slot key={c.id} child={c} />)}
+        {props.children.map((c) => (
+          <Slot key={c.id} child={c} />
+        ))}
       </div>
     );
   },
