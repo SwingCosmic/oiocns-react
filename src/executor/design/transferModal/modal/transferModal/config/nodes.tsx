@@ -12,7 +12,7 @@ import {
 import { Graph } from '@antv/x6';
 import { Dnd } from '@antv/x6-plugin-dnd';
 import { Space } from 'antd';
-import React, { createRef, useEffect, useRef } from 'react';
+import React, { createRef, useEffect, useRef, useState } from 'react';
 import { createGraphNode, createNode } from '../cells/graph';
 import cls from './../index.module.less';
 
@@ -24,54 +24,65 @@ const Nodes: React.FC<IProps> = ({ current }) => {
   const graph = useRef<Graph>();
   const dndRef = createRef<HTMLDivElement>();
   const dnd = useRef<Dnd>();
+  const [status, setStatus] = useState<model.GStatus>(current.status);
   useEffect(() => {
     const id = current.command.subscribe((type, cmd, args) => {
-      if (type != 'tools') return;
-      switch (cmd) {
-        case 'initialized':
-          graph.current = args as Graph;
-          if (graph.current) {
-            dnd.current = new Dnd({
-              target: args,
-              scaled: false,
-              dndContainer: dndRef.current ?? undefined,
-              getDragNode: (node) => node.clone({ keepId: true }),
-              getDropNode: (node) => {
-                const data = node.getData() as model.Node;
-                if (data.typeName == '子图') {
-                  return graph.current!.createNode(createGraphNode(data));
-                } else {
-                  return node.clone({ keepId: true });
-                }
-              },
-            });
-          }
-          break;
-        case 'copy':
-          {
-            const newNode: model.Node = common.deepClone(args);
-            if (graph.current) {
-              for (let node of graph.current.getNodes()) {
-                let position = node.getPosition();
-                if (node.id == newNode.id) {
-                  newNode.id = common.generateUuid();
-                  graph.current.addNode({
-                    ...createNode(newNode),
-                    x: position.x + 10,
-                    y: position.y + 10,
-                  });
+      switch (type) {
+        case 'tools':
+          switch (cmd) {
+            case 'initialized':
+              graph.current = args as Graph;
+              if (graph.current) {
+                dnd.current = new Dnd({
+                  target: args,
+                  scaled: false,
+                  dndContainer: dndRef.current ?? undefined,
+                  getDragNode: (node) => node.clone({ keepId: true }),
+                  getDropNode: (node) => {
+                    const data = node.getData() as model.Node;
+                    if (data.typeName == '子图') {
+                      return graph.current!.createNode(createGraphNode(data));
+                    } else {
+                      return node.clone({ keepId: true });
+                    }
+                  },
+                });
+              }
+              break;
+            case 'copy':
+              {
+                const newNode: model.Node = common.deepClone(args);
+                if (graph.current) {
+                  for (let node of graph.current.getNodes()) {
+                    let position = node.getPosition();
+                    if (node.id == newNode.id) {
+                      newNode.id = common.generateUuid();
+                      graph.current.addNode({
+                        ...createNode(newNode),
+                        x: position.x + 10,
+                        y: position.y + 10,
+                      });
+                    }
+                  }
                 }
               }
-            }
+              break;
+            case 'delete':
+              if (graph.current) {
+                for (let node of graph.current.getNodes()) {
+                  if (node.id == args.id) {
+                    node.remove();
+                  }
+                }
+              }
+              break;
           }
           break;
-        case 'delete':
-          if (graph.current) {
-            for (let node of graph.current.getNodes()) {
-              if (node.id == args.id) {
-                node.remove();
-              }
-            }
+        case 'graph':
+          switch (cmd) {
+            case 'status':
+              setStatus(args);
+              break;
           }
           break;
       }
@@ -113,7 +124,11 @@ const Nodes: React.FC<IProps> = ({ current }) => {
   const Node: React.FC<{ name: model.NodeType }> = ({ name }) => {
     return (
       <Space
-        onMouseDown={(e) => start(e, name)}
+        onMouseDown={(e) => {
+          if (status == 'Editable') {
+            start(e, name);
+          }
+        }}
         className={`${cls.node} ${cls.contextBorder}`}>
         <EntityIcon />
         {name}
@@ -123,7 +138,9 @@ const Nodes: React.FC<IProps> = ({ current }) => {
   return (
     <div className={cls.draggableNodes} ref={dndRef}>
       <Space
-        className={`${cls.dataSourceNode} ${cls.border}`}
+        className={`${cls.dataSourceNode} ${cls.border} ${
+          status != 'Editable' ? cls.notEditable : ''
+        }`}
         direction="vertical"
         align="center">
         {'数据源'}
@@ -132,7 +149,9 @@ const Nodes: React.FC<IProps> = ({ current }) => {
         <Node name="请求" />
       </Space>
       <Space
-        className={`${cls.operateNode} ${cls.border}`}
+        className={`${cls.operateNode} ${cls.border} ${
+          status != 'Editable' ? cls.notEditable : ''
+        }`}
         direction="vertical"
         align="center">
         {'数据操作'}
