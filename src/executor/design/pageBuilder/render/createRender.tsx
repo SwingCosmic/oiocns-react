@@ -28,11 +28,16 @@ export interface ElementRenderProps {
  * @param e 要处理的元素
  * @returns ReactNode所需的属性对象
  */
-export function mergeProps(e: PageElement, c: ElementFC, slotParams: Dictionary<any> = {}, data?: any) {
-  const props = { 
+export function mergeProps(
+  e: PageElement,
+  c: ElementFC,
+  slotParams: Dictionary<any> = {},
+  data?: any,
+) {
+  const props = {
     ...e.props,
     ...slotParams,
-    ...e.slots
+    ...e.slots,
   };
 
   let className = e.className;
@@ -73,7 +78,10 @@ export function createRender(component: ElementFC, mode: HostMode): Render {
 
 function createViewRender(component: ElementFC) {
   return (props: ElementRenderProps) => {
-    return h(component, mergeProps(props.element, component, props.slotParams, props.data));
+    return h(
+      component,
+      mergeProps(props.element, component, props.slotParams, props.data),
+    );
   };
 }
 

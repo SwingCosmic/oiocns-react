@@ -51,13 +51,13 @@ export type TypeMeta =
 
 
 export interface ParameterInfo<T extends TypeMeta = TypeMeta> {
-  name: string;
+  label: string;
   type: T;
 }
 
-export interface SlotMeta<P extends ParameterInfo[] = ParameterInfo[]> {
+export interface SlotMeta<P extends Dictionary<ParameterInfo> = Dictionary<ParameterInfo>> {
   /** 插槽的参数列表 */
-  params: [...P];
+  params: P;
 }
 
 export type SlotFunction<S extends Dictionary<any> = Dictionary<any>> = 
@@ -92,8 +92,8 @@ export type ExtractType<T extends TypeMeta> =
 /**
  * 类型体操，将`ParameterInfo数组`解成键值对形式
  */
-export type ExtractParams<P extends ParameterInfo[] = ParameterInfo[]> = {
-  [I in keyof P & number as P[I]["name"]]: ExtractType<P[I]["type"]>;
+export type ExtractParams<P extends Dictionary<ParameterInfo> = Dictionary<ParameterInfo>> = {
+  [I in keyof P & string]: ExtractType<P[I]["type"]>;
 };
 
 export type ExtractSlot<T extends SlotMeta> = SlotFunction<ExtractParams<T["params"]>>;

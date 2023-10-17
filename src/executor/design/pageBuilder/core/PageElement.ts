@@ -24,7 +24,7 @@ export interface PageElement<
   /** 属性 */
   props: NoFunctionPropertyObject<P>;
   /** 插槽 */
-  slots?: Dictionary<PageElement[]>;
+  slots?: Dictionary<PageElement | PageElement[]>;
 }
 
 declare module '@/ts/base/schema' {

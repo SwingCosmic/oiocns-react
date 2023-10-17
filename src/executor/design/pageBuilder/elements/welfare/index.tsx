@@ -59,17 +59,18 @@ export default defineElement({
           <div className={cls.contentGrid}>
             <Row gutter={[16, 16]}>
               {data.map((item) => {
-                if (props.card) {
-                  const Render = ctx.view.components.getComponentRender(
-                    props.card.kind,
-                    ctx.view.mode,
-                  );
-                  return (
-                    <Col key={item.id} span={props.span} className={cls.contentCard}>
-                      <Render element={props.card} data={item} />
-                    </Col>
-                  );
-                }
+                props.content({ card: item });
+                // if (props.card) {
+                // const Render = ctx.view.components.getComponentRender(
+                //   props.card.kind,
+                //   ctx.view.mode,
+                // );
+                // return (
+                //   <Col key={item.id} span={props.span} className={cls.contentCard}>
+                //     <Render element={props.card} data={item} />
+                //   </Col>
+                // );
+                // }
                 return <Empty key={item.id} description={'未放置组件'} />;
               })}
             </Row>
@@ -113,11 +114,25 @@ export default defineElement({
         label: '行卡片占比',
         default: 4,
       },
-      card: {
-        type: 'type',
-        label: '卡片模板',
-        typeName: 'slot',
-      } as ExistTypeMeta<PageElement | undefined>,
+      // card: {
+      //   type: 'type',
+      //   label: '卡片模板',
+      //   typeName: 'slot',
+      // } as ExistTypeMeta<>,
+    },
+    slots: {
+      content: {
+        params: {
+          card: {
+            label: '列表数据',
+            type: {
+              type: 'type',
+              label: '卡片模板',
+              typeName: 'slot',
+            } as ExistTypeMeta<schema.XThing>,
+          },
+        },
+      },
     },
     type: '元素',
     label: '公物仓',

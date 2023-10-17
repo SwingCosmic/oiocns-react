@@ -44,22 +44,22 @@ const ImagePosition: React.FC<PosProps> = () => {
 };
 
 export default defineElement({
-  render({ data, image, first, second, third, fourth, fifth }, ctx) {
+  render({ card, image, first, second, third, fourth, fifth }, ctx) {
     if (ctx.view.mode == 'view') {
       return (
         <Card
           hoverable
-          cover={<ImageContent data={data} property={image} />}
+          cover={<ImageContent data={card} property={image} />}
           actions={[
-            <Content key={'fourth'} data={data} property={fourth} />,
-            <Content key={'fifth'} data={data} property={fifth} />,
+            <Content key={'fourth'} data={card} property={fourth} />,
+            <Content key={'fifth'} data={card} property={fifth} />,
           ]}>
           <Card.Meta
-            title={<Content data={data} property={first} />}
+            title={<Content data={card} property={first} />}
             description={
               <Space direction="vertical">
-                <Content key={'second'} data={data} property={second} />
-                <Content key={'third'} data={data} property={third} />
+                <Content key={'second'} data={card} property={second} />
+                <Content key={'third'} data={card} property={third} />
               </Space>
             }
           />
@@ -89,7 +89,7 @@ export default defineElement({
   displayName: 'MetaCard',
   meta: {
     props: {
-      data: {
+      card: {
         type: 'type',
         typeName: 'empty',
         label: '数据',
