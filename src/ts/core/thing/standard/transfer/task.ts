@@ -43,7 +43,15 @@ export class Task implements ITask {
     this.status = status;
     this.event = event;
     if (task) {
-      this.metadata = deepClone(task.metadata);
+      this.metadata = deepClone({
+        ...task.metadata,
+        nodes: task.metadata.nodes.map((item) => {
+          return {
+            ...item,
+            status: 'Stop',
+          };
+        }),
+      });
     } else {
       this.metadata = deepClone({
         id: generateUuid(),
@@ -86,7 +94,7 @@ export class Task implements ITask {
   }
 
   async visitNode(node: INode, data?: any): Promise<VisitedData> {
-    const visitedData = await node.executing(data, this.transfer.curEnv?.params);
+    const visitedData = await node.executing(data, this.metadata.env?.params);
     if (this.notCompleted()) {
       const next = await this.next(node);
       if (next) {

@@ -22,6 +22,7 @@ export const TransferModal: React.FC<IProps> = ({ current, finished }) => {
     const id = current.subscribe(() => setKey(generateUuid()));
     return () => {
       current.unsubscribe(id);
+      current.update(current.metadata);
     };
   }, [current.metadata]);
   return (

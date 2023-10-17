@@ -20,7 +20,8 @@ export const EnvSelector: React.FC<IProps> = ({ current }) => {
             <CloseOutlined
               onClick={(e) => {
                 e.preventDefault();
-                current.metadata.envs = current.envs.filter((env) => env.id == item.id);
+                current.metadata.envs = current.envs.filter((env) => env.id != item.id);
+                current.metadata.curEnv = undefined;
                 current.command.emitter('environments', 'refresh');
               }}
             />

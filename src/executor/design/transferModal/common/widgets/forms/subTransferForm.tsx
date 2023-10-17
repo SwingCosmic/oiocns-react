@@ -68,7 +68,6 @@ export const SubTransferForm: React.FC<IProps> = ({ transfer, current, finished 
       dataIndex: 'isSelfCirculation',
       colProps: { span: 12 },
       valueType: 'switch',
-      initialValue: false,
       formItemProps: {
         rules: [{ required: true, message: '编码为必填项' }],
       },

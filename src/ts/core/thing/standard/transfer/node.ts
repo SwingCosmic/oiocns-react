@@ -49,11 +49,9 @@ export abstract class Node<T extends model.Node = model.Node> implements INode<T
 
   machine(event: model.NEvent, data: any) {
     for (const item of NodeMachine) {
-      if (item.event == event) {
-        if (this.metadata.status == item.start) {
-          this.metadata.status = item.end;
-          this.command.emitter('running', event, data);
-        }
+      if (item.event == event && this.metadata.status == item.start) {
+        this.metadata.status = item.end;
+        this.command.emitter('running', event, data);
       }
     }
   }
@@ -87,7 +85,7 @@ export abstract class Node<T extends model.Node = model.Node> implements INode<T
 
 export class RequestNode extends Node<model.Request> {
   async function(_: any, env?: model.KeyValue): Promise<any> {
-    return this.transfer.request(this.metadata, env);
+    return await this.transfer.request(this.metadata, env);
   }
 }
 
@@ -249,6 +247,7 @@ export class TransferNode extends Node<model.SubTransfer> {
         preTask,
         data,
       );
+      console.log(visitDataArr?.visitedDataArr);
       if (visitDataArr?.visitedDataArr instanceof Error) {
         throw visitDataArr.visitedDataArr;
       }
