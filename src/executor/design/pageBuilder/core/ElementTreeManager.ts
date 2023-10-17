@@ -53,12 +53,12 @@ export default class ElementTreeManager {
         enumerable: false,
       });
       if (slotName) {
-        Object.defineProperty(e, "slotName", {
+        Object.defineProperty(e, 'slotName', {
           value: slotName,
           configurable: true,
           enumerable: false,
-          writable: true
-        });        
+          writable: true,
+        });
       }
       this.allElements[e.id] = e;
       for (const slot of this.getSlotChildren(e)) {
@@ -75,18 +75,18 @@ export default class ElementTreeManager {
       if (Array.isArray(slot)) {
         ret.push({
           name,
-          children: slot
+          children: slot,
         });
       } else {
         ret.push({
           name,
-          children: [slot]
+          children: [slot],
         });
       }
     }
     ret.push({
       name: 'default',
-      children: e.children
+      children: e.children,
     });
     return ret;
   }
@@ -148,7 +148,6 @@ export default class ElementTreeManager {
     return e;
   }
 
-
   removeElement(e: PageElementView, recursive = true) {
     if (recursive) {
       // 后序遍历递归删除
@@ -181,7 +180,6 @@ export default class ElementTreeManager {
     console.log(`删除 ${e.id}`);
   }
 
-
   removeElementById(id: string, recursive = true) {
     const e = this.allElements[id];
     if (e) {
@@ -189,12 +187,5 @@ export default class ElementTreeManager {
       return true;
     }
     return false;
-  }
-
-  moveElement(e: PageElementView, target: PageElementView, position: number) {
-    this.removeElement(e, false);
-    this.allElements[e.id] = e;
-    this.changeParent([e], target.id);
-    target.children.splice(position, 0, e);
   }
 }

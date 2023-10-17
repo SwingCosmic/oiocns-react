@@ -30,11 +30,7 @@ export async function removeElement(element: PageElement | null, ctx: DesignCont
   ctx.view.removeElement(element, true);
 }
 
-export async function removeSlot(
-  element: PageElement | null,
-  ctx: DesignContext,
-  prop: string,
-) {
+export async function removeSlot(element: PageElement | null, ctx: DesignContext) {
   if (!element) {
     return;
   }
@@ -44,7 +40,7 @@ export async function removeSlot(
     cancelText: '取消',
     content: `确实要移除元素 ${element.name} 及其所有下级？`,
   });
-  ctx.view.removeSlot(element, prop);
+  ctx.view.removeElement(element, true);
 }
 
 export default function ElementProps({ element }: Props) {

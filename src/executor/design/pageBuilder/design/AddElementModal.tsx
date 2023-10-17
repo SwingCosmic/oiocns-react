@@ -63,11 +63,7 @@ export default defineFC({
     async function handleCreate() {
       const res = await formInst.validateFields();
       const { kind, name } = res;
-      if (props.prop) {
-        ctx.view.addSlot(kind, name, props.prop, props.parentId);
-      } else {
-        ctx.view.addElement(kind, name, 'default', props.parentId);
-      }
+      ctx.view.addElement(kind, name, 'default', props.parentId);
       visibleChange(false);
     }
 

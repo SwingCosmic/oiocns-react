@@ -6,7 +6,7 @@ import React, { useRef, useState } from 'react';
 import { PageElement } from '../core/PageElement';
 import { DesignContext } from '../render/PageContext';
 import AddElementModal from './AddElementModal';
-import { removeElement, removeSlot } from './config/ElementProps';
+import { removeElement } from './config/ElementProps';
 import cls from './tree.module.less';
 
 interface IProps {
@@ -101,11 +101,7 @@ const TreeManager: React.FC<IProps> = ({ ctx }) => {
                     icon={<MinusOutlined />}
                     onClick={(e) => {
                       e.stopPropagation();
-                      if (node.prop) {
-                        removeSlot(node.parent, ctx, node.prop);
-                      } else {
-                        removeElement(node.item, ctx);
-                      }
+                      removeElement(node.item, ctx);
                     }}
                   />
                 )}
@@ -126,8 +122,7 @@ const TreeManager: React.FC<IProps> = ({ ctx }) => {
             message.error('非布局节点，无法放置！');
             return;
           }
-          const positions = info.node.pos.split('-');
-          ctx.view.moveElement(drag, target, Number(positions[positions.length - 1]));
+          ctx.view.changeElement(drag, target);
         }}
       />
       <AddElementModal

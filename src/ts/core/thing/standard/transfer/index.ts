@@ -42,8 +42,10 @@ export interface ITransfer extends IStandardFileInfo<model.Transfer> {
   loadWorks(aIds?: NullableString[], wIds?: NullableString[]): Promise<void>;
   /** 取图数据 */
   getData?: () => any;
-  /** 是否有环 */
+  /** 是否有环（节点间的环） */
   hasLoop(): boolean;
+  /** 是否有环（图之间的环） */
+  hasRefLoop(node: model.SubTransfer): Promise<boolean>;
   /** 初始化 */
   initializing(): Promise<boolean>;
   /** 请求 */
@@ -71,12 +73,16 @@ const Machine: model.Shift<model.GEvent, model.GStatus>[] = [
 ];
 
 export class Transfer extends StandardFileInfo<model.Transfer> implements ITransfer {
-  constructor(metadata: model.Transfer, dir: IDirectory) {
+  constructor(
+    metadata: model.Transfer,
+    dir: IDirectory,
+    status: model.GStatus = 'Editable',
+  ) {
     super(metadata, dir, dir.resource.transferColl);
     this.taskList = [];
-    this.status = 'Editable';
+    this.status = status;
     this.forms = {};
-    this.transfers = {};
+    this.transfers = { [this.id]: this };
     this.applications = {};
     this.works = {};
     this.canDesign = true;
@@ -159,7 +165,7 @@ export class Transfer extends StandardFileInfo<model.Transfer> implements ITrans
       const res = await this.directory.resource.transferColl.find(transfers);
       if (res.length > 0) {
         for (const item of res) {
-          const transfer = new Transfer(item, this.directory);
+          const transfer = new Transfer(item, this.directory, 'Viewable');
           this.transfers[item.id] = transfer;
           await transfer.initializing();
         }
@@ -352,6 +358,38 @@ export class Transfer extends StandardFileInfo<model.Transfer> implements ITrans
         this.command.emitter('tasks', 'refresh');
       }
     }
+  }
+
+  async hasRefLoop(node: model.SubTransfer): Promise<boolean> {
+    const hasLoop = async (
+      nodes: model.SubTransfer[],
+      chain: Set<string>,
+    ): Promise<boolean> => {
+      for (const node of nodes) {
+        if (node.transferId) {
+          await this.loadTransfers([node.transferId]);
+          const transfer = this.transfers[node.transferId];
+          if (transfer) {
+            if (chain.has(node.transferId)) {
+              return true;
+            } else {
+              const next = new Set([...chain, node.transferId]);
+              if (await hasLoop(transfer.nodes, next)) {
+                return true;
+              }
+            }
+          }
+        }
+      }
+      return false;
+    };
+    const array = [...this.metadata.nodes];
+    for (let index = 0; index < array.length; index++) {
+      if (array[index].id == node.id) {
+        array[index] = node;
+      }
+    }
+    return hasLoop(array, new Set([this.id]));
   }
 }
 

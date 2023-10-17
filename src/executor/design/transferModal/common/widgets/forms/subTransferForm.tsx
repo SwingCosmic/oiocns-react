@@ -1,15 +1,16 @@
 import SchemaForm from '@/components/SchemaForm';
 import { model } from '@/ts/base';
 import { ITransfer } from '@/ts/core';
-import { Transfer } from '@/ts/core/thing/standard/transfer';
 import { ProFormColumnsType, ProFormInstance } from '@ant-design/pro-components';
-import { Input } from 'antd';
+import { javascript } from '@codemirror/lang-javascript';
+import CodeMirror from '@uiw/react-codemirror';
+import { Input, message } from 'antd';
 import React, { useEffect, useRef } from 'react';
 import {
-  NameColumn,
   CodeColumn,
-  PreScriptColumn,
+  NameColumn,
   PostScriptColumn,
+  PreScriptColumn,
   RemarkColumn,
 } from './common';
 
@@ -27,8 +28,9 @@ export const SubTransferForm: React.FC<IProps> = ({ transfer, current, finished 
         const { prop, files } = args;
         if (files && files.length > 0) {
           const meta = files[0].metadata;
-          form.current?.setFieldValue(prop, meta.id);
-          transfer.transfers[meta.id] = new Transfer(meta, transfer.directory);
+          transfer.loadTransfers([meta.id]).then(() => {
+            form.current?.setFieldValue(prop, meta.id);
+          });
         }
       }
     });
@@ -41,22 +43,48 @@ export const SubTransferForm: React.FC<IProps> = ({ transfer, current, finished 
     CodeColumn,
     {
       title: '绑定子图',
-      dataIndex: 'nextId',
-      colProps: { span: 24 },
+      dataIndex: 'transferId',
+      colProps: { span: 12 },
       formItemProps: {
         rules: [{ required: true, message: '子图为必填项' }],
       },
       renderFormItem: (_, __, form) => {
-        const item = transfer.transfers[form.getFieldValue('nextId')];
+        const item = transfer.transfers[form.getFieldValue('transferId')];
         return (
           <Input
             value={item?.name}
             onClick={() => {
               transfer.command.emitter('data', 'file', {
-                prop: 'forms',
-                multiple: true,
-                accepts: ['实体配置', '事项配置'],
+                prop: 'transferId',
+                accepts: ['迁移配置'],
               });
+            }}
+          />
+        );
+      },
+    },
+    {
+      title: '是否自循环',
+      dataIndex: 'isSelfCirculation',
+      colProps: { span: 12 },
+      valueType: 'switch',
+      initialValue: false,
+      formItemProps: {
+        rules: [{ required: true, message: '编码为必填项' }],
+      },
+    },
+    {
+      title: '循环退出判断',
+      dataIndex: 'judge',
+      colProps: { span: 24 },
+      renderFormItem: () => {
+        return (
+          <CodeMirror
+            value={form.current?.getFieldValue('judge')}
+            height={'200px'}
+            extensions={[javascript()]}
+            onChange={(code: string) => {
+              form.current?.setFieldValue('judge', code);
             }}
           />
         );
@@ -84,8 +112,12 @@ export const SubTransferForm: React.FC<IProps> = ({ transfer, current, finished 
         }
       }}
       onFinish={async (values) => {
-        Object.assign(current, values);
-        finished();
+        if (await transfer.hasRefLoop({ ...current, ...values })) {
+          message.error('子图存在循环引用！');
+        } else {
+          Object.assign(current, values);
+          finished();
+        }
       }}
     />
   );

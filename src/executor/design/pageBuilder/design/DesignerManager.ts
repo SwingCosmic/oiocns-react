@@ -54,39 +54,13 @@ export default class DesignerManager
     return e as any;
   }
 
-  /**
-   * @deprecated
-   */
-  addSlot<E extends PageElement>(
-    kind: E['kind'],
-    name: string,
-    prop: string,
-    parentId?: string,
-    params: ElementInit<E> = {},
-  ): E {
-    // const e = this.treeManager.createSlot(kind, name, prop, parentId, params);
-    // this.currentElement = e;
-    // this.emitter('all', 'change');
-    // return e as any;
-    throw new Error("deprecated")
-  }
-
   removeElement(e: PageElement, recursive?: boolean) {
     this.treeManager.removeElement(e, recursive);
     this.currentElement = null;
   }
 
-  /**
-   * @deprecated
-   */
-  removeSlot(e: PageElement, prop: string) {
-    // this.treeManager.removeSlot(e, prop);
-    // this.currentElement = null;
-    throw new Error("deprecated")
-  }
-
-  moveElement(e: PageElement, target: PageElement, position: number) {
-    this.treeManager.moveElement(e, target, position);
+  changeElement(e: PageElement, targetId: string, slotName: string = 'default') {
+    this.treeManager.changeParent([e], targetId, slotName);
     this.emitter('all', 'change');
   }
 }
