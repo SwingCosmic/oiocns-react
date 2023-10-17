@@ -48,7 +48,7 @@ const ExcelForm: React.FC<IProps> = ({ transfer, current, finished }) => {
         rules: [{ required: true, message: '编码为必填项' }],
       },
       renderFormItem: (_, __, form) => {
-        const formIds = form.getFieldValue('formIds') ?? [];
+        const formIds: string[] = form.getFieldValue('formIds') ?? [];
         return (
           <Space.Compact style={{ width: '100%' }}>
             <Input
@@ -64,7 +64,7 @@ const ExcelForm: React.FC<IProps> = ({ transfer, current, finished }) => {
             <Button
               size="small"
               onClick={async () => {
-                let forms = current.formIds.map((item) => transfer.forms[item]);
+                let forms = formIds.map((item) => transfer.forms[item]);
                 generateXlsx(
                   new Excel(
                     transfer.template<schema.XThing>(forms).map((sheet) => {
