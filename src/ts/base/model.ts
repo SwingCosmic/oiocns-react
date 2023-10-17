@@ -1102,7 +1102,7 @@ export type Script = {
 export type GStatus = 'Editable' | 'Viewable' | 'Running' | 'Error';
 
 // 图事件
-export type GEvent = 'Prepare' | 'Run' | 'Complete' | 'Edit' | 'Throw';
+export type GEvent = 'Prepare' | 'Run' | 'Complete' | 'Edit' | 'Throw' | 'Recover';
 
 // 节点状态
 export type NStatus = 'Stop' | 'Running' | 'Error' | 'Completed';

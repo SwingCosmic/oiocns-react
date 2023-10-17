@@ -13,7 +13,7 @@ export const GraphView: React.FC<IProps> = ({ current, options }) => {
   const ref = createRef<HTMLDivElement>();
   useEffect(() => {
     const graph = createGraph(ref, options);
-    graph.use(new Store(current, 'Viewable', 'ViewRun'));
+    graph.use(new Store(current));
     if (current.metadata.graph) {
       graph.fromJSON(current.metadata.graph);
     }

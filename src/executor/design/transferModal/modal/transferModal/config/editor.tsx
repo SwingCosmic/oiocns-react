@@ -18,7 +18,7 @@ const Editor: React.FC<IProps> = ({ current, options }) => {
   const ref = createRef<HTMLDivElement>();
   useEffect(() => {
     const graph = createGraph(ref, options);
-    graph.use(new Store(current, 'Editable', 'EditRun'));
+    graph.use(new Store(current));
     if (current.metadata.graph) {
       graph.fromJSON(current.metadata.graph);
     }
@@ -82,9 +82,6 @@ const Editor: React.FC<IProps> = ({ current, options }) => {
     const id = current.command.subscribe((type: string, cmd: string) => {
       if (type != 'graph') return;
       switch (cmd) {
-        case 'executing':
-          current.execute('Editable', 'Prepare');
-          break;
         case 'center':
           graph.centerContent();
           break;
