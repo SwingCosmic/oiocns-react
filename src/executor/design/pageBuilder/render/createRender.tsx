@@ -14,6 +14,7 @@ import { PageElement } from '../core/PageElement';
 import { ElementFC } from '../elements/defineElement';
 import ErrorBoundary from './ErrorBoundary';
 import { DesignContext, PageContext } from './PageContext';
+import { Slot } from './Slot';
 
 export type Render = FC<ElementRenderProps>;
 
@@ -21,6 +22,18 @@ export interface ElementRenderProps {
   readonly element: PageElement;
   readonly data?: any;
   readonly slotParams?: Dictionary<any>;
+}
+
+
+export function createSlotRender(slot: PageElement | PageElement[]) {
+  if (Array.isArray(slot)) {
+    return (params: Dictionary<any> = {}) => {
+      return slot.map(s => <Slot key={s.id} child={s} params={params}/>);
+    }
+  }
+  return (params: Dictionary<any> = {}) => {
+    return <Slot child={slot} params={params}/>
+  }
 }
 
 /**
@@ -37,7 +50,6 @@ export function mergeProps(
   const props = {
     ...e.props,
     ...slotParams,
-    ...e.slots,
   };
 
   let className = e.className;
@@ -64,6 +76,13 @@ export function mergeProps(
       }
     });
   }
+
+  if (e.slots) {
+    for (const [name, slot] of Object.entries(e.slots)) {
+      props[name] = createSlotRender(slot);
+    }
+  }
+
   props.data = data;
   return props;
 }

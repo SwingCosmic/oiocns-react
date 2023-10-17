@@ -4,7 +4,6 @@ import { Form } from '@/ts/core/thing/standard/form';
 import { Badge, Button, Col, Empty, Pagination, Row, Space, Tag } from 'antd';
 import React, { useEffect, useState } from 'react';
 import { ExistTypeMeta } from '../../core/ElementMeta';
-import { PageElement } from '../../core/PageElement';
 import { defineElement } from '../defineElement';
 import cls from './index.module.less';
 
@@ -59,18 +58,13 @@ export default defineElement({
           <div className={cls.contentGrid}>
             <Row gutter={[16, 16]}>
               {data.map((item) => {
-                props.content({ card: item });
-                // if (props.card) {
-                // const Render = ctx.view.components.getComponentRender(
-                //   props.card.kind,
-                //   ctx.view.mode,
-                // );
-                // return (
-                //   <Col key={item.id} span={props.span} className={cls.contentCard}>
-                //     <Render element={props.card} data={item} />
-                //   </Col>
-                // );
-                // }
+                if (props.content) {
+                  return (
+                    <Col key={item.id} span={props.span} className={cls.contentCard}>
+                      {props.content({ card: item })}
+                    </Col>
+                  );
+                }
                 return <Empty key={item.id} description={'未放置组件'} />;
               })}
             </Row>
@@ -122,6 +116,8 @@ export default defineElement({
     },
     slots: {
       content: {
+        label: "子元素内容插槽",
+        single: true,
         params: {
           card: {
             label: '列表数据',

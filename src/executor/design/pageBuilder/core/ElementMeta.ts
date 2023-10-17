@@ -2,6 +2,8 @@
 /* prettier-ignore */
 /** 不要格式化此文件，会对阅读源码造成严重影响 */
 
+import { PageElement } from "./PageElement";
+
 export type PrimitiveType = "string" | "number" | "boolean" | "date";
 export type ComplexType = "enum" | "array" | "object" | "type";
 export type DataType = PrimitiveType | ComplexType;
@@ -13,6 +15,7 @@ export interface TypeMetaBase<T extends DataType> {
   required?: boolean;
   label?: string;
   readonly?: boolean;
+  hidden?: boolean;
 }
 
 export interface PrimitiveTypeMeta<T extends PrimitiveType> extends TypeMetaBase<T> {}
@@ -55,13 +58,27 @@ export interface ParameterInfo<T extends TypeMeta = TypeMeta> {
   type: T;
 }
 
-export interface SlotMeta<P extends Dictionary<ParameterInfo> = Dictionary<ParameterInfo>> {
+interface SlotMetaBase<P extends Dictionary<ParameterInfo>> {
   /** 插槽的参数列表 */
   params: P;
+  label?: string;
+}
+export interface SingleSlotMeta<
+  P extends Dictionary<ParameterInfo> = Dictionary<ParameterInfo>,
+> extends SlotMetaBase<P> {
+  single: true;
+}
+export interface MultipleSlotMeta<
+  P extends Dictionary<ParameterInfo> = Dictionary<ParameterInfo>,
+> extends SlotMetaBase<P> {
+  single?: false;
 }
 
-export type SlotFunction<S extends Dictionary<any> = Dictionary<any>> = 
-  (scope: S) => JSX.Element | JSX.Element[];
+export type SlotMeta = SingleSlotMeta | MultipleSlotMeta;
+
+export type SlotFunction<
+  S extends Dictionary<any> = Dictionary<any>,
+> = (scope: S) => JSX.Element | JSX.Element[];
 
 export interface ElementMeta {
   /** 定义属性的类型 */

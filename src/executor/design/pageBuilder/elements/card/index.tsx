@@ -93,6 +93,7 @@ export default defineElement({
         type: 'type',
         typeName: 'empty',
         label: '数据',
+        hidden: true,
       } as ExistTypeMeta<schema.XThing>,
       image: {
         type: 'type',
