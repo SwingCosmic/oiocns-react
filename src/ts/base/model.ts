@@ -1024,7 +1024,7 @@ export interface Column {
   // 类型
   valueType: string;
   // 映射
-  lookups?: { id: string; text: string }[];
+  lookups?: { id: string; text: string; value: string }[];
 }
 
 // 映射

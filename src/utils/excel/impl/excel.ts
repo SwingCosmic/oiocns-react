@@ -81,7 +81,8 @@ export const collecting = (
                 if (column.lookups) {
                   for (const item of column.lookups) {
                     if (item.text == value) {
-                      ansItem[column.dataIndex] = item.id;
+                      ansItem[column.dataIndex] = item.value;
+                      ansItem[item.value] = item.text;
                       break;
                     }
                   }
