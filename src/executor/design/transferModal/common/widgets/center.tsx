@@ -108,19 +108,16 @@ export const Center: React.FC<IProps> = ({ current }) => {
           {
             switch (cmd) {
               case 'input':
-                {
-                  const { form, formNode } = args;
-                  setCenter(
-                    <InputModal
-                      key={generateUuid()}
-                      current={form}
-                      finished={(value) => {
-                        current.command.emitter('data', 'inputCall', { value, formNode });
-                        setEmpty();
-                      }}
-                    />,
-                  );
-                }
+                setCenter(
+                  <InputModal
+                    key={generateUuid()}
+                    current={args}
+                    finished={(value) => {
+                      current.command.emitter('data', 'inputCall', value);
+                      setEmpty();
+                    }}
+                  />,
+                );
                 break;
               case 'selection':
                 {

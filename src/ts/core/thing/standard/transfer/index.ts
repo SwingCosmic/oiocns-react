@@ -54,7 +54,7 @@ export interface ITransfer extends IStandardFileInfo<model.Transfer> {
   template<T>(forms: IForm[]): model.Sheet<T>[];
   /** 创建任务 */
   execute(
-    status: model.GStatus,
+    status: 'Editable' | 'Viewable',
     event: model.GEvent,
     task?: ITask,
     data?: any,
@@ -66,6 +66,7 @@ const Machine: model.Shift<model.GEvent, model.GStatus>[] = [
   { start: 'Viewable', event: 'Run', end: 'Running' },
   { start: 'Running', event: 'Complete', end: 'Viewable' },
   { start: 'Running', event: 'Throw', end: 'Error' },
+  { start: 'Error', event: 'Recover', end: 'Viewable' },
   { start: 'Viewable', event: 'Edit', end: 'Editable' },
 ];
 
@@ -310,7 +311,7 @@ export class Transfer extends StandardFileInfo<model.Transfer> implements ITrans
   }
 
   async execute(
-    status: model.GStatus,
+    status: 'Editable' | 'Viewable',
     event: model.GEvent,
     pre?: ITask,
     data?: any,
@@ -319,6 +320,7 @@ export class Transfer extends StandardFileInfo<model.Transfer> implements ITrans
       throw new Error('正在运行中！');
     }
     this.isRunning = true;
+    this.status = status;
     this.curTask = new Task(status, event, this, pre);
     this.taskList.push(this.curTask);
     if (event == 'Prepare') {
@@ -331,6 +333,7 @@ export class Transfer extends StandardFileInfo<model.Transfer> implements ITrans
       this.machine('Complete', this.curTask);
     } catch (error) {
       this.machine('Throw', this.curTask);
+      this.machine('Recover', this.curTask);
     }
     if (event == 'Prepare') {
       this.machine('Edit');

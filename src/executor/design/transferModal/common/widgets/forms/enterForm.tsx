@@ -41,19 +41,19 @@ export const EnterForm: React.FC<IProps> = ({ transfer, current, finished }) => 
     CodeColumn,
     {
       title: '表单',
-      dataIndex: 'form',
+      dataIndex: 'formId',
       formItemProps: {
         rules: [{ required: true, message: '表单为必填项' }],
       },
       colProps: { span: 24 },
       renderFormItem: (_, __, form) => {
-        const item = transfer.forms[form.getFieldValue('form')];
+        const item = transfer.forms[form.getFieldValue('formId')];
         return (
           <Input
             value={item?.name}
             onClick={() => {
               transfer.command.emitter('data', 'file', {
-                prop: 'form',
+                prop: 'formId',
                 accepts: ['实体配置', '事项配置'],
               });
             }}
