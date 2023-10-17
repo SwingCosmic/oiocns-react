@@ -15,9 +15,15 @@ const Coder: React.FC<{}> = () => {
     <CodeMirror
       style={{ marginTop: 10 }}
       value={data}
-      editable={false}
       extensions={[json()]}
-      onChange={setData}
+      onChange={(value) => {
+        try {
+          ctx.view.rootChildren = JSON.parse(value);
+          ctx.view.emitter('change', 'all');
+        } catch (error) {
+          console.log(error);
+        }
+      }}
     />
   );
 };

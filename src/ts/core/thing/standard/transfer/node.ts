@@ -102,9 +102,6 @@ export class TablesNode extends Node<model.Tables> {
   async function(): Promise<{ [key: string]: schema.XThing[] }> {
     return new Promise((resolve, reject) => {
       try {
-        if (!this.metadata.file?.shareLink) {
-          throw new Error('未选择文件！');
-        }
         const id = this.command.subscribe((type, cmd, args) => {
           if (type == 'data' && cmd == 'readingCall') {
             if (args instanceof Error) {

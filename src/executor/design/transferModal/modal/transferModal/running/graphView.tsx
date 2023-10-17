@@ -21,9 +21,6 @@ export const GraphView: React.FC<IProps> = ({ current, options }) => {
     const id = current.command.subscribe((type: string, cmd: string) => {
       if (type != 'graph') return;
       switch (cmd) {
-        case 'executing':
-          current.execute('Viewable', 'Run');
-          break;
         case 'center':
           graph.centerContent();
           break;
