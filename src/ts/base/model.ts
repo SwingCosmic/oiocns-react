@@ -1099,16 +1099,16 @@ export type Script = {
 };
 
 // 图状态
-export type GStatus = 'Editable' | 'Viewable' | 'Running' | 'Completed' | 'Error';
+export type GStatus = 'Editable' | 'Viewable' | 'Running';
 
 // 图事件
-export type GEvent = 'Prepare' | 'Run' | 'Throw' | 'Completed';
+export type GEvent = 'Prepare' | 'Run' | 'Complete' | 'Edit';
 
 // 节点状态
-export type NStatus = GStatus;
+export type NStatus = 'Stop' | 'Running' | 'Error' | 'Completed';
 
 // 节点事件
-export type NEvent = GEvent;
+export type NEvent = 'Start' | 'Throw' | 'Complete';
 
 // 节点类型
 export type NodeType = '表单' | '表格' | '请求' | '子图' | '映射' | '存储';

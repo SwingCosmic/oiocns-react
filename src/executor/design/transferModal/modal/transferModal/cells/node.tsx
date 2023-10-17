@@ -96,8 +96,8 @@ export const GraphNode: React.FC<IProps> = memo(({ node, graph }: IProps) => {
         style={{ position: 'absolute', left: 40, top: 20 }}
       />
       <Info node={data} style={{ left: 200, top: 16 }} />
-      <Remove store={store} node={node} transfer={transfer} data={data} />
-      <ContextMenu store={store} node={node} transfer={transfer} data={data} />
+      <Remove node={node} transfer={transfer} />
+      <ContextMenu node={node} transfer={transfer} data={data} />
     </div>
   );
 });
@@ -115,25 +115,20 @@ export const ProcessingNode: React.FC<IProps> = ({ node, graph }) => {
       <Tag typeName={data.typeName} transfer={transfer} />
       <Info node={data} />
       <NodeStatus store={store} transfer={transfer} node={node} data={data} />
-      <Remove store={store} transfer={transfer} node={node} data={data} />
-      <ContextMenu store={store} transfer={transfer} node={node} data={data} />
+      <Remove transfer={transfer} node={node} />
+      <ContextMenu transfer={transfer} node={node} data={data} />
     </div>
   );
 };
 
 interface RemoveProps {
-  store?: Store;
   transfer?: ITransfer;
   node: Node;
-  data: model.Node;
 }
 
-const Remove: React.FC<RemoveProps> = ({ store, transfer, node, data }) => {
+const Remove: React.FC<RemoveProps> = ({ transfer, node }) => {
   const [show, setShow] = useState<boolean>(false);
-  const graphStatus = store?.status;
-  const dataStatus = data.status ?? graphStatus ?? 'Editable';
-  const [status, setStatus] = useState<model.NStatus>(dataStatus);
-  const editableStatus = ['Editable', 'Viewable', 'Completed'];
+  const [status, setStatus] = useState(transfer?.status);
   useEffect(() => {
     const id = transfer?.command.subscribe((type, cmd, args) => {
       switch (type) {
@@ -154,6 +149,12 @@ const Remove: React.FC<RemoveProps> = ({ store, transfer, node, data }) => {
         case 'running':
           setStatus(args[0].status);
           break;
+        case 'graph':
+          switch (cmd) {
+            case 'status':
+              setStatus(args);
+              break;
+          }
       }
     });
     return () => {
@@ -162,7 +163,7 @@ const Remove: React.FC<RemoveProps> = ({ store, transfer, node, data }) => {
   });
   return (
     <>
-      {show && graphStatus == 'Editable' && editableStatus.indexOf(status) != -1 && (
+      {show && status == 'Editable' && (
         <CloseCircleOutlined
           style={{ color: '#9498df', fontSize: 12 }}
           className={cls.remove}
@@ -181,15 +182,8 @@ export interface StatusProps {
   style?: CSSProperties;
 }
 
-export const NodeStatus: React.FC<StatusProps> = ({
-  store,
-  transfer,
-  node,
-  data,
-  style,
-}) => {
-  const dataStatus = data.status ?? store?.status ?? 'Editable';
-  const [status, setStatus] = useState<model.NStatus>(dataStatus);
+export const NodeStatus: React.FC<StatusProps> = ({ transfer, node, data, style }) => {
+  const [status, setStatus] = useState<model.NStatus>(data.status ?? 'Stop');
   useEffect(() => {
     const id = transfer?.command.subscribe((type, cmd, args) => {
       switch (type) {
@@ -197,11 +191,11 @@ export const NodeStatus: React.FC<StatusProps> = ({
           const [data, error] = args;
           if (data.id == node.id) {
             switch (cmd) {
-              case 'start':
-              case 'completed':
+              case 'Start':
+              case 'Complete':
                 setStatus(data.status);
                 break;
-              case 'error':
+              case 'Throw':
                 setStatus('Error');
                 message.error(error.message);
                 break;
@@ -219,15 +213,13 @@ export const NodeStatus: React.FC<StatusProps> = ({
 };
 
 interface SProps {
-  status: model.GStatus;
+  status: model.NStatus;
   style?: CSSProperties;
 }
 
 export const Status: React.FC<SProps> = ({ status, style }) => {
   switch (status) {
-    case 'Editable':
-      return <PauseCircleOutlined style={{ color: '#9498df', fontSize: 18, ...style }} />;
-    case 'Viewable':
+    case 'Stop':
       return <PauseCircleOutlined style={{ color: '#9498df', fontSize: 18, ...style }} />;
     case 'Running':
       return <LoadingOutlined style={{ color: '#9498df', fontSize: 18, ...style }} />;
@@ -257,13 +249,12 @@ const Tag: React.FC<TagProps> = ({ typeName, transfer, style }) => {
 };
 
 interface ContextProps {
-  store?: Store;
   transfer?: ITransfer;
   node: Node;
   data: model.Node;
 }
 
-const ContextMenu: React.FC<ContextProps> = ({ store, transfer, node, data }) => {
+const ContextMenu: React.FC<ContextProps> = ({ transfer, node, data }) => {
   const menus: { [key: string]: MenuItemType } = {
     open: {
       key: 'edit',
@@ -293,10 +284,7 @@ const ContextMenu: React.FC<ContextProps> = ({ store, transfer, node, data }) =>
   const div = createRef<HTMLDivElement>();
   const [menu, setMenu] = useState<boolean>();
   const [pos, setPos] = useState<{ x: number; y: number }>();
-  const graphStatus = store?.status;
-  const dataStatus = data.status ?? graphStatus ?? 'Editable';
-  const [status, setStatus] = useState<model.NStatus>(dataStatus);
-  const editableStatus = ['Editable', 'Viewable', 'Completed', 'Error'];
+  const [status, setStatus] = useState(transfer?.status);
   useEffect(() => {
     div.current?.focus();
     const id = transfer?.command.subscribe((type, cmd, args) => {
@@ -312,9 +300,12 @@ const ContextMenu: React.FC<ContextProps> = ({ store, transfer, node, data }) =>
               break;
           }
           break;
-        case 'running':
-          setStatus(args[0].status);
-          break;
+        case 'graph':
+          switch (cmd) {
+            case 'status':
+              setStatus(args);
+              break;
+          }
       }
     });
     return () => {
@@ -323,7 +314,7 @@ const ContextMenu: React.FC<ContextProps> = ({ store, transfer, node, data }) =>
   });
   return (
     <>
-      {menu && graphStatus == 'Editable' && editableStatus.indexOf(status) != -1 && (
+      {menu && status == 'Editable' && (
         <div
           ref={div}
           style={{ left: pos?.x, top: pos?.y }}

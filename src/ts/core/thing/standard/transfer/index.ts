@@ -24,6 +24,8 @@ export interface ITransfer extends IStandardFileInfo<model.Transfer> {
   curEnv?: model.Environment;
   /** 当前任务 */
   curTask?: ITask;
+  /** 当前状态 */
+  status: model.GStatus;
   /** 关联的表单 */
   forms: { [id: string]: IForm };
   /** 加载表单 */
@@ -59,10 +61,18 @@ export interface ITransfer extends IStandardFileInfo<model.Transfer> {
   ): Promise<void>;
 }
 
+const Machine: model.Shift<model.GEvent, model.GStatus>[] = [
+  { start: 'Editable', event: 'Prepare', end: 'Viewable' },
+  { start: 'Viewable', event: 'Run', end: 'Running' },
+  { start: 'Running', event: 'Complete', end: 'Viewable' },
+  { start: 'Viewable', event: 'Edit', end: 'Editable' },
+];
+
 export class Transfer extends StandardFileInfo<model.Transfer> implements ITransfer {
   constructor(metadata: model.Transfer, dir: IDirectory) {
     super(metadata, dir, dir.resource.transferColl);
     this.taskList = [];
+    this.status = 'Editable';
     this.forms = {};
     this.transfers = {};
     this.applications = {};
@@ -73,6 +83,7 @@ export class Transfer extends StandardFileInfo<model.Transfer> implements ITrans
 
   command: Command;
   taskList: ITask[];
+  status: model.GStatus;
   forms: { [id: string]: IForm };
   transfers: { [id: string]: ITransfer };
   applications: { [id: string]: IApplication };
@@ -301,9 +312,28 @@ export class Transfer extends StandardFileInfo<model.Transfer> implements ITrans
     pre?: ITask,
     data?: any,
   ): Promise<void> {
-    this.curTask = new Task(this, event, status, pre);
+    this.curTask = new Task(status, event, this, pre);
     this.taskList.push(this.curTask);
+    if (event == 'Prepare') {
+      this.machine('Prepare', this.curTask);
+    }
+    this.machine('Run', this.curTask);
     await this.curTask.starting(data);
+    this.machine('Complete', this.curTask);
+    if (event == 'Prepare') {
+      this.machine('Edit', this.curTask);
+    }
+  }
+
+  machine(event: model.GEvent, task: ITask): void {
+    for (const shift of Machine) {
+      if (shift.start == this.status && event == shift.event) {
+        this.status = shift.end;
+        this.command.emitter('graph', 'status', this.status);
+        task.metadata.status = this.status;
+        this.command.emitter('tasks', 'refresh');
+      }
+    }
   }
 }
 

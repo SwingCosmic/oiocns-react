@@ -83,7 +83,7 @@ const Editor: React.FC<IProps> = ({ current, options }) => {
       if (type != 'graph') return;
       switch (cmd) {
         case 'executing':
-          current.execute('Editable', 'Run');
+          current.execute('Editable', 'Prepare');
           break;
         case 'center':
           graph.centerContent();

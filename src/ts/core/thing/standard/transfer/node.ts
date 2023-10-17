@@ -17,10 +17,9 @@ export interface INode<T extends model.Node = model.Node> {
 }
 
 const NodeMachine: model.Shift<model.NEvent, model.NStatus>[] = [
-  { start: 'Editable', event: 'Prepare', end: 'Viewable' },
-  { start: 'Viewable', event: 'Run', end: 'Running' },
-  { start: 'Running', event: 'Completed', end: 'Completed' },
+  { start: 'Stop', event: 'Start', end: 'Running' },
   { start: 'Running', event: 'Throw', end: 'Error' },
+  { start: 'Running', event: 'Complete', end: 'Completed' },
 ];
 
 export abstract class Node<T extends model.Node = model.Node> implements INode<T> {
@@ -48,13 +47,12 @@ export abstract class Node<T extends model.Node = model.Node> implements INode<T
     return this.task.transfer;
   }
 
-  machine(event: model.NEvent) {
+  machine(event: model.NEvent, data: any) {
     for (const item of NodeMachine) {
       if (item.event == event) {
         if (this.metadata.status == item.start) {
           this.metadata.status = item.end;
-        } else {
-          throw new Error('状态异常！');
+          this.command.emitter('running', event, data);
         }
       }
     }
@@ -62,9 +60,7 @@ export abstract class Node<T extends model.Node = model.Node> implements INode<T
 
   async executing(data: any, env?: model.KeyValue): Promise<any> {
     try {
-      this.machine('Prepare');
-      this.machine('Run');
-      this.command.emitter('running', 'start', [this.metadata]);
+      this.machine('Start', [this.metadata]);
       await sleep(500);
       if (this.metadata.preScript) {
         data = { ...data, ...this.transfer.running(this.metadata.preScript, data, env) };
@@ -73,15 +69,13 @@ export abstract class Node<T extends model.Node = model.Node> implements INode<T
       if (this.metadata.postScript) {
         next = { ...next, ...this.transfer.running(this.metadata.postScript, next, env) };
       }
-      this.machine('Completed');
       this.task.visitedNodes.set(this.id, { code: this.code, data: next });
-      this.command.emitter('running', 'completed', [this.metadata]);
+      this.machine('Complete', [this.metadata]);
     } catch (error) {
-      this.machine('Throw');
       this.task.visitedNodes.set(this.id, { code: this.code, data: error });
-      this.command.emitter('running', 'error', [this.metadata, error]);
-      throw error;
+      this.machine('Throw', [this.metadata, error]);
     }
+    this.command.emitter('environments', 'refresh');
   }
 
   abstract function(data: { [key: string]: any }, env?: model.KeyValue): Promise<any>;
@@ -161,6 +155,9 @@ export class MappingNode extends Node<model.Mapping> {
         }
       });
       for (const mapping of this.metadata.mappings) {
+        if (!oldThing[mapping.source] && oldThing[mapping.source] !== 0) {
+          continue;
+        }
         if (mapping.source in oldThing) {
           if (mapping.typeName && ['选择型', '分类型'].includes(mapping.typeName)) {
             const oldValue = oldThing[mapping.source];

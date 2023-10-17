@@ -22,7 +22,7 @@ export const GraphView: React.FC<IProps> = ({ current, options }) => {
       if (type != 'graph') return;
       switch (cmd) {
         case 'executing':
-          current.execute('Viewable', 'Prepare');
+          current.execute('Viewable', 'Run');
           break;
         case 'center':
           graph.centerContent();
