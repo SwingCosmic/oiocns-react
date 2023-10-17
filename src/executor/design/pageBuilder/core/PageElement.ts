@@ -14,6 +14,7 @@ export interface PageElement<
   kind: K;
   name: string;
   data?: D;
+  /** 子元素（默认插槽） */
   children: PageElement[];
 
   /** CSS类名 */
@@ -22,6 +23,8 @@ export interface PageElement<
   style?: string | CSSProperties;
   /** 属性 */
   props: NoFunctionPropertyObject<P>;
+  /** 插槽 */
+  slots?: Dictionary<PageElement[]>;
 }
 
 declare module '@/ts/base/schema' {

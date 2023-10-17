@@ -20,6 +20,7 @@ export type Render = FC<ElementRenderProps>;
 export interface ElementRenderProps {
   readonly element: PageElement;
   readonly data?: any;
+  readonly slotParams?: Dictionary<any>;
 }
 
 /**
@@ -27,8 +28,12 @@ export interface ElementRenderProps {
  * @param e 要处理的元素
  * @returns ReactNode所需的属性对象
  */
-export function mergeProps(e: PageElement, c: ElementFC, data?: any) {
-  const props = { ...e.props };
+export function mergeProps(e: PageElement, c: ElementFC, slotParams: Dictionary<any> = {}, data?: any) {
+  const props = { 
+    ...e.props,
+    ...slotParams,
+    ...e.slots
+  };
 
   let className = e.className;
   if (Array.isArray(className)) {
@@ -68,7 +73,7 @@ export function createRender(component: ElementFC, mode: HostMode): Render {
 
 function createViewRender(component: ElementFC) {
   return (props: ElementRenderProps) => {
-    return h(component, mergeProps(props.element, component, props.data));
+    return h(component, mergeProps(props.element, component, props.slotParams, props.data));
   };
 }
 
@@ -90,7 +95,7 @@ function createDesignRender(component: ElementFC) {
             ctx.view.currentElement?.id == props.element.id ? 'is-current' : '',
           ].join(' ')}
           onClick={handleClick}>
-          {h(component, mergeProps(props.element, component))}
+          {h(component, mergeProps(props.element, component, props.slotParams))}
         </div>
       </ErrorBoundary>
     );

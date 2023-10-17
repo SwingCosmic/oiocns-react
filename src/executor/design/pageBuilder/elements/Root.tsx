@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { defineElement } from './defineElement';
 import { EnumTypeMeta } from '../core/ElementMeta';
+import { Slot } from '../render/Slot';
 
 export default defineElement({
   render(props, ctx) {
@@ -23,11 +24,7 @@ export default defineElement({
         ) : (
           <></>
         )}
-        {props.children.map((c) => {
-          // 自递归渲染
-          const Render = ctx.view.components.getComponentRender(c.kind, ctx.view.mode);
-          return <Render key={c.id} element={c} />;
-        })}
+        {props.children.map((c) => <Slot key={c.id} child={c} />)}
       </div>
     );
   },

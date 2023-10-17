@@ -1,11 +1,11 @@
 /* eslint-disable prettier/prettier */
 /* prettier-ignore */
-/** 不要改动此文件 */
+/** 不要格式化此文件，会对阅读源码造成严重影响 */
 
-export type PrimitiveType = 'string' | 'number' | 'boolean' | 'date';
-export type ComplexType = 'enum' | 'array' | 'object' | 'type';
+export type PrimitiveType = "string" | "number" | "boolean" | "date";
+export type ComplexType = "enum" | "array" | "object" | "type";
 export type DataType = PrimitiveType | ComplexType;
-export type ElementType = '元素' | '容器';
+export type ElementType = "元素" | "容器";
 
 export interface TypeMetaBase<T extends DataType> {
   type: T;
@@ -22,14 +22,14 @@ export interface EnumItem<V = any> {
   value: V;
 }
 
-export interface EnumTypeMeta<V = any> extends TypeMetaBase<'enum'> {
+export interface EnumTypeMeta<V = any> extends TypeMetaBase<"enum"> {
   options: EnumItem<V>[];
 }
 
-export interface ArrayTypeMeta extends TypeMetaBase<'array'> {
+export interface ArrayTypeMeta extends TypeMetaBase<"array"> {
   elementType: TypeMeta;
 }
-export interface ObjectTypeMeta extends TypeMetaBase<'object'> {
+export interface ObjectTypeMeta extends TypeMetaBase<"object"> {
   properties: Dictionary<TypeMeta>;
 }
 
@@ -37,7 +37,7 @@ export interface ObjectTypeMeta extends TypeMetaBase<'object'> {
 // @ts-ignore
 // eslint-disable-next-line no-unused-vars
 export interface ExistTypeMeta<T, C extends {} = Dictionary<any>>
-  extends TypeMetaBase<'type'> {
+  extends TypeMetaBase<"type"> {
   typeName: string;
   editorConfig?: C;
 }
@@ -49,6 +49,20 @@ export type TypeMeta =
   | ObjectTypeMeta
   | ExistTypeMeta<any>;
 
+
+export interface ParameterInfo<T extends TypeMeta = TypeMeta> {
+  name: string;
+  type: T;
+}
+
+export interface SlotMeta<P extends ParameterInfo[] = ParameterInfo[]> {
+  /** 插槽的参数列表 */
+  params: [...P];
+}
+
+export type SlotFunction<S extends Dictionary<any> = Dictionary<any>> = 
+  (scope: S) => JSX.Element | JSX.Element[];
+
 export interface ElementMeta {
   /** 定义属性的类型 */
   props: Dictionary<TypeMeta>;
@@ -56,24 +70,36 @@ export interface ElementMeta {
   label: string;
   /** 元素类型 */
   type: ElementType;
+  slots?: Dictionary<SlotMeta>;
 }
 
 /**
  * 类型体操，设计时解出一个`TypeMeta`字面量对应的数据类型
  */
-export type ExtractToType<T extends TypeMeta> = 
+export type ExtractType<T extends TypeMeta> = 
   T["type"] extends "string" ? string :
   T["type"] extends "number" ? number :
   T["type"] extends "boolean" ? boolean :
   T["type"] extends "date" ? string :
   T extends EnumTypeMeta<infer R> ? R :
-  T extends ArrayTypeMeta ? ExtractToType<T["elementType"]>[] :
+  T extends ArrayTypeMeta ? ExtractType<T["elementType"]>[] :
   T extends ObjectTypeMeta ? {
-    [P in keyof T["properties"]]: ExtractToType<T["properties"][P]>
+    [P in keyof T["properties"]]: ExtractType<T["properties"][P]>
   } : 
   T extends ExistTypeMeta<infer R> ? R :
   any;
 
+/**
+ * 类型体操，将`ParameterInfo数组`解成键值对形式
+ */
+export type ExtractParams<P extends ParameterInfo[] = ParameterInfo[]> = {
+  [I in keyof P & number as P[I]["name"]]: ExtractType<P[I]["type"]>;
+};
+
+export type ExtractSlot<T extends SlotMeta> = SlotFunction<ExtractParams<T["params"]>>;
+
 export type ExtractMetaToType<T extends ElementMeta> = {
-  [P in keyof T['props']]: ExtractToType<T['props'][P]>;
+  [P in keyof T["props"]]: ExtractType<T["props"][P]>;
+} & {
+  [S in keyof T["slots"]]: ExtractSlot<T["slots"][S]>;
 };
