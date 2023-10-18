@@ -8,7 +8,7 @@ import { shareOpenLink } from '@/utils/tools';
 import { XProperty } from '@/ts/base/schema';
 
 interface PosProps {
-  property: XProperty;
+  property?: XProperty;
 }
 
 interface DataProps extends PosProps {
@@ -16,27 +16,29 @@ interface DataProps extends PosProps {
 }
 
 const Content: React.FC<DataProps> = ({ data, property }) => {
-  let value = property.name + ':';
-  if (data && data['T' + property.id]) {
-    value += data['T' + property.id];
+  let value = '';
+  if (data && property) {
+    value = property.name + ':' + data['T' + property.id];
   }
   return <div style={{ overflow: 'hidden', textOverflow: 'ellipsis' }}>{value}</div>;
 };
 
 const ImageContent: React.FC<DataProps> = ({ data, property }) => {
-  let file = data?.['T' + property.id];
   let shareLink = '';
-  if (file) {
-    const parsedFile = JSON.parse(file);
-    if (parsedFile.length > 0) {
-      shareLink = parsedFile[0].shareLink;
+  if (data && property) {
+    let file = data['T' + property.id];
+    if (file) {
+      const parsedFile = JSON.parse(file);
+      if (parsedFile.length > 0) {
+        shareLink = parsedFile[0].shareLink;
+      }
     }
   }
   return <Image height={200} src={shareLink ? shareOpenLink(shareLink) : Asset} />;
 };
 
 const Position: React.FC<PosProps> = ({ property }) => {
-  return <>{property.name}</>;
+  return <>{property?.name}</>;
 };
 
 const ImagePosition: React.FC<PosProps> = () => {
@@ -100,39 +102,39 @@ export default defineElement({
         typeName: 'propFile',
         label: '图片',
         default: { name: '主图片' },
-      } as ExistTypeMeta<XProperty>,
+      } as ExistTypeMeta<XProperty | undefined>,
       first: {
         type: 'type',
         typeName: 'propFile',
         label: '位置-1',
         default: { name: '位置-1' },
-      } as ExistTypeMeta<XProperty>,
+      } as ExistTypeMeta<XProperty | undefined>,
       second: {
         type: 'type',
         typeName: 'propFile',
         label: '位置-2',
         default: { name: '位置-2' },
-      } as ExistTypeMeta<XProperty>,
+      } as ExistTypeMeta<XProperty | undefined>,
       third: {
         type: 'type',
         typeName: 'propFile',
         label: '位置-3',
         default: { name: '位置-3' },
-      } as ExistTypeMeta<XProperty>,
+      } as ExistTypeMeta<XProperty | undefined>,
       fourth: {
         type: 'type',
         typeName: 'propFile',
         label: '位置-4',
         default: { name: '位置-4' },
-      } as ExistTypeMeta<XProperty>,
+      } as ExistTypeMeta<XProperty | undefined>,
       fifth: {
         type: 'type',
         typeName: 'propFile',
         label: '位置-5',
         default: { name: '位置-5' },
-      } as ExistTypeMeta<XProperty>,
+      } as ExistTypeMeta<XProperty | undefined>,
     },
-    type: '元素',
+    type: 'Element',
     label: '实体详情',
   },
 });

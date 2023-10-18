@@ -37,10 +37,12 @@ export default defineFC({
     const elementTypes = useMemo(() => {
       const ret: { label: string; value: string }[] = [];
       for (const [name, meta] of Object.entries(ctx.view.elements.elementMeta)) {
-        ret.push({
-          value: name,
-          label: meta?.label,
-        });
+        if (name != 'Root') {
+          ret.push({
+            value: name,
+            label: meta?.label,
+          });
+        }
       }
       return ret;
     }, []);

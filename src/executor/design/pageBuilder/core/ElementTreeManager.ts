@@ -100,13 +100,13 @@ export default class ElementTreeManager {
       if (!currentParent) {
         throw new ReferenceError(`找不到元素 ${e.id} 的父级：${e.parentId}`);
       }
+      this.removeElement(e, false);
+      this.setParent(e, parent, slotName);
       Object.defineProperty(e, 'parentId', {
         value: parentId,
         configurable: true,
         enumerable: false,
       });
-      this.removeElement(e, false);
-      this.setParent(e, parent, slotName);
     }
   }
 
@@ -188,5 +188,15 @@ export default class ElementTreeManager {
       return true;
     }
     return false;
+  }
+
+  moveElement(e: PageElement, parentId: string, position: number) {
+    const view = e as PageElementView;
+    if (view.parentId != parentId) {
+      throw new Error('此方法用于平级元素拖动！');
+    }
+    const parent = this.getParent(parentId);
+    const index = parent.children.indexOf(e);
+    parent.children.splice(position, 0, parent.children.splice(index, 1)[0]);
   }
 }

@@ -43,7 +43,7 @@ export default defineElement({
         default: 'scroll',
       } as EnumTypeMeta<'scroll' | 'full'>,
     },
-    type: '容器',
+    type: 'Container',
     label: '模板根元素',
   },
 });

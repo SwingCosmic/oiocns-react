@@ -4,7 +4,7 @@
   top: 16px;
   left: 50%;
   transform: translate(-50%);
-  background-color: rgba(@component-background, 0.7);
+  background-color: rgba(@component-background, 1);
   display: flex;
   font-size: 14px;
   color: @text-color;
@@ -14,8 +14,9 @@
   &Content {
     display: flex;
     justify-content: center;
-    gap: 16px;
     flex: 1;
+    overflow: scroll;
+    white-space: nowrap;
     &__item {
       transition: 0.2s;
       cursor: pointer;
@@ -50,7 +51,8 @@
   }
 
   &Config {
-    width: 100%;
+    max-width: 800px;
+
     &Header {
       display: flex;
       justify-content: space-between;

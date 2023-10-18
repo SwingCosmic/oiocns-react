@@ -29,7 +29,7 @@ export default defineElement({
   displayName: 'Flex',
   meta: {
     label: 'Flex面板',
-    type: '容器',
+    type: 'Container',
     props: {
       flexDirection: {
         type: 'enum',

@@ -30,6 +30,6 @@ export default defineElement({
       } as ExistTypeMeta<schema.XEntity | undefined>,
     },
     label: '横幅',
-    type: '元素',
+    type: 'Element',
   },
 });

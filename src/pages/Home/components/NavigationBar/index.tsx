@@ -5,7 +5,7 @@ import { command } from '@/ts/base';
 import orgCtrl from '@/ts/controller';
 import { IPageTemplate } from '@/ts/core/thing/standard/page';
 import { EllipsisOutlined, MinusCircleFilled, PlusCircleFilled } from '@ant-design/icons';
-import { Badge, Button, Space, Typography, message } from 'antd';
+import { Badge, Button, Row, Typography, message } from 'antd';
 import { NavigationItem } from '../..';
 import cls from './index.module.less';
 import { ViewerHost } from '@/executor/design/pageBuilder/view/ViewerHost';
@@ -80,7 +80,7 @@ const NavigationBar: React.FC<{
         </div>
         <div className={cls.navigationBarConfigSection}>
           <Typography.Title level={5}>常用页面</Typography.Title>
-          <Space size={16}>
+          <Row gutter={[16, 16]}>
             {pages
               .filter((item) => item.cache.tags?.includes('常用'))
               .map((item, index) => {
@@ -99,11 +99,11 @@ const NavigationBar: React.FC<{
                   </Badge>
                 );
               })}
-          </Space>
+          </Row>
         </div>
         <div className={cls.navigationBarConfigSection}>
           <Typography.Title level={5}>全部页面</Typography.Title>
-          <Space size={16}>
+          <Row gutter={[16, 16]}>
             {pages.map((item, index) => {
               return (
                 <Badge
@@ -124,7 +124,7 @@ const NavigationBar: React.FC<{
                 </Badge>
               );
             })}
-          </Space>
+          </Row>
         </div>
       </div>
     </>

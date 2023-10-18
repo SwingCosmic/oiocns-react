@@ -4,6 +4,7 @@ import HostManagerBase from '../render/HostManager';
 import { IPageTemplate } from '@/ts/core/thing/standard/page';
 import { IDisposable } from '@/ts/base/common';
 import { ElementInit } from '../core/ElementTreeManager';
+import { message } from 'antd';
 
 export default class DesignerManager
   extends HostManagerBase<'design'>
@@ -28,9 +29,14 @@ export default class DesignerManager
     return this.treeManager.root.children;
   }
   set rootChildren(v: PageElement[]) {
-    this.treeManager.root.children = v;
-    this.treeManager.changeParent(v, this.treeManager.root.id);
-    this.currentElement = null;
+    try {
+      this.treeManager.root.children = v;
+      this.treeManager.changeParent(v, this.treeManager.root.id);
+      this.currentElement = null;
+    } catch (error) {
+      message.error(error instanceof Error ? error.message : String(error));
+      throw error;
+    }
   }
 
   private _currentElement: Signal<PageElement | null> = signal(null);
@@ -48,19 +54,44 @@ export default class DesignerManager
     parentId?: string,
     params: ElementInit<E> = {},
   ): E {
-    const e = this.treeManager.createElement(kind, name, slotName, parentId, params);
-    this.currentElement = e;
-    this.emitter('all', 'change');
-    return e as any;
+    try {
+      const e = this.treeManager.createElement(kind, name, slotName, parentId, params);
+      this.currentElement = e;
+      this.emitter('all', 'change');
+      return e as any;
+    } catch (error) {
+      message.error(error instanceof Error ? error.message : String(error));
+      throw error;
+    }
   }
 
   removeElement(e: PageElement, recursive?: boolean) {
-    this.treeManager.removeElement(e, recursive);
-    this.currentElement = null;
+    try {
+      this.treeManager.removeElement(e, recursive);
+      this.currentElement = null;
+    } catch (error) {
+      message.error(error instanceof Error ? error.message : String(error));
+      throw error;
+    }
   }
 
   changeElement(e: PageElement, targetId: string, slotName: string = 'default') {
-    this.treeManager.changeParent([e], targetId, slotName);
-    this.emitter('all', 'change');
+    try {
+      this.treeManager.changeParent([e], targetId, slotName);
+      this.emitter('all', 'change');
+    } catch (error) {
+      message.error(error instanceof Error ? error.message : String(error));
+      throw error;
+    }
+  }
+
+  moveElement(e: PageElement, targetId: string, position: number) {
+    try {
+      this.treeManager.moveElement(e, targetId, position);
+      this.emitter('all', 'change');
+    } catch (error) {
+      message.error(error instanceof Error ? error.message : String(error));
+      throw error;
+    }
   }
 }

@@ -1,13 +1,14 @@
 import EntityIcon from '@/components/Common/GlobalComps/entityIcon';
 import CustomTree from '@/components/CustomTree';
 import { MinusOutlined, PlusOutlined } from '@ant-design/icons';
-import { Button, Space, Tag, message } from 'antd';
+import { Button, Space, Tag } from 'antd';
 import React, { useRef, useState } from 'react';
 import { PageElement } from '../core/PageElement';
 import { DesignContext } from '../render/PageContext';
 import AddElementModal from './AddElementModal';
 import { removeElement } from './config/ElementProps';
 import cls from './tree.module.less';
+import { ElementType, ElementTypeName } from '../core/ElementMeta';
 
 interface IProps {
   ctx: DesignContext;
@@ -17,7 +18,7 @@ const buildElementTree = (
   element: PageElement,
   ctx: DesignContext,
   parent?: PageElement,
-  typeName?: string,
+  typeName?: ElementType,
   prop?: string,
   children: PageElement[] = [],
 ): any => {
@@ -35,6 +36,7 @@ const buildElementTree = (
         slots.push({ ele: ele as PageElement, prop: key, single: true });
       } else {
         ele = ctx.view.treeManager.factory.create('Any', slot.label ?? '数组插槽');
+        ele.props.seize = true;
         slots.push({ ele: ele, prop: key, single: false });
       }
     }
@@ -53,13 +55,13 @@ const buildElementTree = (
       ...element.children.map((item) => buildElementTree(item, ctx, element)),
       ...slots.map((item) => {
         if (item.single) {
-          return buildElementTree(item.ele, ctx, element, '插槽', item.prop);
+          return buildElementTree(item.ele, ctx, element, 'Slot', item.prop);
         } else {
           return buildElementTree(
             item.ele,
             ctx,
             element,
-            '数组插槽',
+            'ArraySlot',
             item.prop,
             element.slots?.[item.prop] as PageElement[],
           );
@@ -82,7 +84,7 @@ const TreeManager: React.FC<IProps> = ({ ctx }) => {
         draggable
         onSelect={(_, info) => {
           const node = info.node as any;
-          if (node.typeName == '插槽' && node.item.props.seize) {
+          if (['ArraySlot', 'Slot'].includes(node.typeName) && node.item.props.seize) {
             ctx.view.currentElement = node.parent;
             prop.current = node.prop;
             setVisible(true);
@@ -93,17 +95,16 @@ const TreeManager: React.FC<IProps> = ({ ctx }) => {
         }}
         selectedKeys={[ctx.view.currentElement?.id ?? '']}
         titleRender={(node: any) => {
-          const meta = ctx.view.treeManager.factory.getMeta(node.item.kind);
           return (
             <div className={cls.node}>
               <Space size={0}>
                 <Tag>{node.item.name}</Tag>
                 <Tag>{node.item.kind}</Tag>
-                <Tag>{node.typeName}</Tag>
+                <Tag>{ElementTypeName[node.typeName as ElementType]}</Tag>
                 {node.item.props.seize && <Tag color="red">未放置</Tag>}
               </Space>
               <Space>
-                {meta?.type == '容器' && (
+                {['ArraySlot', 'Container'].includes(node.typeName) && (
                   <Button
                     shape="circle"
                     size="small"
@@ -128,19 +129,18 @@ const TreeManager: React.FC<IProps> = ({ ctx }) => {
           );
         }}
         onDrop={(info) => {
-          const dragNode = info.dragNode as any;
-          const drag = dragNode.item;
-          const target = (info.node as any).item;
-          const meta = ctx.view.treeManager.factory.getMeta(target.kind);
-          if (dragNode.typeName == '插槽') {
-            message.error('插槽节点不能拖拽！');
-            return;
+          const dragItem = (info.dragNode as any).item;
+          const dropNode = info.node as any;
+          if (dragItem.parentId == dropNode.item.id) {
+            const positions = dropNode.pos.split('-');
+            ctx.view.moveElement(
+              dragItem,
+              dropNode.item.id,
+              positions[positions.length - 1],
+            );
+          } else {
+            ctx.view.changeElement(dragItem, dropNode.item.id);
           }
-          if (meta?.type != '容器') {
-            message.error('非布局节点，无法放置！');
-            return;
-          }
-          ctx.view.changeElement(drag, target);
         }}
       />
       <AddElementModal

@@ -1,4 +1,4 @@
-import { PageTemplate } from '@/ts/base/model';
+import { XPageTemplate } from '@/ts/base/schema';
 import ElementFactory from '../core/ElementFactory';
 import ElementTreeManager from '../core/ElementTreeManager';
 import ReactComponentFactory from './ReactComponentFactory';
@@ -35,7 +35,7 @@ export default class HostManagerBase<T extends HostMode>
     );
   }
 
-  get page(): PageTemplate {
+  get page(): XPageTemplate {
     return this.pageInfo.metadata;
   }
 

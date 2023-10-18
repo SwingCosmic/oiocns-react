@@ -76,7 +76,7 @@ export default class ElementFactory {
       ...defaults,
       ...params,
     } as any;
-    
+
     e.children = [];
     return e;
   }

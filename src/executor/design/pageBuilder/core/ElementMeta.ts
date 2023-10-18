@@ -5,7 +5,13 @@
 export type PrimitiveType = "string" | "number" | "boolean" | "date";
 export type ComplexType = "enum" | "array" | "object" | "type";
 export type DataType = PrimitiveType | ComplexType;
-export type ElementType = "元素" | "容器";
+export type ElementType = "Element" | "Container" | 'Slot' | 'ArraySlot';
+export enum ElementTypeName {
+  Element = '元素',
+  Container = '容器',
+  Slot = '插槽',
+  ArraySlot = '数组插槽',
+}
 
 export interface TypeMetaBase<T extends DataType> {
   type: T;
