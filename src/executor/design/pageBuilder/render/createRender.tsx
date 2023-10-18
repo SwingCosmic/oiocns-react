@@ -68,15 +68,6 @@ export function mergeProps(
   props.id = e.id;
   props.children = e.children;
 
-  // if (c.meta) {
-  //   const meta = c.meta;
-  //   Object.entries(meta.props).forEach(([prop, value]) => {
-  //     if (props[prop] == undefined && value.default != undefined) {
-  //       props[prop] = deepClone(value.default);
-  //     }
-  //   });
-  // }
-
   if (e.slots) {
     for (const [name, slot] of Object.entries(e.slots)) {
       props[name] = createSlotRender(slot);

@@ -1,5 +1,5 @@
 /* eslint-disable no-unused-vars */
-import { CSSProperties } from '@/ts/types/dom';
+import { CSSProperties } from 'typings/globelType';
 
 export type NoFunctionPropertyObject<T extends {}> = {
   [P in keyof T & string]: T[P] extends AnyFunction ? never : T[P];

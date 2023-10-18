@@ -125,7 +125,7 @@ export default defineElement({
         },
       },
     },
-    type: '元素',
+    type: 'Element',
     label: '公物仓',
   },
 });
