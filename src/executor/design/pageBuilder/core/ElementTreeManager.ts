@@ -2,7 +2,7 @@ import type ElementFactory from './ElementFactory';
 import { PageElement } from './PageElement';
 
 export type ElementInit<E extends PageElement> = Partial<
-  Pick<E, 'className' | 'style' | 'props' | 'data'>
+  Pick<E, 'className' | 'style' | 'props' | 'data' | 'slots'>
 >;
 
 export interface PageElementView extends PageElement {
