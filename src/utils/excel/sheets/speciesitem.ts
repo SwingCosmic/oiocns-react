@@ -1,11 +1,10 @@
-import { generateUuid } from '@/ts/base/common';
 import * as i from '../impl';
 import * as t from '../type';
 
 export class DictItemSheet extends i.Sheet<t.SpeciesItem> {
   constructor(directory: t.IDirectory) {
     super(
-      generateUuid(),
+      t.generateUuid(),
       '字典项定义',
       [
         { title: '字典代码', dataIndex: 'speciesCode', valueType: '描述型' },
@@ -26,7 +25,7 @@ export class DictItemSheet extends i.Sheet<t.SpeciesItem> {
 export class ClassifyItemSheet extends i.Sheet<t.SpeciesItem> {
   constructor(directory: t.IDirectory) {
     super(
-      generateUuid(),
+      t.generateUuid(),
       '分类项定义',
       [
         { title: '分类代码', dataIndex: 'speciesCode', valueType: '描述型' },
