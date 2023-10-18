@@ -1,6 +1,5 @@
 import OpenFileDialog from '@/components/OpenFileDialog';
 import LabelsModal from '@/executor/design/labelsModal';
-import OfficeView from '@/executor/open/office';
 import { schema } from '@/ts/base';
 import { generateUuid } from '@/ts/base/common';
 import { IFile, ITransfer } from '@/ts/core';
@@ -75,13 +74,6 @@ export const Center: React.FC<IProps> = ({ current }) => {
                     } else {
                       message.error('未绑定配置');
                     }
-                  }
-                  break;
-                case '表格':
-                  if (args.file) {
-                    setCenter(<OfficeView share={args.file} finished={setEmpty} />);
-                  } else {
-                    message.error('未上传文件');
                   }
                   break;
                 case '表单':

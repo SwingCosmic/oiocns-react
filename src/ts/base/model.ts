@@ -947,7 +947,7 @@ export type LoadOptions = {
 };
 
 export type DirectoryContent = {
-  forms: string[];
+  forms: XForm[];
   specieses: XSpecies[];
   propertys: XProperty[];
   applications: XApplication[];
@@ -1225,4 +1225,4 @@ export type DiskInfoType = {
   fsTotalSize: number;
   // 查询时间
   getTime: string;
-};
+}

@@ -17,7 +17,6 @@ interface IProps {
 }
 
 const OperateModal: React.FC<IProps> = ({ cmd, entity, finished }) => {
-  console.log(cmd, entity);
   const reloadFinish = (ok: boolean) => {
     finished();
     if (ok) {
