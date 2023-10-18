@@ -29,7 +29,9 @@
     "typings/*.d.ts",
     "config/**/*",
     "vite.config.ts",
-    "mock/_createProductionServer.ts"
-, "typings/global.ts", "typings/dom.ts"  ],
+    "mock/_createProductionServer.ts",
+    "typings/global.ts", 
+    "typings/dom.ts"
+  ],
   "exclude": ["node_modules", "build", "dist", "**/*.js"]
 }
