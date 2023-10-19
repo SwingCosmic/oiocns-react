@@ -112,5 +112,3 @@ export interface CSSProperties
    */
   [v: `--${string}`]: string | number | undefined;
 }
-
-export {};
