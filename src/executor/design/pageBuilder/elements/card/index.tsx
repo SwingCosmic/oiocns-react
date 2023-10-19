@@ -18,7 +18,7 @@ interface DataProps extends PosProps {
 const Content: React.FC<DataProps> = ({ data, property }) => {
   let value = '';
   if (data && property) {
-    value = property.name + ':' + data['T' + property.id];
+    value = property.name + ':' + (data['T' + property.id] ?? '');
   }
   return <div style={{ overflow: 'hidden', textOverflow: 'ellipsis' }}>{value}</div>;
 };
