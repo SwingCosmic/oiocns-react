@@ -1,11 +1,36 @@
-import { AiOutlineShoppingCart } from '@/icons/ai';
-import { kernel, model, schema } from '@/ts/base';
+import { command, kernel, model, schema } from '@/ts/base';
 import { Form } from '@/ts/core/thing/standard/form';
-import { Badge, Button, Col, Empty, Pagination, Row, Space, Tag } from 'antd';
+import { IBoxProvider } from '@/ts/core/work/box';
+import { Button, Col, Empty, Pagination, Row, Space, Tag } from 'antd';
 import React, { useEffect, useState } from 'react';
 import { ExistTypeMeta } from '../../core/ElementMeta';
 import { defineElement } from '../defineElement';
 import cls from './index.module.less';
+import ShoppingBadge from './widgets/ShoppingBadge';
+import orgCtrl from '@/ts/controller';
+import ShoppingCard from './widgets/ShoppingCard';
+
+export const useThings = (box: IBoxProvider) => {
+  const [things, setThings] = useState(box.groups(['实体']));
+  useEffect(() => {
+    const id = command.subscribe((type, cmd) => {
+      switch (type) {
+        case 'stagings':
+          switch (cmd) {
+            case 'create':
+            case 'refresh':
+              setThings(box.groups(['实体']));
+              break;
+          }
+          break;
+      }
+    });
+    return () => {
+      command.unsubscribe(id);
+    };
+  });
+  return things;
+};
 
 export default defineElement({
   render(props, ctx) {
@@ -61,7 +86,25 @@ export default defineElement({
                 if (props.content) {
                   return (
                     <Col key={item.id} span={props.span} className={cls.contentCard}>
-                      {props.content({ card: item })}
+                      <Space.Compact direction="vertical">
+                        {props.content({ card: item })}
+                        {
+                          <Button
+                            size="small"
+                            onClick={() => {
+                              if (props.form?.belongId) {
+                                orgCtrl.box.createStaging({
+                                  typeName: '实体',
+                                  dataId: item.id,
+                                  data: item,
+                                  relations: [item.belongId],
+                                } as schema.XStaging);
+                              }
+                            }}>
+                            {'加入购物车'}
+                          </Button>
+                        }
+                      </Space.Compact>
                     </Col>
                   );
                 }
@@ -79,15 +122,9 @@ export default defineElement({
           />
         </div>
         <div className={cls.shoppingBtn}>
-          <Badge count={0}>
-            <Button
-              size="large"
-              type="primary"
-              shape="circle"
-              icon={<AiOutlineShoppingCart />}
-            />
-          </Badge>
+          <ShoppingBadge box={orgCtrl.provider.box!} />
         </div>
+        <ShoppingCard box={orgCtrl.box} forms={form ? [form] : []} />
       </div>
     );
   },

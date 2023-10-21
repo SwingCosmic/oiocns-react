@@ -625,4 +625,16 @@ export type XWorkTask = {
   instance: XWorkInstance | undefined;
 } & Xbase;
 
+//暂存
+export type XStaging = {
+  // 类型
+  typeName: string;
+  // 关联数据 ID
+  dataId: string;
+  // 数据
+  data: any;
+  // 关系举证
+  relations: string[];
+} & Xbase;
+
 export interface XPageTemplate extends XStandard {}

@@ -71,13 +71,11 @@ module.exports = {
     'no-redeclare': 'warn',
     'prefer-rest-params': 'warn',
     'no-mixed-spaces-and-tabs': 'error',
-    'no-unused-vars': 'warn', //部分情况下需要导入成员供typescript和编译器处理
 
     '@typescript-eslint/ban-types': 'off',
     '@typescript-eslint/member-delimiter-style': 'off',
     '@typescript-eslint/no-explicit-any': 'off',
     '@typescript-eslint/no-non-null-assertion': 'off',
-    '@typescript-eslint/no-unused-vars': 'off',
     '@typescript-eslint/no-inferrable-types': 'off',
     '@typescript-eslint/type-annotation-spacing': 'off',
     '@typescript-eslint/no-empty-interface': 'off',

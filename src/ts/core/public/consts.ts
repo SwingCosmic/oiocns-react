@@ -17,7 +17,6 @@ export const storeCollName = {
   WorkTask: 'work-task',
   WorkInstance: 'work-instance',
   ChatMessage: 'chat-message',
-  Transfer: 'standard-transfer',
 };
 /** 支持的单位类型 */
 export const companyTypes = [

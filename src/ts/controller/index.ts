@@ -2,6 +2,7 @@ import { IApplication, IPerson, ISession, ITarget, UserProvider } from '@/ts/cor
 import { common } from '@/ts/base';
 import { IWorkProvider } from '../core/work/provider';
 import { IPageTemplate } from '../core/thing/standard/page';
+import { IBoxProvider } from '../core/work/box';
 /** 控制器基类 */
 export class Controller extends common.Emitter {
   public currentKey: string;
@@ -36,6 +37,10 @@ class IndexController extends Controller {
   /** 办事提供者 */
   get work(): IWorkProvider {
     return this.provider.work!;
+  }
+  /** 暂存提供者 */
+  get box(): IBoxProvider {
+    return this.provider.box!;
   }
   /** 所有相关的用户 */
   get targets(): ITarget[] {
