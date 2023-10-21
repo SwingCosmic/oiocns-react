@@ -14,7 +14,8 @@ interface IProps {
 
 const ShoppingCard: React.FC<IProps> = ({ box, forms }) => {
   const [open, setOpen] = useState(false);
-  const things = useThings(box);
+  const [selected, setSelected] = useState<any[]>([]);
+  const stagings = useThings(box);
   useEffect(() => {
     const id = command.subscribe((type, cmd) => {
       if (type == 'stagings' && cmd == 'open') {
@@ -26,7 +27,12 @@ const ShoppingCard: React.FC<IProps> = ({ box, forms }) => {
     };
   });
   return (
-    <Modal open={open}>
+    <Modal
+      open={open}
+      width={'80vw'}
+      cancelButtonProps={{ hidden: true }}
+      okText={'关闭'}
+      onOk={() => setOpen(false)}>
       <Tabs
         items={forms.map((item) => {
           return {
@@ -43,7 +49,8 @@ const ShoppingCard: React.FC<IProps> = ({ box, forms }) => {
                   selectAllMode: 'page',
                   showCheckBoxesMode: 'always',
                 }}
-                onSelectionChanged={() => {}}
+                selectedRowKeys={selected}
+                onSelectedRowKeysChange={setSelected}
                 toolbar={{
                   visible: true,
                   items: [
@@ -55,6 +62,20 @@ const ShoppingCard: React.FC<IProps> = ({ box, forms }) => {
                         text: '发起申领',
                         icon: 'add',
                         onClick: () => {},
+                      },
+                    },
+                    {
+                      name: 'delete',
+                      location: 'after',
+                      widget: 'dxButton',
+                      options: {
+                        text: '删除物品',
+                        icon: 'add',
+                        onClick: () => {
+                          box.removeStaging(
+                            stagings.filter((item) => selected.includes(item.dataId)),
+                          );
+                        },
                       },
                     },
                     {
@@ -70,10 +91,12 @@ const ShoppingCard: React.FC<IProps> = ({ box, forms }) => {
                 dataSource={
                   new CustomStore({
                     key: 'id',
-                    async load() {
+                    async load(options) {
+                      const skip = options.skip ?? 0;
+                      const take = options.take ?? 20;
                       return {
-                        totalCount: things.length,
-                        data: things,
+                        totalCount: stagings.length,
+                        data: stagings.slice(skip, skip + take).map((item) => item.data),
                       };
                     },
                   })

@@ -13,7 +13,7 @@ export interface IBoxProvider {
   /** 放入物品 */
   createStaging(data: schema.XStaging): Promise<schema.XStaging | undefined>;
   /** 拿出物品 */
-  removeStaging(data: schema.XStaging): Promise<boolean>;
+  removeStaging(data: schema.XStaging[]): Promise<boolean>;
   /** 查看所有物品 */
   loadStagings(reload?: boolean): Promise<schema.XStaging[]>;
 }
@@ -30,7 +30,10 @@ export class BoxProvider implements IBoxProvider {
             this.stagings.push(...message.data);
             break;
           case 'delete':
-            this.stagings = this.stagings.filter((item) => !message.data.includes(item));
+            {
+              const ids = message.data.map((item) => item.id);
+              this.stagings = this.stagings.filter((item) => !ids.includes(item.id));
+            }
             break;
         }
         command.emitter('stagings', 'refresh');
@@ -59,10 +62,10 @@ export class BoxProvider implements IBoxProvider {
     }
   }
 
-  async removeStaging(data: schema.XStaging): Promise<boolean> {
-    let res = await this.coll?.delete(data);
+  async removeStaging(data: schema.XStaging[]): Promise<boolean> {
+    let res = await this.coll?.removeMany(data);
     if (res) {
-      res = await this.coll?.notity({ data: [data], operate: 'delete' });
+      res = await this.coll?.notity({ data: data, operate: 'delete' });
       return res ?? false;
     }
     return false;
