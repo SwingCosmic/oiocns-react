@@ -1,5 +1,5 @@
 import { schema } from '@/ts/base';
-import { Card, Image, Space } from 'antd';
+import { Card, Image, Space, Tooltip } from 'antd';
 import React from 'react';
 import { ExistTypeMeta } from '../../core/ElementMeta';
 import { defineElement } from '../defineElement';
@@ -14,6 +14,24 @@ interface PosProps {
 interface DataProps extends PosProps {
   data: schema.XThing | undefined;
 }
+
+const Name: React.FC<DataProps> = ({ data, property }) => {
+  let value = data?.['T' + property?.id ?? ''];
+  return (
+    <div style={{ display: 'flex', width: '100%' }}>
+      <div
+        style={{
+          flex: 1,
+          width: 0,
+          whiteSpace: 'nowrap',
+          textOverflow: 'ellipsis',
+          overflow: 'hidden',
+        }}>
+        <Tooltip title={value}>{value}</Tooltip>
+      </div>
+    </div>
+  );
+};
 
 const Content: React.FC<DataProps> = ({ data, property }) => {
   let value = '';
@@ -57,7 +75,7 @@ export default defineElement({
             <Content key={'fifth'} data={card} property={fifth} />,
           ]}>
           <Card.Meta
-            title={<Content data={card} property={first} />}
+            title={<Name data={card} property={first} />}
             description={
               <Space direction="vertical">
                 <Content key={'second'} data={card} property={second} />
