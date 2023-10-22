@@ -32,6 +32,7 @@ const ShoppingList: React.FC<IProps> = ({ box, forms }) => {
       width={'80vw'}
       cancelButtonProps={{ hidden: true }}
       okText={'关闭'}
+      onCancel={() => setOpen(false)}
       onOk={() => setOpen(false)}>
       <Tabs
         items={forms.map((item) => {
