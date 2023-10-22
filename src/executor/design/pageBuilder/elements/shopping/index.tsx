@@ -61,7 +61,7 @@ export default defineElement({
         </div>
         <div className={cls.contentData}>
           <div className={cls.contentGrid}>
-            <Row gutter={[16, 16]}>
+            <Row style={{ width: '100%' }} gutter={[16, 16]}>
               {data.map((item) => {
                 if (props.content) {
                   const has = stagings.filter((staging) => staging.dataId == item.id);
