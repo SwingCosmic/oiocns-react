@@ -19,12 +19,10 @@ export default defineElement({
     const [page, setPage] = useState<number>(1);
     const [size, setSize] = useState<number>(props.pageSize ?? 20);
     const [total, setTotal] = useState<number>(0);
-    const [fields, setFields] = useState<model.FieldModel[]>([]);
     const stagings = useStagings(orgCtrl.box);
     useEffect(() => {
       const init = async () => {
         await form?.loadContent();
-        setFields(form?.fields ?? []);
         await loadData(size, page);
       };
       init();
@@ -44,7 +42,7 @@ export default defineElement({
     return (
       <div className={cls.layout}>
         <div className={cls.search}>
-          {fields
+          {/* {fields
             .filter((item: any) => ['选择型', '分类型'].includes(item.valueType))
             .map((item) => {
               return (
@@ -57,7 +55,7 @@ export default defineElement({
                   </Row>
                 </Space>
               );
-            })}
+            })} */}
         </div>
         <div className={cls.contentData}>
           <div className={cls.contentGrid}>
@@ -116,7 +114,7 @@ export default defineElement({
         <div className={cls.shoppingBtn}>
           <ShoppingBadge box={orgCtrl.box} />
         </div>
-        <ShoppingList box={orgCtrl.box} forms={form ? [form] : []} />
+        <ShoppingList box={orgCtrl.box} form={form} />
       </div>
     );
   },
