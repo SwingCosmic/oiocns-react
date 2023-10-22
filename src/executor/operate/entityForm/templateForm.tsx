@@ -9,7 +9,7 @@ import { IPageTemplate } from '@/ts/core/thing/standard/page';
 interface IProps {
   formType: string;
   current: IDirectory | IPageTemplate;
-  finished: (template?: IPageTemplate) => void;
+  finished: () => void;
 }
 
 const PageTemplateForm: React.FC<IProps> = ({ formType, current, finished }) => {
@@ -65,15 +65,13 @@ const PageTemplateForm: React.FC<IProps> = ({ formType, current, finished }) => 
           case 'newPageTemplate': {
             values.typeName = '页面模板';
             values.rootElement = ElementTreeManager.createRoot();
-            let directory = current as IDirectory;
-            let request = await directory.standard.createTemplate(values);
-            finished(request as IPageTemplate);
+            await (current as IDirectory).standard.createTemplate(values);
+            finished();
             break;
           }
           case 'updatePageTemplate': {
-            let template = current as IPageTemplate;
-            template.update({ ...initialValue, ...values });
-            finished(template);
+            (current as IPageTemplate).update({ ...initialValue, ...values });
+            finished();
             break;
           }
         }

@@ -5,6 +5,7 @@ import { IStandard, IStandardFileInfo, StandardFileInfo } from './fileinfo';
 import { DataResource } from './resource';
 import { Application, IApplication } from './standard/application';
 import { Form } from './standard/form';
+import { PageTemplate } from './standard/page';
 import { Property } from './standard/property';
 import { Species } from './standard/species';
 import { Transfer } from './standard/transfer';
@@ -75,6 +76,12 @@ export class DirectoryOperate implements IDirectoryOperate {
       ...apps
         .filter((a) => !a.parentId || a.parentId.length < 1)
         .map((a) => new Application(a, this.directory, undefined, apps)),
+    );
+    var templates = this.resource.templateColl.cache.filter(
+      (i) => i.directoryId === this.directory.id,
+    );
+    this.standardFiles.push(
+      ...templates.map((item) => new PageTemplate(item, this.directory)),
     );
     for (const child of this.resource.directoryColl.cache.filter(
       (i) => i.directoryId === this.directory.id,

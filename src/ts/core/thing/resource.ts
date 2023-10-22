@@ -66,6 +66,7 @@ export class DataResource {
       await Promise.all([
         this.directoryColl.all(reload),
         this.applicationColl.all(reload),
+        this.templateColl.all(reload)
       ]);
     }
     this._proLoaded = true;

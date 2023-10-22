@@ -2,20 +2,20 @@ import { IForm } from '@/ts/core';
 import { IBoxProvider } from '@/ts/core/work/box';
 import { Modal, Tabs } from 'antd';
 import React, { useEffect, useState } from 'react';
-import { useThings } from '..';
 import CustomStore from 'devextreme/data/custom_store';
 import GenerateThingTable from '@/executor/tools/generate/thingTable';
 import { command } from '@/ts/base';
+import { useStagings } from '../useChange';
 
 interface IProps {
   box: IBoxProvider;
   forms: IForm[];
 }
 
-const ShoppingCard: React.FC<IProps> = ({ box, forms }) => {
+const ShoppingList: React.FC<IProps> = ({ box, forms }) => {
   const [open, setOpen] = useState(false);
   const [selected, setSelected] = useState<any[]>([]);
-  const stagings = useThings(box);
+  const stagings = useStagings(box);
   useEffect(() => {
     const id = command.subscribe((type, cmd) => {
       if (type == 'stagings' && cmd == 'open') {
@@ -111,4 +111,4 @@ const ShoppingCard: React.FC<IProps> = ({ box, forms }) => {
   );
 };
 
-export default ShoppingCard;
+export default ShoppingList;

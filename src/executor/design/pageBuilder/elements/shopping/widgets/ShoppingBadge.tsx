@@ -1,18 +1,18 @@
 import { AiOutlineShoppingCart } from '@/icons/ai';
 import { Badge, Button } from 'antd';
 import React from 'react';
-import { useThings } from '..';
 import { IBoxProvider } from '@/ts/core/work/box';
 import { command } from '@/ts/base';
+import { useStagings } from '../useChange';
 
 interface IProps {
   box: IBoxProvider;
 }
 
 const ShoppingBadge: React.FC<IProps> = ({ box }) => {
-  const things = useThings(box);
+  const stagings = useStagings(box);
   return (
-    <Badge count={things.length}>
+    <Badge count={stagings.length}>
       <Button
         size="large"
         type="primary"

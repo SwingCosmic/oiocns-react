@@ -1,36 +1,15 @@
-import { command, kernel, model, schema } from '@/ts/base';
+import { kernel, model, schema } from '@/ts/base';
+import orgCtrl from '@/ts/controller';
 import { Form } from '@/ts/core/thing/standard/form';
-import { IBoxProvider } from '@/ts/core/work/box';
 import { Button, Col, Empty, Pagination, Row, Space, Tag } from 'antd';
 import React, { useEffect, useState } from 'react';
 import { ExistTypeMeta } from '../../core/ElementMeta';
 import { defineElement } from '../defineElement';
 import cls from './index.module.less';
 import ShoppingBadge from './widgets/ShoppingBadge';
-import orgCtrl from '@/ts/controller';
-import ShoppingCard from './widgets/ShoppingCard';
-
-export const useThings = (box: IBoxProvider) => {
-  const [things, setThings] = useState(box.groups(['实体']));
-  useEffect(() => {
-    const id = command.subscribe((type, cmd) => {
-      switch (type) {
-        case 'stagings':
-          switch (cmd) {
-            case 'create':
-            case 'refresh':
-              setThings(box.groups(['实体']));
-              break;
-          }
-          break;
-      }
-    });
-    return () => {
-      command.unsubscribe(id);
-    };
-  });
-  return things;
-};
+import ShoppingList from './widgets/ShoppingList';
+import { PlusCircleFilled } from '@ant-design/icons';
+import { useStagings } from './useChange';
 
 export default defineElement({
   render(props, ctx) {
@@ -41,6 +20,7 @@ export default defineElement({
     const [size, setSize] = useState<number>(props.pageSize ?? 20);
     const [total, setTotal] = useState<number>(0);
     const [fields, setFields] = useState<model.FieldModel[]>([]);
+    const stagings = useStagings(orgCtrl.box);
     useEffect(() => {
       const init = async () => {
         await form?.loadContent();
@@ -84,12 +64,14 @@ export default defineElement({
             <Row gutter={[16, 16]}>
               {data.map((item) => {
                 if (props.content) {
+                  const has = stagings.filter((staging) => staging.dataId == item.id);
                   return (
                     <Col key={item.id} span={props.span} className={cls.contentCard}>
                       <Space.Compact direction="vertical">
                         {props.content({ card: item })}
-                        {
+                        {has.length == 0 && (
                           <Button
+                            icon={<PlusCircleFilled style={{ color: 'green' }} />}
                             size="small"
                             onClick={() => {
                               if (props.form?.belongId) {
@@ -103,7 +85,17 @@ export default defineElement({
                             }}>
                             {'加入购物车'}
                           </Button>
-                        }
+                        )}
+                        {has.length > 0 && (
+                          <Button
+                            icon={<PlusCircleFilled style={{ color: 'red' }} />}
+                            size="small"
+                            onClick={() => {
+                              orgCtrl.box.removeStaging(has);
+                            }}>
+                            {'取消加入'}
+                          </Button>
+                        )}
                       </Space.Compact>
                     </Col>
                   );
@@ -122,9 +114,9 @@ export default defineElement({
           />
         </div>
         <div className={cls.shoppingBtn}>
-          <ShoppingBadge box={orgCtrl.provider.box!} />
+          <ShoppingBadge box={orgCtrl.box} />
         </div>
-        <ShoppingCard box={orgCtrl.box} forms={form ? [form] : []} />
+        <ShoppingList box={orgCtrl.box} forms={form ? [form] : []} />
       </div>
     );
   },

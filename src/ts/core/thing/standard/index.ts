@@ -134,7 +134,7 @@ export class StandardFiles {
       return res;
     }
   }
-  async createTransfer(data: model.Transfer): Promise<ITransfer | undefined> {
+  async createTransfer(data: model.Transfer): Promise<model.Transfer | undefined> {
     const res = await this.resource.transferColl.insert({
       ...data,
       envs: [],
@@ -143,22 +143,18 @@ export class StandardFiles {
       directoryId: this.id,
     });
     if (res) {
-      const link = new Transfer(res, this.directory);
-      this.transfers.push(link);
       await this.resource.transferColl.notity({ data: [res], operate: 'insert' });
-      return link;
+      return res;
     }
   }
-  async createTemplate(data: schema.XPageTemplate): Promise<IPageTemplate | undefined> {
+  async createTemplate(data: schema.XPageTemplate): Promise<schema.XPageTemplate | undefined> {
     const res = await this.resource.templateColl.insert({
       ...data,
       directoryId: this.id,
     });
     if (res) {
-      const template = new PageTemplate(res, this.directory);
-      this.templates.push(template);
       await this.resource.templateColl.notity({ data: [res], operate: 'insert' });
-      return template;
+      return res;
     }
   }
   async operateStandradFile(

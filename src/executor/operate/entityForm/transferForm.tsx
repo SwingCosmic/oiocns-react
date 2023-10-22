@@ -63,14 +63,14 @@ const TransferForm: React.FC<IProps> = ({ formType, current, finished }) => {
           case 'newTransferConfig': {
             values.typeName = '迁移配置';
             let directory = current as IDirectory;
-            let request = await directory.standard.createTransfer(values);
-            finished(request as ITransfer);
+            await directory.standard.createTransfer(values);
+            finished();
             break;
           }
           case 'updateTransferConfig': {
             let transfer = current as ITransfer;
             transfer.update({ ...initialValue, ...values });
-            finished(transfer);
+            finished();
             break;
           }
         }

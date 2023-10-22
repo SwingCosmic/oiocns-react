@@ -108,6 +108,9 @@ export class Directory extends StandardFileInfo<schema.XDirectory> implements ID
   get applications(): IApplication[] {
     return this.operater.getContent<IApplication>(['应用']);
   }
+  get templates(): IPageTemplate[] {
+    return this.operater.getContent<IPageTemplate>(['页面模板']);
+  }
   get children(): IDirectory[] {
     return this.operater.getContent<IDirectory>(['目录']);
   }
@@ -294,7 +297,7 @@ export class Directory extends StandardFileInfo<schema.XDirectory> implements ID
     return links;
   }
   async loadAllTemplate(reload?: boolean | undefined): Promise<IPageTemplate[]> {
-    const templates: IPageTemplate[] = [...(await this.standard.loadTemplates(reload))];
+    const templates: IPageTemplate[] = [...this.templates];
     for (const subDirectory of this.children) {
       templates.push(...(await subDirectory.loadAllTemplate(reload)));
     }
