@@ -1,15 +1,15 @@
-import { kernel, model, schema } from '@/ts/base';
+import { kernel, schema } from '@/ts/base';
 import orgCtrl from '@/ts/controller';
 import { Form } from '@/ts/core/thing/standard/form';
-import { Button, Col, Empty, Pagination, Row, Space, Tag } from 'antd';
+import { PlusCircleFilled } from '@ant-design/icons';
+import { Button, Col, Empty, Pagination, Row, Space } from 'antd';
 import React, { useEffect, useState } from 'react';
 import { ExistTypeMeta } from '../../core/ElementMeta';
 import { defineElement } from '../defineElement';
 import cls from './index.module.less';
+import { useStagings } from './useChange';
 import ShoppingBadge from './widgets/ShoppingBadge';
 import ShoppingList from './widgets/ShoppingList';
-import { PlusCircleFilled } from '@ant-design/icons';
-import { useStagings } from './useChange';
 
 export default defineElement({
   render(props, ctx) {
@@ -21,11 +21,7 @@ export default defineElement({
     const [total, setTotal] = useState<number>(0);
     const stagings = useStagings(orgCtrl.box);
     useEffect(() => {
-      const init = async () => {
-        await form?.loadContent();
-        await loadData(size, page);
-      };
-      init();
+      loadData(size, page);
     }, []);
     const loadData = async (take: number, page: number) => {
       if (!form) return;

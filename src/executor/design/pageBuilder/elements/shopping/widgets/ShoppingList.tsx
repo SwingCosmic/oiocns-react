@@ -1,10 +1,10 @@
-import { IForm } from '@/ts/core';
-import { IBoxProvider } from '@/ts/core/work/box';
-import { Modal, Tabs } from 'antd';
-import React, { useEffect, useState } from 'react';
-import CustomStore from 'devextreme/data/custom_store';
 import GenerateThingTable from '@/executor/tools/generate/thingTable';
 import { command } from '@/ts/base';
+import { IForm } from '@/ts/core';
+import { IBoxProvider } from '@/ts/core/work/box';
+import { Modal } from 'antd';
+import CustomStore from 'devextreme/data/custom_store';
+import React, { useEffect, useState } from 'react';
 import { useStagings } from '../useChange';
 
 interface IProps {
