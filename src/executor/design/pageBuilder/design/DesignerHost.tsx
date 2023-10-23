@@ -1,12 +1,12 @@
-import { Tabs } from 'antd';
+import { Tabs, Tooltip } from 'antd';
 import React, { useState } from 'react';
 import { DesignContext, PageContext } from '../render/PageContext';
 import Coder from './context';
 
+import { AiOutlineApartment } from '@/icons/ai';
+import { FileOutlined, SettingOutlined } from '@ant-design/icons';
 import { useComputed } from '@preact/signals-react';
 import type { Tab } from 'rc-tabs/lib/interface';
-import { DndProvider } from 'react-dnd';
-import { HTML5Backend } from 'react-dnd-html5-backend';
 import ToolBar from './ToolBar';
 import TreeManager from './TreeManager';
 import ElementProps from './config/ElementProps';
@@ -26,23 +26,18 @@ export function DesignerHost({ ctx }: DesignerProps) {
   function renderTabs(): Tab[] {
     return [
       {
-        label: `元素树`,
-        key: 'tree',
+        label: <AiOutlineApartment />,
+        key: '元素树',
         children: <TreeManager ctx={ctx} />,
       },
       {
-        label: `配置`,
-        key: 'element',
+        label: <SettingOutlined />,
+        key: '元素配置',
         children: <ElementProps element={currentElement.value} />,
       },
       {
-        label: `数据`,
-        key: 'data',
-        children: <div></div>,
-      },
-      {
-        label: `JSON数据`,
-        key: 'code',
+        label: <FileOutlined />,
+        key: 'JSON 数据',
         children: <Coder />,
       },
     ];
@@ -58,9 +53,26 @@ export function DesignerHost({ ctx }: DesignerProps) {
         <div className={css.content}>
           <div className={css.designConfig}>
             <Tabs
-              className="is-full-height"
+              animated
+              size="large"
+              renderTabBar={(props, Default) => {
+                return (
+                  <Default {...props}>
+                    {(node) => {
+                      return (
+                        <Tooltip placement="right" title={node.key}>
+                          {node}
+                        </Tooltip>
+                      );
+                    }}
+                  </Default>
+                );
+              }}
+              tabBarGutter={0}
               defaultActiveKey="tree"
-              items={renderTabs()}></Tabs>
+              items={renderTabs()}
+              tabPosition="left"
+            />
           </div>
           <div className="o-page-host" style={{ flex: 'auto' }}>
             <RootRender element={ctx.view.rootElement} />

@@ -27,7 +27,6 @@ interface IProps {
   ctx: Context;
   filter: { id: string; valueType: string; rule: string }[];
   species: string[];
-  banner?: (params: {}) => ReactNode;
   content?: (params: { card: schema.XThing }) => ReactNode | ReactNode[];
 }
 
