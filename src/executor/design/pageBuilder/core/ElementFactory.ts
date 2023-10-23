@@ -40,9 +40,18 @@ export default class ElementFactory {
     const slots: Dictionary<any> = {};
     for (const [slot, value] of Object.entries(meta.slots || {})) {
       if (value.single) {
-        props[slot] = null;
+        if (value.default) {
+          slots[slot] = this.create(value.default, '自动生成');
+        } else {
+          slots[slot] = null;
+        }
       } else {
-        props[slot] = [];
+        slots[slot] = [];
+        if (value.default) {
+          for (const item of value.default) {
+            slots[slot].push(this.create(item, '自动生成'));
+          }
+        }
       }
     }
 

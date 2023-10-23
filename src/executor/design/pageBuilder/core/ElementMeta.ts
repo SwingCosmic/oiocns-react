@@ -65,8 +65,11 @@ export interface ParameterInfo<T extends TypeMeta = TypeMeta> {
 interface SlotMetaBase<P extends Dictionary<ParameterInfo>> {
   /** 插槽的参数列表 */
   params: P;
+  /** kind 组件或者组件数组 */
+  default?: string | string[];
   label?: string;
 }
+
 export interface SingleSlotMeta<
   P extends Dictionary<ParameterInfo> = Dictionary<ParameterInfo>,
 > extends SlotMetaBase<P> {

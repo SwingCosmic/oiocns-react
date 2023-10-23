@@ -1,6 +1,5 @@
 import GenerateThingTable from '@/executor/tools/generate/thingTable';
-import { command } from '@/ts/base';
-import { IForm } from '@/ts/core';
+import { command, model } from '@/ts/base';
 import { IBoxProvider } from '@/ts/core/work/box';
 import { Modal } from 'antd';
 import CustomStore from 'devextreme/data/custom_store';
@@ -9,16 +8,14 @@ import { useStagings } from '../useChange';
 
 interface IProps {
   box: IBoxProvider;
-  form?: IForm;
+  fields: model.FieldModel[];
 }
 
-const ShoppingList: React.FC<IProps> = ({ box, form }) => {
+const ShoppingList: React.FC<IProps> = ({ box, fields }) => {
   const [open, setOpen] = useState(false);
   const [selected, setSelected] = useState<any[]>([]);
-  const [fields, setFields] = useState(form?.fields ?? []);
   const stagings = useStagings(box);
   useEffect(() => {
-    form?.loadContent().then(() => setFields(form.fields));
     const id = command.subscribe((type, cmd) => {
       if (type == 'stagings' && cmd == 'open') {
         setOpen(true);
@@ -58,7 +55,7 @@ const ShoppingList: React.FC<IProps> = ({ box, form }) => {
               options: {
                 text: '发起申领',
                 icon: 'add',
-                onClick: () => {},
+                onClick: async () => {},
               },
             },
             {
