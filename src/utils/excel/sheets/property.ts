@@ -10,7 +10,7 @@ export class PropSheet extends i.Sheet<t.Property> {
         { title: '目录代码', dataIndex: 'directoryCode', valueType: '描述型' },
         { title: '属性名称', dataIndex: 'name', valueType: '描述型' },
         { title: '属性代码', dataIndex: 'code', valueType: '描述型' },
-        { title: '属性类型', dataIndex: 'valueType', valueType: '选择型' },
+        { title: '属性类型', dataIndex: 'valueType', valueType: '描述型' },
         { title: '单位', dataIndex: 'unit', valueType: '描述型' },
         { title: '（字典/分类）代码/ID', dataIndex: 'speciesCode', valueType: '描述型' },
         { title: '属性定义', dataIndex: 'remark', valueType: '描述型' },
