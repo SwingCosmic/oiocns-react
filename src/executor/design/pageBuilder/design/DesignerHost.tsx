@@ -1,16 +1,16 @@
-import { Tabs, Tooltip } from 'antd';
-import React, { useState } from 'react';
+import { Layout, Menu } from 'antd';
+import React, { ReactNode, useState } from 'react';
 import { DesignContext, PageContext } from '../render/PageContext';
 import Coder from './context';
 
 import { AiOutlineApartment } from '@/icons/ai';
-import { FileOutlined, SettingOutlined } from '@ant-design/icons';
+import { FileOutlined, RightCircleOutlined, SettingOutlined } from '@ant-design/icons';
 import { useComputed } from '@preact/signals-react';
-import type { Tab } from 'rc-tabs/lib/interface';
-import ToolBar from './ToolBar';
 import TreeManager from './TreeManager';
 import ElementProps from './config/ElementProps';
 import css from './designer.module.less';
+import { ViewerHost } from '../view/ViewerHost';
+import ViewerManager from '../view/ViewerManager';
 
 export interface DesignerProps {
   ctx: DesignContext;
@@ -18,66 +18,70 @@ export interface DesignerProps {
 
 export function DesignerHost({ ctx }: DesignerProps) {
   const currentElement = useComputed(() => ctx.view.currentElement);
+  const [active, setActive] = useState<string>();
   const [status, setStatus] = useState(false);
   ctx.view.subscribe(() => setStatus(!status));
 
   console.log('re-render');
 
-  function renderTabs(): Tab[] {
+  function renderTabs() {
     return [
       {
-        label: <AiOutlineApartment />,
-        key: '元素树',
-        children: <TreeManager ctx={ctx} />,
+        key: 'tree',
+        label: '元素树',
+        icon: <AiOutlineApartment />,
       },
       {
-        label: <SettingOutlined />,
-        key: '元素配置',
-        children: <ElementProps element={currentElement.value} />,
+        key: 'element',
+        label: '元素配置',
+        icon: <SettingOutlined />,
       },
       {
-        label: <FileOutlined />,
-        key: 'JSON 数据',
-        children: <Coder />,
+        key: 'data',
+        label: 'JSON 数据',
+        icon: <FileOutlined />,
+      },
+      {
+        key: 'preview',
+        label: '预览',
+        icon: <RightCircleOutlined />,
       },
     ];
   }
 
+  const Configuration: { [key: string]: ReactNode } = {
+    tree: <TreeManager ctx={ctx} />,
+    element: <ElementProps element={currentElement.value} />,
+    data: <Coder />,
+  };
+
   const RootRender = ctx.view.components.rootRender as any;
   return (
     <PageContext.Provider value={ctx}>
-      <div className={css.pageHostDesign}>
-        <div className={css.top}>
-          <ToolBar ctx={ctx} />
+      <div className={css.content}>
+        <Layout.Sider collapsedWidth={60} collapsed={true}>
+          <Menu
+            items={renderTabs()}
+            mode={'inline'}
+            selectedKeys={active ? [active] : []}
+            onSelect={(info) => setActive(info.key)}
+            onDeselect={() => setActive(undefined)}
+          />
+        </Layout.Sider>
+        <div
+          className={`${
+            active && active != 'preview' ? css.designConfig : ''
+          } is-full-height`}>
+          {active ? Configuration[active] : <></>}
         </div>
-        <div className={css.content}>
-          <div className={css.designConfig}>
-            <Tabs
-              animated
-              size="large"
-              renderTabBar={(props, Default) => {
-                return (
-                  <Default {...props}>
-                    {(node) => {
-                      return (
-                        <Tooltip placement="right" title={node.key}>
-                          {node}
-                        </Tooltip>
-                      );
-                    }}
-                  </Default>
-                );
-              }}
-              tabBarGutter={0}
-              defaultActiveKey="tree"
-              items={renderTabs()}
-              tabPosition="left"
-            />
-          </div>
+        {active != 'preview' && (
           <div className="o-page-host" style={{ flex: 'auto' }}>
             <RootRender element={ctx.view.rootElement} />
           </div>
-        </div>
+        )}
+        {active == 'preview' && (
+          <ViewerHost ctx={{ view: new ViewerManager(ctx.view.pageInfo) }} />
+        )}
       </div>
     </PageContext.Provider>
   );
