@@ -253,7 +253,6 @@ const ViewEntities: React.FC<IProps> = (props) => {
 
 export default defineElement({
   render(props, ctx) {
-    console.log(props, ctx);
     const [form, setForm] = useState<IForm>();
     useEffect(() => {
       loadForm(props.form, ctx).then((res) => setForm(res));

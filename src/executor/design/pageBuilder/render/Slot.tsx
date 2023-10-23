@@ -1,6 +1,6 @@
 import React, { useContext } from 'react';
-import { PageContext } from './PageContext';
 import { PageElement } from '../core/PageElement';
+import { PageContext } from './PageContext';
 
 type SlotProps<S extends Dictionary<any> = Dictionary<any>> = {
   params?: S;

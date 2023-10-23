@@ -1,10 +1,15 @@
-import { Layout, Menu } from 'antd';
+import { Layout, Menu, message } from 'antd';
 import React, { ReactNode, useState } from 'react';
 import { DesignContext, PageContext } from '../render/PageContext';
 import Coder from './context';
 
 import { AiOutlineApartment } from '@/icons/ai';
-import { FileOutlined, RightCircleOutlined, SettingOutlined } from '@ant-design/icons';
+import {
+  CheckOutlined,
+  FileOutlined,
+  RightCircleOutlined,
+  SettingOutlined,
+} from '@ant-design/icons';
 import { useComputed } from '@preact/signals-react';
 import TreeManager from './TreeManager';
 import ElementProps from './config/ElementProps';
@@ -46,6 +51,11 @@ export function DesignerHost({ ctx }: DesignerProps) {
         label: '预览',
         icon: <RightCircleOutlined />,
       },
+      {
+        key: 'save',
+        label: '保存',
+        icon: <CheckOutlined />,
+      },
     ];
   }
 
@@ -64,7 +74,13 @@ export function DesignerHost({ ctx }: DesignerProps) {
             items={renderTabs()}
             mode={'inline'}
             selectedKeys={active ? [active] : []}
-            onSelect={(info) => setActive(info.key)}
+            onSelect={(info) => {
+              if (info.key == 'save') {
+                ctx.view.update().then(() => message.success('保存成功！'));
+                return;
+              }
+              setActive(info.key);
+            }}
             onDeselect={() => setActive(undefined)}
           />
         </Layout.Sider>
