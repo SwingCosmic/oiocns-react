@@ -50,25 +50,23 @@ export function DesignerHost({ ctx }: DesignerProps) {
 
   const RootRender = ctx.view.components.rootRender as any;
   return (
-    <DndProvider backend={HTML5Backend}>
-      <PageContext.Provider value={ctx}>
-        <div className={css.pageHostDesign}>
-          <div className={css.top}>
-            <ToolBar ctx={ctx} />
+    <PageContext.Provider value={ctx}>
+      <div className={css.pageHostDesign}>
+        <div className={css.top}>
+          <ToolBar ctx={ctx} />
+        </div>
+        <div className={css.content}>
+          <div className={css.designConfig}>
+            <Tabs
+              className="is-full-height"
+              defaultActiveKey="tree"
+              items={renderTabs()}></Tabs>
           </div>
-          <div className={css.content}>
-            <div className={css.designConfig}>
-              <Tabs
-                className="is-full-height"
-                defaultActiveKey="tree"
-                items={renderTabs()}></Tabs>
-            </div>
-            <div className="o-page-host" style={{ flex: 'auto' }}>
-              <RootRender element={ctx.view.rootElement} />
-            </div>
+          <div className="o-page-host" style={{ flex: 'auto' }}>
+            <RootRender element={ctx.view.rootElement} />
           </div>
         </div>
-      </PageContext.Provider>
-    </DndProvider>
+      </div>
+    </PageContext.Provider>
   );
 }
