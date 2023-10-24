@@ -641,6 +641,8 @@ export type FieldModel = {
   remark: string;
   /** 字典(字典项/分类项) */
   lookups?: FiledLookup[];
+  /** 计量单位 */
+  unit?: string;
 };
 
 export type FiledLookup = {

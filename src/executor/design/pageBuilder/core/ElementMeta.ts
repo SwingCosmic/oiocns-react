@@ -36,7 +36,10 @@ export interface EnumTypeMeta<V = any> extends TypeMetaBase<"enum"> {
 export interface ArrayTypeMeta extends TypeMetaBase<"array"> {
   elementType: TypeMeta;
 }
-export interface ObjectTypeMeta extends TypeMetaBase<"object"> {
+
+// @ts-ignore
+// eslint-disable-next-line no-unused-vars
+export interface ObjectTypeMeta<T = any> extends TypeMetaBase<"object"> {
   properties: Dictionary<TypeMeta>;
 }
 
@@ -108,9 +111,9 @@ export type ExtractType<T extends TypeMeta> =
   T["type"] extends "date" ? string :
   T extends EnumTypeMeta<infer R> ? R :
   T extends ArrayTypeMeta ? ExtractType<T["elementType"]>[] :
-  T extends ObjectTypeMeta ? {
+  T extends ObjectTypeMeta<infer R> ? R extends any ? ({
     [P in keyof T["properties"]]: ExtractType<T["properties"][P]>
-  } : 
+  }) : R : 
   T extends ExistTypeMeta<infer R> ? R :
   any;
 

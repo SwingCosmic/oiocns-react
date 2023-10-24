@@ -3,7 +3,7 @@ import { Enumerable } from '@/ts/base/common/linq';
 import orgCtrl from '@/ts/controller';
 import { Form, IForm } from '@/ts/core/thing/standard/form';
 import { PlusCircleFilled } from '@ant-design/icons';
-import { Button, Col, Empty, Pagination, Row, Space, Tag } from 'antd';
+import { Button, Col, Empty, Pagination, Row, Space } from 'antd';
 import React, { ReactNode, useEffect, useState } from 'react';
 import { ExistTypeMeta } from '../../core/ElementMeta';
 import { Context } from '../../render/PageContext';
@@ -13,6 +13,18 @@ import ShoppingList from './design/ShoppingList';
 import cls from './index.module.less';
 import { useCenter, useStagings } from './useChange';
 
+export interface Filter {
+  id: string;
+  valueType: string;
+  rule: Range[];
+}
+
+export interface Range {
+  id: number;
+  start: number;
+  end: number;
+}
+
 interface IProps {
   form: IForm;
   work: string | undefined;
@@ -20,7 +32,7 @@ interface IProps {
   span: number;
   total: number;
   ctx: Context;
-  filter: { id: string; valueType: string; rule: string }[];
+  filter: Filter[];
   species: string[];
   content?: (params: { card: schema.XThing }) => ReactNode | ReactNode[];
 }
@@ -56,48 +68,6 @@ const ShoppingLayout: React.FC<ILayout> = (props) => {
         </div>
       </div>
     </div>
-  );
-};
-
-const DesignTopSearch: React.FC<{ form: IForm }> = (props) => {
-  return (
-    <Space direction={'vertical'}>
-      {props.form.fields
-        .filter((item) => item.valueType == '选择型')
-        .map((dict) => {
-          return (
-            <Space align="start" key={dict.id} direction="horizontal">
-              <Tag color="blue">{dict.name}</Tag>
-              <Row gutter={[6, 6]} key={dict.id}>
-                {(dict.lookups ?? []).map((up) => {
-                  return <Tag key={up.id}>{up.text}</Tag>;
-                })}
-              </Row>
-            </Space>
-          );
-        })}
-    </Space>
-  );
-};
-
-const ViewTopSearch: React.FC<{ form: IForm }> = (props) => {
-  return (
-    <Space direction={'vertical'}>
-      {props.form.fields
-        .filter((item) => item.valueType == '选择型')
-        .map((dict) => {
-          return (
-            <Space align="start" key={dict.id} direction="horizontal">
-              <Tag color="blue">{dict.name}</Tag>
-              <Row gutter={[6, 6]} key={dict.id}>
-                {(dict.lookups ?? []).map((up) => {
-                  return <Tag key={up.id}>{up.text}</Tag>;
-                })}
-              </Row>
-            </Space>
-          );
-        })}
-    </Space>
   );
 };
 
@@ -229,22 +199,18 @@ export default defineElement({
       loadForm(props.form, ctx).then((res) => setForm(res));
     }, []);
     if (form) {
-      if (ctx.view.mode == 'design') {
-        return (
-          <ShoppingLayout
-            banner={props.banner({})}
-            species={props.leftTree({ species: props.species, form: form })}
-            dicts={<DesignTopSearch {...props} form={form} />}
-            entities={<DesignEntities ctx={ctx} {...props} form={form} />}
-          />
-        );
-      }
       return (
         <ShoppingLayout
           banner={props.banner({})}
           species={props.leftTree({ species: props.species, form: form })}
-          dicts={<ViewTopSearch form={form} />}
-          entities={<ViewEntities ctx={ctx} {...props} form={form} />}
+          dicts={props.topDicts({ filter: props.filter, form: form })}
+          entities={
+            ctx.view.mode == 'design' ? (
+              <DesignEntities ctx={ctx} {...props} form={form} />
+            ) : (
+              <ViewEntities ctx={ctx} {...props} form={form} />
+            )
+          }
         />
       );
     }
@@ -282,23 +248,10 @@ export default defineElement({
         type: 'array',
         label: '过滤',
         elementType: {
-          type: 'object',
-          label: '类型',
-          properties: {
-            id: {
-              type: 'string',
-              label: '主键',
-            },
-            valueType: {
-              type: 'string',
-              label: '类型',
-            },
-            rule: {
-              type: 'string',
-              label: '规则',
-            },
-          },
-        },
+          type: 'type',
+          label: '过滤',
+          typeName: 'Filter',
+        } as ExistTypeMeta<Filter>,
         default: [],
       },
       species: {
@@ -360,11 +313,30 @@ export default defineElement({
       topDicts: {
         label: '顶部字典',
         single: true,
-        params: {},
-        default: '',
+        params: {
+          filter: {
+            label: '已选字典数组',
+            type: {
+              type: 'array',
+              elementType: {
+                type: 'type',
+                label: '过滤',
+                typeName: 'Filter',
+              } as ExistTypeMeta<Filter>,
+            },
+          },
+          form: {
+            label: '表单',
+            type: {
+              type: 'type',
+              typeName: 'form',
+            } as ExistTypeMeta<IForm>,
+          },
+        },
+        default: 'DictSearch',
       },
     },
     type: 'Element',
-    label: '公物仓',
+    label: '商城',
   },
 });

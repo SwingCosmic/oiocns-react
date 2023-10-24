@@ -70,6 +70,7 @@ export class Form extends StandardFileInfo<schema.XForm> implements IForm {
             remark: attr.remark,
             lookups: [],
             valueType: attr.property.valueType,
+            unit: attr.property.unit,
           };
           if (attr.property.speciesId && attr.property.speciesId.length > 0) {
             field.lookups = data
