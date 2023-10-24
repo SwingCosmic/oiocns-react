@@ -6,9 +6,7 @@ import { Enumerable } from '@/ts/base/common/linq';
 import orgCtrl, { Controller } from '@/ts/controller';
 import { Form, IForm } from '@/ts/core/thing/standard/form';
 import { PlusCircleFilled } from '@ant-design/icons';
-import { Button, Col, Empty, Layout, Pagination, Row, Space, Tag } from 'antd';
-import Sider from 'antd/lib/layout/Sider';
-import { Content, Header } from 'antd/lib/layout/layout';
+import { Button, Col, Empty, Pagination, Row, Space, Tag } from 'antd';
 import React, { ReactNode, useEffect, useState } from 'react';
 import { ExistTypeMeta } from '../../core/ElementMeta';
 import { Context } from '../../render/PageContext';
@@ -51,16 +49,16 @@ interface ILayout {
 
 const ShoppingLayout: React.FC<ILayout> = (props) => {
   return (
-    <Layout>
-      <Header>{props.banner}</Header>
-      <Layout hasSider>
-        <Sider>{props.species}</Sider>
-        <Layout>
-          <Header>{props.dicts}</Header>
-          <Content>{props.entities}</Content>
-        </Layout>
-      </Layout>
-    </Layout>
+    <div className={cls.layout}>
+      <div className={cls.banner}>{props.banner}</div>
+      <div className={cls.body}>
+        <div className={cls.species}>{props.species}</div>
+        <div className={cls.content}>
+          <div className={cls.dicts}>{props.dicts}</div>
+          <div className={cls.entities}>{props.entities}</div>
+        </div>
+      </div>
+    </div>
   );
 };
 
@@ -242,9 +240,7 @@ const ViewEntities: React.FC<IProps> = (props) => {
           }
         }}
       />
-      <div className={cls.shoppingBtn}>
-        <ShoppingBadge box={orgCtrl.box} />
-      </div>
+      <ShoppingBadge box={orgCtrl.box} />
       <ShoppingList box={orgCtrl.box} fields={props.form.fields} />
       {center}
     </Space>
