@@ -44,24 +44,12 @@ export default class HostManagerBase<T extends HostMode>
     return this.treeManager.root;
   }
 
-  /** 订阅全局变动 */
-  subscribe(onChange: () => void) {
-    useEffect(() => {
-      const subId = this.pageInfo.command.subscribe(() => {
-        onChange();
-      });
-      return () => {
-        this.pageInfo.command.unsubscribe(subId);
-      };
-    });
-  }
-
-  /** 订阅元素变动 */
-  subscribeElement(elementId: string, onChange: () => void) {
+  /** 订阅变动 */
+  subscribe(t: string, c: string, onChange: (args: any) => void) {
     useEffect(() => {
       const subId = this.pageInfo.command.subscribe((type, cmd, args) => {
-        if (type == 'props' && cmd == 'change' && elementId == args) {
-          onChange();
+        if (type == t && cmd == c) {
+          onChange(args);
         }
       });
       return () => {

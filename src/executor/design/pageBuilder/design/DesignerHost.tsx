@@ -16,6 +16,7 @@ import ElementProps from './config/ElementProps';
 import css from './designer.module.less';
 import { ViewerHost } from '../view/ViewerHost';
 import ViewerManager from '../view/ViewerManager';
+import FullScreenModal from '@/components/Common/fullScreen';
 
 export interface DesignerProps {
   ctx: DesignContext;
@@ -25,7 +26,8 @@ export function DesignerHost({ ctx }: DesignerProps) {
   const currentElement = useComputed(() => ctx.view.currentElement);
   const [active, setActive] = useState<string>();
   const [status, setStatus] = useState(false);
-  ctx.view.subscribe(() => setStatus(!status));
+  const [open, setOpen] = useState(false);
+  ctx.view.subscribe('elements', 'change', () => setStatus(!status));
 
   console.log('re-render');
 
@@ -75,30 +77,38 @@ export function DesignerHost({ ctx }: DesignerProps) {
             mode={'inline'}
             selectedKeys={active ? [active] : []}
             onSelect={(info) => {
-              if (info.key == 'save') {
-                ctx.view.update().then(() => message.success('保存成功！'));
-                return;
+              switch (info.key) {
+                case 'save':
+                  ctx.view.update().then(() => message.success('保存成功！'));
+                  break;
+                case 'preview':
+                  setOpen(true);
+                  break;
+                default:
+                  setActive(info.key);
+                  break;
               }
-              setActive(info.key);
             }}
             onDeselect={() => setActive(undefined)}
           />
         </Layout.Sider>
-        <div
-          className={`${
-            active && active != 'preview' ? css.designConfig : ''
-          } is-full-height`}>
+        <div className={`${active ? css.designConfig : ''} is-full-height`}>
           {active ? Configuration[active] : <></>}
         </div>
-        {active != 'preview' && (
-          <div className="o-page-host" style={{ flex: 'auto' }}>
-            <RootRender element={ctx.view.rootElement} />
-          </div>
-        )}
-        {active == 'preview' && (
-          <ViewerHost ctx={{ view: new ViewerManager(ctx.view.pageInfo) }} />
-        )}
+        <div className="o-page-host" style={{ flex: 'auto' }}>
+          <RootRender element={ctx.view.rootElement} />
+        </div>
       </div>
+      <FullScreenModal
+        open={open}
+        centered
+        destroyOnClose
+        width={'80vw'}
+        bodyHeight={'80vh'}
+        title={'页面预览'}
+        onCancel={() => setOpen(false)}>
+        <ViewerHost ctx={{ view: new ViewerManager(ctx.view.pageInfo) }} />
+      </FullScreenModal>
     </PageContext.Provider>
   );
 }

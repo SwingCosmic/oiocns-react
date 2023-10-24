@@ -1,9 +1,6 @@
-import CustomMenu from '@/components/CustomMenu';
-import { loadSpeciesItemMenu } from '@/executor/open/form/config';
-import useMenuUpdate from '@/hooks/useMenuUpdate';
 import { kernel, schema } from '@/ts/base';
 import { Enumerable } from '@/ts/base/common/linq';
-import orgCtrl, { Controller } from '@/ts/controller';
+import orgCtrl from '@/ts/controller';
 import { Form, IForm } from '@/ts/core/thing/standard/form';
 import { PlusCircleFilled } from '@ant-design/icons';
 import { Button, Col, Empty, Pagination, Row, Space, Tag } from 'antd';
@@ -58,28 +55,6 @@ const ShoppingLayout: React.FC<ILayout> = (props) => {
           <div className={cls.entities}>{props.entities}</div>
         </div>
       </div>
-    </div>
-  );
-};
-
-const ViewLeftTree: React.FC<IProps> = (props) => {
-  const [key, rootMenu, selectMenu, setSelectMenu] = useMenuUpdate(
-    () => loadSpeciesItemMenu(props.form),
-    new Controller(props.form.key),
-  );
-  return (
-    <div>
-      {selectMenu && rootMenu && (
-        <CustomMenu
-          key={key}
-          item={selectMenu.parentMenu ?? rootMenu}
-          collapsed={false}
-          selectMenu={selectMenu}
-          onSelect={(item) => {
-            setSelectMenu(item);
-          }}
-        />
-      )}
     </div>
   );
 };
@@ -266,8 +241,8 @@ export default defineElement({
       }
       return (
         <ShoppingLayout
-          banner={props.banner ? props.banner({}) : <></>}
-          species={<ViewLeftTree ctx={ctx} {...props} form={form} />}
+          banner={props.banner({})}
+          species={props.leftTree({ species: props.species, form: form })}
           dicts={<ViewTopSearch form={form} />}
           entities={<ViewEntities ctx={ctx} {...props} form={form} />}
         />
@@ -381,6 +356,12 @@ export default defineElement({
           },
         },
         default: 'SpeciesTree',
+      },
+      topDicts: {
+        label: '顶部字典',
+        single: true,
+        params: {},
+        default: '',
       },
     },
     type: 'Element',

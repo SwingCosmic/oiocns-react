@@ -10,7 +10,8 @@ const stringify = (ctx: DesignContext) => {
 const Coder: React.FC<{}> = () => {
   const ctx = useContext<DesignContext>(PageContext as any);
   const [data, setData] = useState<string>(stringify(ctx));
-  ctx.view.subscribe(() => setData(stringify(ctx)));
+  ctx.view.subscribe('elements', 'change', () => setData(stringify(ctx)));
+  ctx.view.subscribe('props', 'change', () => setData(stringify(ctx)));
   return (
     <CodeMirror
       style={{ marginTop: 10 }}

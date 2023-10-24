@@ -1,9 +1,10 @@
 import React from 'react';
+import { defineElement } from '../defineElement';
 
-interface IProps {}
-
-const DictDesignSearch: React.FC<IProps> = () => {
-  return <></>;
-};
-
-export default DictDesignSearch;
+export default defineElement({
+  render(props, ctx) {
+    return <></>;
+  },
+  displayName: 'DictSearch',
+  meta: { type: 'Element', label: '字典搜索', props: {} },
+});

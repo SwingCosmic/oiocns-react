@@ -1,4 +1,4 @@
-import { deepClone, generateUuid } from '@/ts/base/common';
+import { generateUuid } from '@/ts/base/common';
 import { Result } from 'antd';
 import _ from 'lodash';
 import React, {
@@ -103,7 +103,11 @@ function createDesignRender(component: ElementFC) {
       e.stopPropagation();
       ctx.view.currentElement = props.element;
     }, []);
-    ctx.view.subscribeElement(props.element.id, () => setKey(generateUuid()));
+    ctx.view.subscribe('props', 'change', (args) => {
+      if (args == props.element.id) {
+        setKey(generateUuid());
+      }
+    });
     return (
       <ErrorBoundary>
         <div

@@ -5,7 +5,7 @@ import EntityIcon from '@/components/Common/GlobalComps/entityIcon';
 import { model } from '@/ts/base';
 import { XEntity } from '@/ts/base/schema';
 /** 创建选择字段菜单 */
-const buildSpeciesFiledsTree = (fields: model.FieldModel[]): MenuItemType[] => {
+export const buildSpeciesFiledsTree = (fields: model.FieldModel[]): MenuItemType[] => {
   const result: any[] = [];
   for (const filed of fields) {
     result.push({

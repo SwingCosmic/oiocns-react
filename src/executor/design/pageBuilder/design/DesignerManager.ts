@@ -57,7 +57,7 @@ export default class DesignerManager
     try {
       const e = this.treeManager.createElement(kind, name, slotName, parentId, params);
       this.currentElement = e;
-      this.emitter('all', 'change');
+      this.emitter('elements', 'change');
       return e as any;
     } catch (error) {
       message.error(error instanceof Error ? error.message : String(error));
@@ -78,7 +78,7 @@ export default class DesignerManager
   changeElement(e: PageElement, targetId: string, slotName: string = 'default') {
     try {
       this.treeManager.changeParent([e], targetId, slotName);
-      this.emitter('all', 'change');
+      this.emitter('elements', 'change');
     } catch (error) {
       message.error(error instanceof Error ? error.message : String(error));
       throw error;
@@ -88,7 +88,7 @@ export default class DesignerManager
   moveElement(e: PageElement, targetId: string, position: number) {
     try {
       this.treeManager.moveElement(e, targetId, position);
-      this.emitter('all', 'change');
+      this.emitter('elements', 'change');
     } catch (error) {
       message.error(error instanceof Error ? error.message : String(error));
       throw error;
