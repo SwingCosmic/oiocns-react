@@ -7,6 +7,7 @@ import { ExistTypeMeta } from '../../core/ElementMeta';
 import { Context } from '../../render/PageContext';
 import { defineElement } from '../defineElement';
 import { Filter, Range } from '../shopping';
+import { DeleteOutlined } from '@ant-design/icons';
 
 interface IProps {
   ctx: Context;
@@ -19,10 +20,10 @@ const Design: React.FC<IProps> = (props) => {
   const [rangeOpen, setRangeOpen] = useState(false);
   const [current, setCurrent] = useState<Filter>();
   const [defineOpen, setDefineOpen] = useState(false);
+  const [filter, setFilter] = useState(props.filter);
   return (
     <div style={{ paddingTop: 10, paddingBottom: 10 }}>
       <Space direction="vertical">
-        <View {...props} />
         <Space>
           <Button type="dashed" onClick={() => setDictOpen(true)}>
             添加字典条件
@@ -30,6 +31,21 @@ const Design: React.FC<IProps> = (props) => {
           <Button type="dashed" onClick={() => setRangeOpen(true)}>
             添加数值条件
           </Button>
+        </Space>
+        <Space direction="vertical">
+          {filter.map((item, index) => {
+            return (
+              <Space key={index} align="start">
+                <DeleteOutlined
+                  onClick={() => {
+                    props.filter.splice(index, 1);
+                    setFilter([...props.filter]);
+                  }}
+                />
+                <Center key={index} fields={props.form.fields} item={item} />
+              </Space>
+            );
+          })}
         </Space>
       </Space>
       <DictModal
@@ -39,6 +55,7 @@ const Design: React.FC<IProps> = (props) => {
         onOk={(selected) => {
           if (selected.length > 0) {
             props.filter.push(...selected);
+            setFilter([...props.filter]);
           }
           setDictOpen(false);
         }}
@@ -60,9 +77,15 @@ const Design: React.FC<IProps> = (props) => {
           current={current}
           onOk={(ranges) => {
             current.rule = [...ranges];
+            props.filter.push(current);
+            setFilter([...props.filter]);
             setDefineOpen(false);
+            setCurrent(undefined);
           }}
-          onCancel={() => setDefineOpen(false)}
+          onCancel={() => {
+            setDefineOpen(false);
+            setCurrent(undefined);
+          }}
         />
       )}
     </div>
@@ -195,7 +218,7 @@ const DefineModal: React.FC<DefineProps> = (props) => {
       cancelButtonProps={{ hidden: true }}>
       <div style={{ margin: 10 }}>
         <EditableProTable
-          value={props.current.rule}
+          value={ranges}
           controlled
           rowKey={'id'}
           formRef={formRef}
@@ -298,11 +321,13 @@ const Center: React.FC<CenterProps> = (props) => {
 
 const View: React.FC<IProps> = (props) => {
   return (
-    <Space direction="vertical">
-      {props.filter.map((item, index) => {
-        return <Center key={index} fields={props.form.fields} item={item} />;
-      })}
-    </Space>
+    <div style={{ paddingTop: 10, paddingBottom: 10 }}>
+      <Space direction="vertical">
+        {props.filter.map((item, index) => {
+          return <Center key={index} fields={props.form.fields} item={item} />;
+        })}
+      </Space>
+    </div>
   );
 };
 
