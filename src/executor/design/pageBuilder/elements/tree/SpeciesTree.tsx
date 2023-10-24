@@ -21,7 +21,6 @@ const Design: React.FC<IProps> = (props) => {
     return props.form.fields.filter((item) => props.species.includes(item.id));
   };
   const [open, setOpen] = useState(false);
-  const [selected, setSelected] = useState(props.species);
   const [species, setSpecies] = useState<FieldModel[]>(getSpecies());
   return (
     <div style={{ width: 300, padding: '0 10px' }}>
@@ -45,39 +44,62 @@ const Design: React.FC<IProps> = (props) => {
           },
         ]}
       />
-      <Modal
+      <SelectionModal
         open={open}
-        onOk={() => setOpen(false)}
+        onOk={() => {
+          setOpen(false);
+          setSpecies(getSpecies());
+        }}
         onCancel={() => setOpen(false)}
-        cancelButtonProps={{ hidden: true }}>
-        <div style={{ padding: 10 }}>
-          <Table
-            dataSource={props.form.fields.filter((item) => item.valueType == '分类型')}
-            rowSelection={{
-              type: 'checkbox',
-              selectedRowKeys: selected,
-              onChange: (_, selected) => {
-                props.species.splice(0, props.species.length);
-                props.species.push(...selected.map((item) => item.id));
-                setSpecies(getSpecies());
-                setSelected([...props.species]);
-              },
-            }}
-            rowKey={'id'}
-            columns={[
-              {
-                title: '分类名称',
-                dataIndex: 'name',
-              },
-              {
-                title: '分类编码',
-                dataIndex: 'code',
-              },
-            ]}
-          />
-        </div>
-      </Modal>
+        species={props.species}
+        form={props.form}
+        ctx={props.ctx}
+      />
     </div>
+  );
+};
+
+interface SelectionProps extends IProps {
+  open: boolean;
+  onOk: () => void;
+  onCancel: () => void;
+}
+
+const SelectionModal: React.FC<SelectionProps> = (props) => {
+  const [selected, setSelected] = useState(props.species);
+  return (
+    <Modal
+      open={props.open}
+      onOk={() => props.onOk()}
+      onCancel={() => props.onCancel()}
+      cancelButtonProps={{ hidden: true }}
+      width={'40vw'}>
+      <div style={{ padding: 10 }}>
+        <Table
+          dataSource={props.form.fields.filter((item) => item.valueType == '分类型')}
+          rowSelection={{
+            type: 'checkbox',
+            selectedRowKeys: selected,
+            onChange: (_, selected) => {
+              props.species.splice(0, props.species.length);
+              props.species.push(...selected.map((item) => item.id));
+              setSelected([...props.species]);
+            },
+          }}
+          rowKey={'id'}
+          columns={[
+            {
+              title: '分类名称',
+              dataIndex: 'name',
+            },
+            {
+              title: '分类编码',
+              dataIndex: 'code',
+            },
+          ]}
+        />
+      </div>
+    </Modal>
   );
 };
 

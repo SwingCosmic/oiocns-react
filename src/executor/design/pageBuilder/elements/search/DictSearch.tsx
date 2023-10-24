@@ -355,6 +355,7 @@ export default defineElement({
       },
       form: {
         type: 'type',
+        label: '表单',
         typeName: 'form',
         hidden: true,
       } as ExistTypeMeta<IForm>,

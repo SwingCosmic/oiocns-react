@@ -99,6 +99,7 @@ function createDesignRender(component: ElementFC) {
   const render = (props: ElementRenderProps) => {
     const ctx = useContext(PageContext) as DesignContext;
     const [key, setKey] = useState(generateUuid());
+    const [element, setElement] = useState<PageElement | null>(ctx.view.currentElement);
     const handleClick = useCallback((e: MouseEvent) => {
       e.stopPropagation();
       ctx.view.currentElement = props.element;
@@ -108,13 +109,14 @@ function createDesignRender(component: ElementFC) {
         setKey(generateUuid());
       }
     });
+    ctx.view.subscribe('current', 'change', () => setElement(ctx.view.currentElement));
     return (
       <ErrorBoundary>
         <div
           key={key}
           className={[
             'element-wrapper',
-            ctx.view.currentElement?.id == props.element.id ? 'is-current' : '',
+            element?.id == props.element.id ? 'is-current' : '',
           ].join(' ')}
           onClick={handleClick}>
           {h(component, mergeProps(props.element, component, props.slotParams))}

@@ -2,17 +2,13 @@ import EntityIcon from '@/components/Common/GlobalComps/entityIcon';
 import CustomTree from '@/components/CustomTree';
 import { MinusOutlined, PlusOutlined } from '@ant-design/icons';
 import { Button, Space, Tag } from 'antd';
-import React, { useRef, useState } from 'react';
+import React, { useContext, useRef, useState } from 'react';
+import { ElementType, ElementTypeName } from '../core/ElementMeta';
 import { PageElement } from '../core/PageElement';
-import { DesignContext } from '../render/PageContext';
+import { DesignContext, PageContext } from '../render/PageContext';
 import AddElementModal from './AddElementModal';
 import { removeElement } from './config/ElementProps';
 import cls from './tree.module.less';
-import { ElementType, ElementTypeName } from '../core/ElementMeta';
-
-interface IProps {
-  ctx: DesignContext;
-}
 
 const buildElementTree = (
   element: PageElement,
@@ -71,7 +67,8 @@ const buildElementTree = (
   };
 };
 
-const TreeManager: React.FC<IProps> = ({ ctx }) => {
+const TreeManager: React.FC<{}> = () => {
+  const ctx = useContext<DesignContext>(PageContext as any);
   const [visible, setVisible] = useState<boolean>(false);
   const tree = [buildElementTree(ctx.view.rootElement, ctx)];
   const prop = useRef();

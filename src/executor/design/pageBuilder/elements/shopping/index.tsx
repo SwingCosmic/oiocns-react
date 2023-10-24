@@ -132,7 +132,7 @@ const ViewEntities: React.FC<IProps> = (props) => {
     setTotal(res.totalCount);
   };
   return (
-    <Space direction="vertical">
+    <Space direction="vertical" align="center">
       <Row style={{ width: '100%' }} gutter={[16, 16]}>
         {data.map((item) => {
           if (props.content) {

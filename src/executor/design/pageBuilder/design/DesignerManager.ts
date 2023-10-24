@@ -1,4 +1,3 @@
-import { Signal, signal } from '@preact/signals-react';
 import { PageElement } from '../core/PageElement';
 import HostManagerBase from '../render/HostManager';
 import { IPageTemplate } from '@/ts/core/thing/standard/page';
@@ -39,12 +38,13 @@ export default class DesignerManager
     }
   }
 
-  private _currentElement: Signal<PageElement | null> = signal(null);
+  private _currentElement: PageElement | null = null;
   get currentElement() {
-    return this._currentElement.value;
+    return this._currentElement;
   }
   set currentElement(e) {
-    this._currentElement.value = e;
+    this._currentElement = e;
+    this.emitter("current", "change");
   }
 
   addElement<E extends PageElement>(

@@ -1,15 +1,11 @@
 import { $confirm } from '@/utils/react/antd';
 import { Empty, Tag, message } from 'antd';
-import React, { useContext } from 'react';
+import React, { useContext, useState } from 'react';
 import { TypeMeta } from '../../core/ElementMeta';
 import { PageElement } from '../../core/PageElement';
 import { DesignContext, PageContext } from '../../render/PageContext';
 import ElementPropsItem from './ElementPropsItem';
 import './index.less';
-
-interface Props {
-  element: PageElement | null;
-}
 
 export async function removeElement(element: PageElement | null, ctx: DesignContext) {
   if (!element) {
@@ -28,8 +24,10 @@ export async function removeElement(element: PageElement | null, ctx: DesignCont
   ctx.view.removeElement(element, true);
 }
 
-export default function ElementProps({ element }: Props) {
+export default function ElementProps() {
   const ctx = useContext<DesignContext>(PageContext as any);
+  const [element, setElement] = useState<PageElement | null>(ctx.view.currentElement);
+  ctx.view.subscribe('current', 'change', () => setElement(ctx.view.currentElement));
 
   const commonTypeMeta: Dictionary<TypeMeta> = {
     id: {

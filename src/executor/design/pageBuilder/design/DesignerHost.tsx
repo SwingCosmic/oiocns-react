@@ -10,7 +10,6 @@ import {
   RightCircleOutlined,
   SettingOutlined,
 } from '@ant-design/icons';
-import { useComputed } from '@preact/signals-react';
 import TreeManager from './TreeManager';
 import ElementProps from './config/ElementProps';
 import css from './designer.module.less';
@@ -23,7 +22,6 @@ export interface DesignerProps {
 }
 
 export function DesignerHost({ ctx }: DesignerProps) {
-  const currentElement = useComputed(() => ctx.view.currentElement);
   const [active, setActive] = useState<string>();
   const [status, setStatus] = useState(false);
   const [open, setOpen] = useState(false);
@@ -62,8 +60,8 @@ export function DesignerHost({ ctx }: DesignerProps) {
   }
 
   const Configuration: { [key: string]: ReactNode } = {
-    tree: <TreeManager ctx={ctx} />,
-    element: <ElementProps element={currentElement.value} />,
+    tree: <TreeManager />,
+    element: <ElementProps />,
     data: <Coder />,
   };
 
