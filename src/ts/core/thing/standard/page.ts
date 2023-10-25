@@ -1,9 +1,15 @@
 import { Command, schema } from '@/ts/base';
 import { IStandardFileInfo, StandardFileInfo } from '../fileinfo';
 import { IDirectory } from '../directory';
+import { ISpecies, Species } from './species';
 
 export interface IPageTemplate extends IStandardFileInfo<schema.XPageTemplate> {
+  /** 触发器 */
   command: Command;
+  /** 分类 */
+  species: ISpecies[];
+  /** 加载分类 */
+  loadSpecies: (speciesIds: string[]) => Promise<ISpecies[]>;
 }
 
 export class PageTemplate
@@ -12,6 +18,7 @@ export class PageTemplate
 {
   canDesign: boolean = true;
   command: Command;
+  species: ISpecies[] = [];
   get cacheFlag() {
     return 'pages';
   }
@@ -30,5 +37,25 @@ export class PageTemplate
       return await super.moveTo(destination.id, destination.resource.templateColl);
     }
     return false;
+  }
+  async loadSpecies(speciesIds: string[]): Promise<ISpecies[]> {
+    const already = this.species.map((item) => item.id);
+    const filter = speciesIds.filter((speciesId) => !already.includes(speciesId));
+    if (filter.length > 0) {
+      const species = await this.directory.resource.speciesColl.find(filter);
+      for (const item of species) {
+        const meta = new Species(item, this.directory);
+        await meta.loadContent();
+        this.species.push(meta);
+      }
+    }
+    const result: ISpecies[] = [];
+    speciesIds.forEach((speciesId) => {
+      const item = this.species.find((one) => one.id == speciesId);
+      if (item) {
+        result.push(item);
+      }
+    });
+    return result;
   }
 }

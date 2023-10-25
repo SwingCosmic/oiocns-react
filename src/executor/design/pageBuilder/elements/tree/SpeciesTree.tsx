@@ -1,125 +1,142 @@
 import CustomTree from '@/components/CustomTree';
-import { buildSpeciesFiledsTree } from '@/executor/open/form/config';
-import { FieldModel } from '@/ts/base/model';
-import { IForm } from '@/ts/core';
-import { generateUuid } from '@/utils/excel';
-import { PlusCircleOutlined } from '@ant-design/icons';
-import { Modal, Table } from 'antd';
-import React, { useState } from 'react';
-import { ExistTypeMeta } from '../../core/ElementMeta';
-import { defineElement } from '../defineElement';
+import OpenFileDialog from '@/components/OpenFileDialog';
+import { schema } from '@/ts/base';
+import { ISpecies } from '@/ts/core';
+import { Button, Space, Spin } from 'antd';
+import React, { useEffect, useState } from 'react';
 import { Context } from '../../render/PageContext';
+import { defineElement } from '../defineElement';
+import { DeleteOutlined } from '@ant-design/icons';
 
 interface IProps {
-  species: string[];
-  form: IForm;
   ctx: Context;
+  species: string[];
 }
 
-const Design: React.FC<IProps> = (props) => {
-  const getSpecies = (): FieldModel[] => {
-    return props.form.fields.filter((item) => props.species.includes(item.id));
-  };
-  const [open, setOpen] = useState(false);
-  const [species, setSpecies] = useState<FieldModel[]>(getSpecies());
-  return (
-    <div style={{ width: 300, padding: '0 10px' }}>
-      <CustomTree
-        searchable
-        fieldNames={{ title: 'name', key: 'id', children: 'children' }}
-        onSelect={(_, item) => {
-          if ((item.node as any).valueType == '虚拟') {
-            setOpen(true);
-            return;
-          }
-        }}
-        treeData={[
-          ...species,
-          {
-            id: generateUuid(),
-            name: <PlusCircleOutlined />,
-            code: 'virtually',
-            valueType: '虚拟',
-            remark: '虚拟节点',
-          },
-        ]}
-      />
-      <SelectionModal
-        open={open}
-        onOk={() => {
-          setOpen(false);
-          setSpecies(getSpecies());
-        }}
-        onCancel={() => setOpen(false)}
-        species={props.species}
-        form={props.form}
-        ctx={props.ctx}
-      />
-    </div>
-  );
+const buildSpecies = (species: ISpecies[]) => {
+  return species.map((item) => {
+    return {
+      key: item.id,
+      label: item.name,
+      children: buildItems(item.items),
+    };
+  });
 };
 
-interface SelectionProps extends IProps {
-  open: boolean;
-  onOk: () => void;
-  onCancel: () => void;
-}
+const buildItems = (items: schema.XSpeciesItem[], parentId?: string) => {
+  const result: any[] = [];
+  for (const item of items) {
+    if (item.parentId == parentId) {
+      result.push({
+        key: item.id,
+        label: item.name,
+        children: buildItems(items, item.id),
+      });
+    }
+  }
+  return result;
+};
 
-const SelectionModal: React.FC<SelectionProps> = (props) => {
-  const [selected, setSelected] = useState(props.species);
+const loadSpecies = async (props: IProps) => {
+  return await props.ctx.view.pageInfo.loadSpecies(props.species);
+};
+
+const useSpecies = (props: IProps) => {
+  const [loading, setLoading] = useState(true);
+  const [species, setSpecies] = useState<ISpecies[]>([]);
+  const setter = async (props: IProps) => {
+    setLoading(true);
+    const items = await loadSpecies(props);
+    setSpecies(items);
+    for (const item of items) {
+      await item.loadContent();
+    }
+    setLoading(false);
+  };
+  useEffect(() => {
+    setter(props);
+  }, []);
+  return {
+    loading,
+    species,
+    setSpecies: setter,
+  };
+};
+
+const Design: React.FC<IProps> = (props) => {
+  const { loading, species, setSpecies } = useSpecies(props);
+  const [center, setCenter] = useState(<></>);
   return (
-    <Modal
-      open={props.open}
-      onOk={() => props.onOk()}
-      onCancel={() => props.onCancel()}
-      cancelButtonProps={{ hidden: true }}
-      width={'40vw'}>
-      <div style={{ padding: 10 }}>
-        <Table
-          dataSource={props.form.fields.filter((item) => item.valueType == '分类型')}
-          rowSelection={{
-            type: 'checkbox',
-            selectedRowKeys: selected,
-            onChange: (_, selected) => {
-              props.species.splice(0, props.species.length);
-              props.species.push(...selected.map((item) => item.id));
-              setSelected([...props.species]);
-            },
+    <Spin spinning={loading}>
+      <div style={{ width: 300, height: '100%', padding: '0 10px' }}>
+        <Button
+          onClick={() => {
+            setCenter(
+              <OpenFileDialog
+                accepts={['分类']}
+                rootKey={props.ctx.view.pageInfo.directory.spaceKey}
+                excludeIds={species.map((item) => item.id)}
+                multiple={true}
+                onOk={async (files) => {
+                  if (files.length > 0) {
+                    for (const file of files) {
+                      props.ctx.view.pageInfo.species.push(file as ISpecies);
+                      props.species.push(file.id);
+                    }
+                    setSpecies(props);
+                  }
+                  setCenter(<></>);
+                  return;
+                }}
+                onCancel={() => {
+                  setCenter(<></>);
+                }}
+              />,
+            );
+          }}>
+          新增分类
+        </Button>
+        <CustomTree
+          searchable
+          fieldNames={{ title: 'name', key: 'id', children: 'children' }}
+          treeData={species}
+          titleRender={(node: any) => {
+            return (
+              <Space align="start">
+                <DeleteOutlined
+                  onClick={() => {
+                    const index = props.species.findIndex((id) => id == node.id);
+                    props.species.splice(index, 1);
+                    setSpecies(props);
+                  }}
+                />
+                {node.name}
+              </Space>
+            );
           }}
-          rowKey={'id'}
-          columns={[
-            {
-              title: '分类名称',
-              dataIndex: 'name',
-            },
-            {
-              title: '分类编码',
-              dataIndex: 'code',
-            },
-          ]}
         />
+        {center}
       </div>
-    </Modal>
+    </Spin>
   );
 };
 
 const View: React.FC<IProps> = (props) => {
+  const { loading, species } = useSpecies(props);
   return (
-    <div style={{ width: 300, padding: 10 }}>
-      <CustomTree
-        checkable
-        searchable
-        onCheck={(checked) => {
-          props.ctx.view.emitter('speciesTree', 'checked', checked);
-        }}
-        fieldNames={{ title: 'label', key: 'key', children: 'children' }}
-        treeData={buildSpeciesFiledsTree(
-          props.form.fields
-            .filter((i) => i.valueType === '分类型')
-            .filter((i) => props.species.includes(i.id)),
-        )}
-      />
-    </div>
+    <Spin spinning={loading}>
+      <div style={{ width: 300, padding: 10 }}>
+        <CustomTree
+          checkable
+          searchable
+          onCheck={(checked) => {
+            props.ctx.view.emitter('speciesTree', 'checked', checked);
+          }}
+          fieldNames={{ title: 'label', key: 'key', children: 'children' }}
+          treeData={buildSpecies(species)}
+        />
+      </div>
+    </Spin>
   );
 };
 
@@ -144,11 +161,6 @@ export default defineElement({
         },
         default: [],
       },
-      form: {
-        type: 'type',
-        typeName: 'form',
-        hidden: true,
-      } as ExistTypeMeta<IForm>,
     },
   },
 });

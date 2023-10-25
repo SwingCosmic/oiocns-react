@@ -88,13 +88,19 @@ const Directory: React.FC<IProps> = (props) => {
     const tagFilter = (file: IFile) => {
       let success = true;
       if (props.excludeIds && props.excludeIds.length > 0) {
-        success = !props.excludeIds.includes(file.id);
+        if (!props.excludeIds.includes(file.id)) {
+          return false;
+        }
       }
       if (filter) {
         if (currentTag !== '全部') {
-          success = file.groupTags.includes(currentTag);
+          if (!file.groupTags.includes(currentTag)) {
+            return false;
+          }
         } else {
-          success = !file.groupTags.includes('已删除');
+          if (file.groupTags.includes('已删除')) {
+            return false;
+          }
         }
       }
       if (success && props.accepts && props.accepts.length > 0) {
