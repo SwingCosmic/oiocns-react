@@ -1,5 +1,5 @@
 import { schema } from '@/ts/base';
-import { Card } from 'antd';
+import { Card, Space } from 'antd';
 import React from 'react';
 import { ExistTypeMeta, ParameterInfo } from '../../core/ElementMeta';
 import { defineElement } from '../defineElement';
@@ -30,15 +30,21 @@ export default defineElement({
         hoverable
         cover={image({ data, label: '图片', valueType: '图片' })}
         actions={[
-          first({ data, label: '字段-4', valueType: '描述' }),
-          second({ data, label: '字段-5', valueType: '描述' }),
+          <div key={'fourth'}>{first({ data, label: '字段-4', valueType: '描述' })}</div>,
+          <div key={'fifth'}>{second({ data, label: '字段-5', valueType: '描述' })}</div>,
         ]}>
         <Card.Meta
           title={third({ data, label: '字段-1', valueType: '标题' })}
-          description={[
-            fourth({ data, label: '字段-2', valueType: '描述' }),
-            fifth({ data, label: '字段-3', valueType: '描述' }),
-          ]}
+          description={
+            <Space style={{ width: '100%' }} direction="vertical">
+              <div key={'second'}>
+                {fourth({ data, label: '字段-2', valueType: '描述' })}
+              </div>
+              <div key={'third'}>
+                {fifth({ data, label: '字段-3', valueType: '描述' })}
+              </div>
+            </Space>
+          }
         />
       </Card>
     );

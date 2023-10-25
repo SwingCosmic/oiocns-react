@@ -1,42 +1,18 @@
 import CustomTree from '@/components/CustomTree';
 import OpenFileDialog from '@/components/OpenFileDialog';
-import { schema } from '@/ts/base';
-import { ISpecies } from '@/ts/core';
+import { IProperty } from '@/ts/core';
 import { DeleteOutlined } from '@ant-design/icons';
 import { Button, Space, Spin } from 'antd';
 import React, { useState } from 'react';
-import { useSpecies } from '../../core/hooks/useSpecies';
+import { ExistTypeMeta } from '../../core/ElementMeta';
+import { SpeciesProp, buildItems, search, useSpecies } from '../../core/hooks/useSpecies';
 import { Context } from '../../render/PageContext';
 import { defineElement } from '../defineElement';
 
 interface IProps {
   ctx: Context;
-  species: string[];
+  species: SpeciesProp[];
 }
-
-const buildSpecies = (species: ISpecies[]) => {
-  return species.map((item) => {
-    return {
-      key: item.id,
-      label: item.name,
-      children: buildItems(item.items),
-    };
-  });
-};
-
-const buildItems = (items: schema.XSpeciesItem[], parentId?: string) => {
-  const result: any[] = [];
-  for (const item of items) {
-    if (item.parentId == parentId) {
-      result.push({
-        key: item.id,
-        label: item.name,
-        children: buildItems(items, item.id),
-      });
-    }
-  }
-  return result;
-};
 
 const Design: React.FC<IProps> = (props) => {
   const { loading, species, setSpecies } = useSpecies(props.species, props.ctx);
@@ -67,24 +43,26 @@ const Design: React.FC<IProps> = (props) => {
           onClick={() => {
             setCenter(
               <OpenFileDialog
-                accepts={['分类']}
+                accepts={['分类型']}
                 rootKey={props.ctx.view.pageInfo.directory.spaceKey}
-                excludeIds={species.map((item) => item.id)}
+                excludeIds={props.species.map((item) => item.id)}
                 multiple={true}
                 onOk={async (files) => {
                   if (files.length > 0) {
                     for (const file of files) {
-                      props.ctx.view.pageInfo.species.push(file as ISpecies);
-                      props.species.push(file.id);
+                      const property = file as IProperty;
+                      props.species.push({
+                        id: property.id,
+                        name: property.code + ' ' + property.name,
+                        speciesId: property.metadata.speciesId,
+                      });
                     }
                     setSpecies(props.species, props.ctx);
                   }
                   setCenter(<></>);
                   return;
                 }}
-                onCancel={() => {
-                  setCenter(<></>);
-                }}
+                onCancel={() => setCenter(<></>)}
               />,
             );
           }}>
@@ -97,18 +75,26 @@ const Design: React.FC<IProps> = (props) => {
 };
 
 const View: React.FC<IProps> = (props) => {
-  const { loading, species } = useSpecies(props.species, props.ctx);
+  const { loading, tree, setTree } = useSpecies(props.species, props.ctx);
   return (
     <Spin spinning={loading}>
       <div style={{ width: 300, padding: 10 }}>
         <CustomTree
           checkable
           searchable
-          onCheck={(checked) => {
-            props.ctx.view.emitter('speciesTree', 'checked', checked);
+          loadData={async (props) => {
+            const node = search(tree, props.key as string);
+            if (node) {
+              buildItems(node.items, node);
+              setTree([...tree]);
+            }
+          }}
+          onCheck={(checked, info) => {
+            (checked as string[]).map((item) => item.split('-'));
+            props.ctx.view.emitter('speciesTree', 'checked');
           }}
           fieldNames={{ title: 'label', key: 'key', children: 'children' }}
-          treeData={buildSpecies(species)}
+          treeData={tree}
         />
       </div>
     </Spin>
@@ -131,9 +117,9 @@ export default defineElement({
         type: 'array',
         label: '分类数组',
         elementType: {
-          type: 'string',
+          type: 'type',
           label: '分类',
-        },
+        } as ExistTypeMeta<SpeciesProp>,
         default: [],
       },
     },

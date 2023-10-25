@@ -1,12 +1,12 @@
 import OpenFileDialog from '@/components/OpenFileDialog';
 import { schema } from '@/ts/base';
-import { IFile, IProperty, ISpecies } from '@/ts/core';
+import { IFile, IProperty } from '@/ts/core';
 import { DeleteOutlined } from '@ant-design/icons';
 import { EditableProTable, ProFormInstance } from '@ant-design/pro-components';
 import { Button, Modal, Row, Space, Spin, Tag } from 'antd';
 import React, { useRef, useState } from 'react';
 import { ExistTypeMeta } from '../../core/ElementMeta';
-import { useSpecies } from '../../core/hooks/useSpecies';
+import { SpeciesProp, useSpecies } from '../../core/hooks/useSpecies';
 import { Context } from '../../render/PageContext';
 import { defineElement } from '../defineElement';
 import { Filter, Range } from '../shopping';
@@ -16,8 +16,16 @@ interface IProps {
   filter: Filter[];
 }
 
-const loadDicts = (filter: Filter[]) => {
-  return filter.filter((item) => item.valueType == '选择型').map((item) => item.id);
+const loadDicts = (filter: Filter[]): SpeciesProp[] => {
+  return filter
+    .filter((item) => item.valueType == '选择型')
+    .map((item) => {
+      return {
+        id: item.id,
+        name: item.name,
+        speciesId: item.speciesId,
+      };
+    });
 };
 
 const Design: React.FC<IProps> = (props) => {
@@ -56,13 +64,13 @@ const Design: React.FC<IProps> = (props) => {
             <Button
               type="dashed"
               onClick={() => {
-                setOpenFile(['字典'], (files) => {
+                setOpenFile(['选择型'], (files) => {
                   for (const file of files) {
-                    props.ctx.view.pageInfo.species.push(file as ISpecies);
                     props.filter.push({
                       id: file.id,
                       name: file.name,
                       valueType: '选择型',
+                      speciesId: (file as IProperty).metadata.speciesId,
                       rule: [],
                     });
                   }
@@ -81,7 +89,8 @@ const Design: React.FC<IProps> = (props) => {
                     let current = {
                       id: files[0].id,
                       name: files[0].name,
-                      valueType: (files[0] as IProperty).metadata.valueType,
+                      valueType: '数值型',
+                      speciesId: '',
                       rule: [],
                     };
                     props.filter.push(current);
@@ -105,7 +114,9 @@ const Design: React.FC<IProps> = (props) => {
                     }}
                   />
                   <Center
-                    speciesItems={species.find((one) => one.id == item.id)?.items ?? []}
+                    speciesItems={
+                      species.find((one) => one.id == item.id)?.species.items ?? []
+                    }
                     item={item}
                   />
                 </Space>
@@ -263,7 +274,9 @@ const View: React.FC<IProps> = (props) => {
           {props.filter.map((item, index) => {
             return (
               <Center
-                speciesItems={species.find((one) => one.id == item.id)?.items ?? []}
+                speciesItems={
+                  species.find((one) => one.id == item.id)?.species.items ?? []
+                }
                 key={index}
                 item={item}
               />
