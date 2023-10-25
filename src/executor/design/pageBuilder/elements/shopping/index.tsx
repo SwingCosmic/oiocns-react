@@ -75,7 +75,7 @@ const DesignEntities: React.FC<IProps> = (props) => {
   const [page, setPage] = useState<number>(1);
   const [size, setSize] = useState<number>(props.size);
   return (
-    <Space direction={'vertical'} align="center">
+    <Space style={{ width: '100%' }} direction={'vertical'} align="center">
       <Row style={{ width: '100%' }} gutter={[16, 16]}>
         {Enumerable.Range(1, 10)
           .ToArray()
@@ -92,15 +92,17 @@ const DesignEntities: React.FC<IProps> = (props) => {
             return <Empty key={index} description={'未放置组件'} />;
           })}
       </Row>
-      <Pagination
-        current={page}
-        pageSize={size}
-        total={props.total}
-        onChange={(page, size) => {
-          setPage(page);
-          setSize(size);
-        }}
-      />
+      <div className={cls.page}>
+        <Pagination
+          current={page}
+          pageSize={size}
+          total={props.total}
+          onChange={(page, size) => {
+            setPage(page);
+            setSize(size);
+          }}
+        />
+      </div>
     </Space>
   );
 };
@@ -132,8 +134,8 @@ const ViewEntities: React.FC<IProps> = (props) => {
     setTotal(res.totalCount);
   };
   return (
-    <Space direction="vertical" align="center">
-      <Row style={{ width: '100%' }} gutter={[16, 16]}>
+    <Space style={{ width: '100%' }} direction="vertical">
+      <Row gutter={[16, 16]}>
         {data.map((item) => {
           if (props.content) {
             const has = stagings.filter((staging) => staging.dataId == item.id);
@@ -175,16 +177,18 @@ const ViewEntities: React.FC<IProps> = (props) => {
           return <Empty key={item.id} description={'未放置组件'} />;
         })}
       </Row>
-      <Pagination
-        current={page}
-        pageSize={size}
-        total={total}
-        onChange={(page, size) => {
-          if (props.form) {
-            loadData(size, page, props.form);
-          }
-        }}
-      />
+      <div className={cls.page}>
+        <Pagination
+          current={page}
+          pageSize={size}
+          total={total}
+          onChange={(page, size) => {
+            if (props.form) {
+              loadData(size, page, props.form);
+            }
+          }}
+        />
+      </div>
       <ShoppingBadge box={orgCtrl.box} />
       <ShoppingList box={orgCtrl.box} fields={props.form.fields} />
       {center}
@@ -241,8 +245,8 @@ export default defineElement({
       },
       total: {
         type: 'number',
-        label: '总个数',
-        default: 100,
+        label: '默认总个数',
+        default: 40,
       },
       filter: {
         type: 'array',
