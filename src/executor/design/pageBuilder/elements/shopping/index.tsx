@@ -1,17 +1,16 @@
 import { kernel, schema } from '@/ts/base';
 import { Enumerable } from '@/ts/base/common/linq';
 import orgCtrl from '@/ts/controller';
-import { Form, IForm } from '@/ts/core/thing/standard/form';
 import { PlusCircleFilled } from '@ant-design/icons';
 import { Button, Col, Empty, Pagination, Row, Space } from 'antd';
 import React, { ReactNode, useEffect, useState } from 'react';
 import { ExistTypeMeta } from '../../core/ElementMeta';
+import { useCenter, useStagings } from '../../core/hooks/useChange';
 import { Context } from '../../render/PageContext';
 import { defineElement } from '../defineElement';
 import ShoppingBadge from './design/ShoppingBadge';
 import ShoppingList from './design/ShoppingList';
 import cls from './index.module.less';
-import { useCenter, useStagings } from '../../core/hooks/useChange';
 
 export interface Filter {
   id: string;
@@ -28,7 +27,6 @@ export interface Range {
 }
 
 interface IProps {
-  form: IForm;
   work: string | undefined;
   size: number;
   span: number;
@@ -38,18 +36,6 @@ interface IProps {
   species: string[];
   content?: (params: { card: schema.XThing }) => ReactNode | ReactNode[];
 }
-
-const loadForm = async (form: string | undefined, ctx: Context) => {
-  if (form) {
-    const directory = ctx.view.pageInfo.directory;
-    const metadata = await directory.resource.formColl.find([form]);
-    if (metadata.length > 0) {
-      const form = new Form(metadata[0], directory);
-      await form.loadContent();
-      return form;
-    }
-  }
-};
 
 interface ILayout {
   banner?: ReactNode;
@@ -110,6 +96,7 @@ const DesignEntities: React.FC<IProps> = (props) => {
 };
 
 const ViewEntities: React.FC<IProps> = (props) => {
+  const current = props.ctx.view.pageInfo;
   const [page, setPage] = useState<number>(1);
   const [size, setSize] = useState<number>(props.size);
   const [total, setTotal] = useState<number>(0);
@@ -117,13 +104,12 @@ const ViewEntities: React.FC<IProps> = (props) => {
   const stagings = useStagings(orgCtrl.box);
   const center = useCenter();
   useEffect(() => {
-    loadData(size, page, props.form);
+    loadData(size, page);
   }, []);
-  const loadData = async (take: number, page: number, form?: IForm) => {
-    if (!form) return;
+  const loadData = async (take: number, page: number) => {
     const res = await kernel.loadThing(
-      form.belongId,
-      [form.directory.target.spaceId, form.directory.target.id],
+      current.belongId,
+      [current.directory.target.spaceId, current.directory.target.id],
       {
         take: take,
         skip: (page - 1) * take,
@@ -150,14 +136,15 @@ const ViewEntities: React.FC<IProps> = (props) => {
                       icon={<PlusCircleFilled style={{ color: 'green' }} />}
                       size="small"
                       onClick={() => {
-                        if (props.form?.belongId) {
-                          orgCtrl.box.createStaging({
-                            typeName: '实体',
-                            dataId: item.id,
-                            data: item,
-                            relations: [item.belongId],
-                          } as schema.XStaging);
-                        }
+                        orgCtrl.box.createStaging({
+                          typeName: '实体',
+                          dataId: item.id,
+                          data: item,
+                          relations: [
+                            current.directory.target.spaceId,
+                            current.directory.target.id,
+                          ],
+                        } as schema.XStaging);
                       }}>
                       {'加入购物车'}
                     </Button>
@@ -185,14 +172,11 @@ const ViewEntities: React.FC<IProps> = (props) => {
           pageSize={size}
           total={total}
           onChange={(page, size) => {
-            if (props.form) {
-              loadData(size, page, props.form);
-            }
+            loadData(size, page);
           }}
         />
       </div>
       <ShoppingBadge box={orgCtrl.box} />
-      <ShoppingList box={orgCtrl.box} fields={props.form.fields} />
       {center}
     </Space>
   );
@@ -200,36 +184,24 @@ const ViewEntities: React.FC<IProps> = (props) => {
 
 export default defineElement({
   render(props, ctx) {
-    const [form, setForm] = useState<IForm>();
-    useEffect(() => {
-      loadForm(props.form, ctx).then((res) => setForm(res));
-    }, []);
-    if (form) {
-      return (
-        <ShoppingLayout
-          banner={props.banner({})}
-          species={props.leftTree({ species: props.species, form: form })}
-          dicts={props.topDicts({ filter: props.filter, form: form })}
-          entities={
-            ctx.view.mode == 'design' ? (
-              <DesignEntities ctx={ctx} {...props} form={form} />
-            ) : (
-              <ViewEntities ctx={ctx} {...props} form={form} />
-            )
-          }
-        />
-      );
-    }
-    return <Empty description={'请先绑定一个表单'} />;
+    return (
+      <ShoppingLayout
+        banner={props.banner({})}
+        species={props.leftTree({ species: props.species })}
+        dicts={props.topDicts({ filter: props.filter })}
+        entities={
+          ctx.view.mode == 'design' ? (
+            <DesignEntities ctx={ctx} {...props} />
+          ) : (
+            <ViewEntities ctx={ctx} {...props} />
+          )
+        }
+      />
+    );
   },
   displayName: 'Welfare',
   meta: {
     props: {
-      form: {
-        type: 'type',
-        label: '展示表单',
-        typeName: 'formFile',
-      } as ExistTypeMeta<string | undefined>,
       work: {
         type: 'type',
         label: '绑定办事',
@@ -306,13 +278,6 @@ export default defineElement({
               },
             },
           },
-          form: {
-            label: '表单',
-            type: {
-              type: 'type',
-              typeName: 'form',
-            } as ExistTypeMeta<IForm>,
-          },
         },
         default: 'SpeciesTree',
       },
@@ -330,13 +295,6 @@ export default defineElement({
                 typeName: 'Filter',
               } as ExistTypeMeta<Filter>,
             },
-          },
-          form: {
-            label: '表单',
-            type: {
-              type: 'type',
-              typeName: 'form',
-            } as ExistTypeMeta<IForm>,
           },
         },
         default: 'DictSearch',

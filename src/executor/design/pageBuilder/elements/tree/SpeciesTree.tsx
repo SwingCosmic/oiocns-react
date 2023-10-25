@@ -43,7 +43,26 @@ const Design: React.FC<IProps> = (props) => {
   const [center, setCenter] = useState(<></>);
   return (
     <Spin spinning={loading}>
-      <div style={{ width: 300, height: '100%', padding: '0 10px' }}>
+      <Space style={{ width: 300, padding: '0 10px' }} direction="vertical">
+        <CustomTree
+          searchable
+          fieldNames={{ title: 'name', key: 'id', children: 'children' }}
+          treeData={species}
+          titleRender={(node: any) => {
+            return (
+              <Space align="start">
+                <DeleteOutlined
+                  onClick={() => {
+                    const index = props.species.findIndex((id) => id == node.id);
+                    props.species.splice(index, 1);
+                    setSpecies(props.species, props.ctx);
+                  }}
+                />
+                {node.name}
+              </Space>
+            );
+          }}
+        />
         <Button
           onClick={() => {
             setCenter(
@@ -71,27 +90,8 @@ const Design: React.FC<IProps> = (props) => {
           }}>
           新增分类
         </Button>
-        <CustomTree
-          searchable
-          fieldNames={{ title: 'name', key: 'id', children: 'children' }}
-          treeData={species}
-          titleRender={(node: any) => {
-            return (
-              <Space align="start">
-                <DeleteOutlined
-                  onClick={() => {
-                    const index = props.species.findIndex((id) => id == node.id);
-                    props.species.splice(index, 1);
-                    setSpecies(props.species, props.ctx);
-                  }}
-                />
-                {node.name}
-              </Space>
-            );
-          }}
-        />
         {center}
-      </div>
+      </Space>
     </Spin>
   );
 };
