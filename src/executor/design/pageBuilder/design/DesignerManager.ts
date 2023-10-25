@@ -68,6 +68,7 @@ export default class DesignerManager
   removeElement(e: PageElement, recursive?: boolean) {
     try {
       this.treeManager.removeElement(e, recursive);
+      this.emitter('elements', 'change');
       this.currentElement = null;
     } catch (error) {
       message.error(error instanceof Error ? error.message : String(error));

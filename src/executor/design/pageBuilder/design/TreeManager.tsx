@@ -67,10 +67,17 @@ const buildElementTree = (
   };
 };
 
+const buildTree = (ctx: DesignContext) => {
+  return [buildElementTree(ctx.view.rootElement, ctx)];
+};
+
 const TreeManager: React.FC<{}> = () => {
   const ctx = useContext<DesignContext>(PageContext as any);
   const [visible, setVisible] = useState<boolean>(false);
-  const tree = [buildElementTree(ctx.view.rootElement, ctx)];
+  const [tree, setTree] = useState(buildTree(ctx));
+  const [current, setCurrent] = useState(ctx.view.currentElement);
+  ctx.view.subscribe('elements', 'change', () => setTree(buildTree(ctx)));
+  ctx.view.subscribe('current', 'change', () => setCurrent(ctx.view.currentElement));
   const prop = useRef();
   return (
     <div style={{ margin: '0 8px' }}>
@@ -90,7 +97,7 @@ const TreeManager: React.FC<{}> = () => {
           ctx.view.currentElement = node.item;
           prop.current = undefined;
         }}
-        selectedKeys={[ctx.view.currentElement?.id ?? '']}
+        selectedKeys={[current?.id ?? '']}
         titleRender={(node: any) => {
           return (
             <div className={cls.node}>
@@ -142,7 +149,7 @@ const TreeManager: React.FC<{}> = () => {
       />
       <AddElementModal
         visible={visible}
-        parentId={ctx.view.currentElement?.id!}
+        parentId={current?.id!}
         onVisibleChange={(v) => setVisible(v)}
         prop={prop.current}
       />

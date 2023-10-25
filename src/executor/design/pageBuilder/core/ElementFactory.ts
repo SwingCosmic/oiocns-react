@@ -41,7 +41,7 @@ export default class ElementFactory {
     for (const [slot, value] of Object.entries(meta.slots || {})) {
       if (value.single) {
         if (value.default) {
-          slots[slot] = this.create(value.default, '自动生成');
+          slots[slot] = this.create(value.default, value.label ?? '');
         } else {
           slots[slot] = null;
         }
@@ -49,7 +49,7 @@ export default class ElementFactory {
         slots[slot] = [];
         if (value.default) {
           for (const item of value.default) {
-            slots[slot].push(this.create(item, '自动生成'));
+            slots[slot].push(this.create(item, value.label ?? ''));
           }
         }
       }
