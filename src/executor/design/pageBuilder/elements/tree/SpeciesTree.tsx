@@ -2,11 +2,12 @@ import CustomTree from '@/components/CustomTree';
 import OpenFileDialog from '@/components/OpenFileDialog';
 import { schema } from '@/ts/base';
 import { ISpecies } from '@/ts/core';
+import { DeleteOutlined } from '@ant-design/icons';
 import { Button, Space, Spin } from 'antd';
-import React, { useEffect, useState } from 'react';
+import React, { useState } from 'react';
+import { useSpecies } from '../../core/hooks/useSpecies';
 import { Context } from '../../render/PageContext';
 import { defineElement } from '../defineElement';
-import { DeleteOutlined } from '@ant-design/icons';
 
 interface IProps {
   ctx: Context;
@@ -37,34 +38,8 @@ const buildItems = (items: schema.XSpeciesItem[], parentId?: string) => {
   return result;
 };
 
-const loadSpecies = async (props: IProps) => {
-  return await props.ctx.view.pageInfo.loadSpecies(props.species);
-};
-
-const useSpecies = (props: IProps) => {
-  const [loading, setLoading] = useState(true);
-  const [species, setSpecies] = useState<ISpecies[]>([]);
-  const setter = async (props: IProps) => {
-    setLoading(true);
-    const items = await loadSpecies(props);
-    setSpecies(items);
-    for (const item of items) {
-      await item.loadContent();
-    }
-    setLoading(false);
-  };
-  useEffect(() => {
-    setter(props);
-  }, []);
-  return {
-    loading,
-    species,
-    setSpecies: setter,
-  };
-};
-
 const Design: React.FC<IProps> = (props) => {
-  const { loading, species, setSpecies } = useSpecies(props);
+  const { loading, species, setSpecies } = useSpecies(props.species, props.ctx);
   const [center, setCenter] = useState(<></>);
   return (
     <Spin spinning={loading}>
@@ -83,7 +58,7 @@ const Design: React.FC<IProps> = (props) => {
                       props.ctx.view.pageInfo.species.push(file as ISpecies);
                       props.species.push(file.id);
                     }
-                    setSpecies(props);
+                    setSpecies(props.species, props.ctx);
                   }
                   setCenter(<></>);
                   return;
@@ -107,7 +82,7 @@ const Design: React.FC<IProps> = (props) => {
                   onClick={() => {
                     const index = props.species.findIndex((id) => id == node.id);
                     props.species.splice(index, 1);
-                    setSpecies(props);
+                    setSpecies(props.species, props.ctx);
                   }}
                 />
                 {node.name}
@@ -122,7 +97,7 @@ const Design: React.FC<IProps> = (props) => {
 };
 
 const View: React.FC<IProps> = (props) => {
-  const { loading, species } = useSpecies(props);
+  const { loading, species } = useSpecies(props.species, props.ctx);
   return (
     <Spin spinning={loading}>
       <div style={{ width: 300, padding: 10 }}>

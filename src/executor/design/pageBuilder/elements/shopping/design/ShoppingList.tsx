@@ -4,7 +4,7 @@ import { IBoxProvider } from '@/ts/core/work/box';
 import { Modal } from 'antd';
 import CustomStore from 'devextreme/data/custom_store';
 import React, { useEffect, useState } from 'react';
-import { useStagings } from '../useChange';
+import { useStagings } from '../../../core/hooks/useChange';
 
 interface IProps {
   box: IBoxProvider;

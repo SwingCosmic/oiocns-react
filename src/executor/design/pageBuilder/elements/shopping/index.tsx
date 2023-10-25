@@ -11,10 +11,11 @@ import { defineElement } from '../defineElement';
 import ShoppingBadge from './design/ShoppingBadge';
 import ShoppingList from './design/ShoppingList';
 import cls from './index.module.less';
-import { useCenter, useStagings } from './useChange';
+import { useCenter, useStagings } from '../../core/hooks/useChange';
 
 export interface Filter {
   id: string;
+  name: string;
   valueType: string;
   rule: Range[];
 }
@@ -23,6 +24,7 @@ export interface Range {
   id: number;
   start: number;
   end: number;
+  unit: string;
 }
 
 interface IProps {

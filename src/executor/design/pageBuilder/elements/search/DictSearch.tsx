@@ -1,201 +1,138 @@
-import { FieldModel, FiledLookup } from '@/ts/base/model';
-import { IForm } from '@/ts/core';
+import OpenFileDialog from '@/components/OpenFileDialog';
+import { schema } from '@/ts/base';
+import { IFile, IProperty, ISpecies } from '@/ts/core';
+import { DeleteOutlined } from '@ant-design/icons';
 import { EditableProTable, ProFormInstance } from '@ant-design/pro-components';
-import { Button, Modal, Row, Space, Table, Tag } from 'antd';
+import { Button, Modal, Row, Space, Spin, Tag } from 'antd';
 import React, { useRef, useState } from 'react';
 import { ExistTypeMeta } from '../../core/ElementMeta';
+import { useSpecies } from '../../core/hooks/useSpecies';
 import { Context } from '../../render/PageContext';
 import { defineElement } from '../defineElement';
 import { Filter, Range } from '../shopping';
-import { DeleteOutlined } from '@ant-design/icons';
 
 interface IProps {
   ctx: Context;
   filter: Filter[];
-  form: IForm;
 }
 
+const loadDicts = (filter: Filter[]) => {
+  return filter.filter((item) => item.valueType == '选择型').map((item) => item.id);
+};
+
 const Design: React.FC<IProps> = (props) => {
-  const [dictOpen, setDictOpen] = useState(false);
-  const [rangeOpen, setRangeOpen] = useState(false);
+  const { loading, species, setSpecies } = useSpecies(loadDicts(props.filter), props.ctx);
   const [current, setCurrent] = useState<Filter>();
   const [defineOpen, setDefineOpen] = useState(false);
   const [filter, setFilter] = useState(props.filter);
-  return (
-    <div style={{ paddingTop: 10, paddingBottom: 10 }}>
-      <Space direction="vertical">
-        <Space>
-          <Button type="dashed" onClick={() => setDictOpen(true)}>
-            添加字典条件
-          </Button>
-          <Button type="dashed" onClick={() => setRangeOpen(true)}>
-            添加数值条件
-          </Button>
-        </Space>
-        <Space direction="vertical">
-          {filter.map((item, index) => {
-            return (
-              <Space key={index} align="start">
-                <DeleteOutlined
-                  onClick={() => {
-                    props.filter.splice(index, 1);
-                    setFilter([...props.filter]);
-                  }}
-                />
-                <Center key={index} fields={props.form.fields} item={item} />
-              </Space>
-            );
-          })}
-        </Space>
-      </Space>
-      <DictModal
-        open={dictOpen}
-        fields={props.form.fields}
-        selected={props.filter}
-        onOk={(selected) => {
-          if (selected.length > 0) {
-            props.filter.push(...selected);
-            setFilter([...props.filter]);
+  const [center, setCenter] = useState(<></>);
+  const setOpenFile = (
+    accepts: string[],
+    onOk: (files: IFile[]) => void,
+    multiple: boolean = true,
+  ) => {
+    setCenter(
+      <OpenFileDialog
+        accepts={accepts}
+        rootKey={props.ctx.view.pageInfo.directory.spaceKey}
+        excludeIds={props.filter.map((item) => item.id)}
+        multiple={multiple}
+        onOk={async (files) => {
+          if (files.length > 0) {
+            onOk(files);
           }
-          setDictOpen(false);
+          setCenter(<></>);
+          return;
         }}
-      />
-      <RangeModal
-        open={rangeOpen}
-        fields={props.form.fields}
-        selected={props.filter}
-        onOk={(info) => {
-          setCurrent(info);
-          setRangeOpen(false);
-          setDefineOpen(true);
-        }}
-        onCancel={() => setRangeOpen(false)}
-      />
-      {current && (
-        <DefineModal
-          open={defineOpen}
-          current={current}
-          onOk={(ranges) => {
-            current.rule = [...ranges];
-            props.filter.push(current);
-            setFilter([...props.filter]);
-            setDefineOpen(false);
-            setCurrent(undefined);
-          }}
-          onCancel={() => {
-            setDefineOpen(false);
-            setCurrent(undefined);
-          }}
-        />
-      )}
-    </div>
-  );
-};
-
-interface ModalProps {
-  open: boolean;
-  fields: FieldModel[];
-  selected: Filter[];
-}
-
-interface DictProps extends ModalProps {
-  onOk: (fields: Filter[]) => void;
-}
-
-const DictModal: React.FC<DictProps> = (props) => {
-  const [current, setCurrent] = useState<FieldModel[]>([]);
+        onCancel={() => setCenter(<></>)}
+      />,
+    );
+  };
   return (
-    <Modal
-      open={props.open}
-      destroyOnClose
-      onOk={() =>
-        props.onOk(
-          current.map((item) => {
-            return {
-              id: item.id,
-              valueType: item.valueType,
-              rule: [],
-            };
-          }),
-        )
-      }
-      onCancel={() => props.onOk([])}
-      cancelButtonProps={{ hidden: true }}
-      width={'50vw'}>
-      <Table
-        rowKey={'id'}
-        scroll={{ x: 400, y: 400 }}
-        dataSource={props.fields
-          .filter((item) => '选择型' == item.valueType)
-          .filter((item) => !props.selected.map((item) => item.id).includes(item.id))}
-        rowSelection={{
-          type: 'checkbox',
-          selectedRowKeys: current.map((item) => item.id),
-          onChange: (_, selectedRows) => {
-            setCurrent(selectedRows);
-          },
-        }}
-        columns={[
-          {
-            title: '分类名称',
-            dataIndex: 'name',
-          },
-          {
-            title: '分类编码',
-            dataIndex: 'code',
-          },
-        ]}
-      />
-    </Modal>
-  );
-};
-
-interface RangeProps extends ModalProps {
-  onOk: (field: Filter) => void;
-  onCancel: () => void;
-}
-
-const RangeModal: React.FC<RangeProps> = (props) => {
-  return (
-    <Modal
-      open={props.open}
-      destroyOnClose
-      onOk={() => props.onCancel()}
-      onCancel={() => props.onCancel()}
-      cancelButtonProps={{ hidden: true }}
-      width={'50vw'}>
-      <Table
-        scroll={{ x: 400, y: 400 }}
-        dataSource={props.fields
-          .filter((item) => '数值型' == item.valueType)
-          .filter((item) => !props.selected.map((item) => item.id).includes(item.id))}
-        rowSelection={{
-          type: 'radio',
-          onSelect: (info) => {
-            props.onOk({
-              id: info.id,
-              valueType: info.valueType,
-              rule: [],
-            });
-          },
-        }}
-        rowKey={'id'}
-        columns={[
-          {
-            title: '数值名称',
-            dataIndex: 'name',
-          },
-          {
-            title: '数值编码',
-            dataIndex: 'code',
-          },
-          {
-            title: '计量单位',
-            dataIndex: 'unit',
-          },
-        ]}
-      />
-    </Modal>
+    <Spin spinning={loading}>
+      <div style={{ paddingTop: 10, paddingBottom: 10 }}>
+        <Space direction="vertical">
+          <Space>
+            <Button
+              type="dashed"
+              onClick={() => {
+                setOpenFile(['字典'], (files) => {
+                  for (const file of files) {
+                    props.ctx.view.pageInfo.species.push(file as ISpecies);
+                    props.filter.push({
+                      id: file.id,
+                      name: file.name,
+                      valueType: '选择型',
+                      rule: [],
+                    });
+                  }
+                  setSpecies(loadDicts(props.filter), props.ctx);
+                  setFilter([...props.filter]);
+                });
+              }}>
+              添加字典条件
+            </Button>
+            <Button
+              type="dashed"
+              onClick={() => {
+                setOpenFile(
+                  ['数值型'],
+                  (files) => {
+                    let current = {
+                      id: files[0].id,
+                      name: files[0].name,
+                      valueType: (files[0] as IProperty).metadata.valueType,
+                      rule: [],
+                    };
+                    props.filter.push(current);
+                    setFilter([...props.filter]);
+                    setCurrent(current);
+                  },
+                  false,
+                );
+              }}>
+              添加数值条件
+            </Button>
+          </Space>
+          <Space direction="vertical">
+            {filter.map((item, index) => {
+              return (
+                <Space key={index} align="start">
+                  <DeleteOutlined
+                    onClick={() => {
+                      props.filter.splice(index, 1);
+                      setFilter([...props.filter]);
+                    }}
+                  />
+                  <Center
+                    speciesItems={species.find((one) => one.id == item.id)?.items ?? []}
+                    item={item}
+                  />
+                </Space>
+              );
+            })}
+          </Space>
+        </Space>
+        {center}
+        {current && (
+          <DefineModal
+            open={defineOpen}
+            current={current}
+            onOk={(ranges) => {
+              current.rule = [...ranges];
+              props.filter.push(current);
+              setFilter([...props.filter]);
+              setDefineOpen(false);
+              setCurrent(undefined);
+            }}
+            onCancel={() => {
+              setDefineOpen(false);
+              setCurrent(undefined);
+            }}
+          />
+        )}
+      </div>
+    </Spin>
   );
 };
 
@@ -258,7 +195,7 @@ const DefineModal: React.FC<DefineProps> = (props) => {
             position: 'bottom',
             newRecordType: 'dataSource',
             record: (index) => {
-              return { id: index, start: 0, end: 0 };
+              return { id: index, start: 0, end: 0, unit: '' };
             },
           }}
         />
@@ -287,30 +224,28 @@ function Template<T>(props: ItemProps<T>) {
 }
 
 interface CenterProps {
-  fields: FieldModel[];
   item: Filter;
+  speciesItems: schema.XSpeciesItem[];
 }
 
 const Center: React.FC<CenterProps> = (props) => {
-  const item = props.item;
-  const field = props.fields.find((field) => field.id == props.item.id);
   switch (props.item.valueType) {
     case '选择型':
       return (
-        <Template<FiledLookup>
-          name={field?.name ?? ''}
-          items={field?.lookups ?? []}
-          tag={(item) => item.text}
+        <Template<schema.XSpeciesItem>
+          name={props.item.name}
+          items={props.speciesItems}
+          tag={(item) => item.name}
         />
       );
     case '数值型':
       return (
         <Template<Range>
-          name={field?.name ?? ''}
-          items={item.rule}
+          name={props.item.name}
+          items={props.item.rule}
           tag={(item) => {
-            let start = `${item.start ?? ''}${field?.unit ?? ''}`;
-            let end = `${item.end ?? ''}${field?.unit ?? ''}`;
+            let start = `${item.start ?? ''}${item.unit ?? ''}`;
+            let end = `${item.end ?? ''}${item.unit ?? ''}`;
             return start + '~' + end;
           }}
         />
@@ -320,14 +255,23 @@ const Center: React.FC<CenterProps> = (props) => {
 };
 
 const View: React.FC<IProps> = (props) => {
+  const { loading, species } = useSpecies(loadDicts(props.filter), props.ctx);
   return (
-    <div style={{ paddingTop: 10, paddingBottom: 10 }}>
-      <Space direction="vertical">
-        {props.filter.map((item, index) => {
-          return <Center key={index} fields={props.form.fields} item={item} />;
-        })}
-      </Space>
-    </div>
+    <Spin spinning={loading}>
+      <div style={{ paddingTop: 10, paddingBottom: 10 }}>
+        <Space direction="vertical">
+          {props.filter.map((item, index) => {
+            return (
+              <Center
+                speciesItems={species.find((one) => one.id == item.id)?.items ?? []}
+                key={index}
+                item={item}
+              />
+            );
+          })}
+        </Space>
+      </div>
+    </Spin>
   );
 };
 
@@ -353,12 +297,6 @@ export default defineElement({
         } as ExistTypeMeta<Filter>,
         default: [],
       },
-      form: {
-        type: 'type',
-        label: '表单',
-        typeName: 'form',
-        hidden: true,
-      } as ExistTypeMeta<IForm>,
     },
   },
 });

@@ -3,7 +3,7 @@ import { Badge, Button } from 'antd';
 import React from 'react';
 import { IBoxProvider } from '@/ts/core/work/box';
 import { command } from '@/ts/base';
-import { useStagings } from '../useChange';
+import { useStagings } from '../../../core/hooks/useChange';
 import cls from '../index.module.less';
 
 interface IProps {
