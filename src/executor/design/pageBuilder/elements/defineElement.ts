@@ -6,7 +6,7 @@ import { Context, PageContext } from '../render/PageContext';
 
 type WithCommonProps<P extends {}> = P &
   Pick<HTMLAttributes<any>, 'className' | 'style'> &
-  Pick<PageElement, 'children' | 'id'>;
+  Pick<PageElement, 'children' | 'id' | 'props'>;
 
 export interface ElementOptions<M extends ElementMeta, P extends {}>
   extends FCOptions<P> {

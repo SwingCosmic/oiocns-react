@@ -11,8 +11,8 @@ export class DirectorySheet extends i.Sheet<t.Directory> {
         { title: '目录名称', dataIndex: 'name', valueType: '描述型' },
         { title: '目录代码', dataIndex: 'code', valueType: '描述型' },
         { title: '备注信息', dataIndex: 'remark', valueType: '描述型' },
-        { title: '主键', dataIndex: 'id', valueType: '描述性' },
-        { title: '上级目录主键', dataIndex: 'directoryId', valueType: '描述性' },
+        { title: '主键', dataIndex: 'id', valueType: '描述型' },
+        { title: '上级目录主键', dataIndex: 'directoryId', valueType: '描述型' },
       ],
       dir,
     );

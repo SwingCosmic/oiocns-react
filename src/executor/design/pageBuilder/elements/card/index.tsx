@@ -1,84 +1,44 @@
 import { schema } from '@/ts/base';
-import { Card, Image, Space, Tooltip } from 'antd';
+import { Card } from 'antd';
 import React from 'react';
-import { ExistTypeMeta, ParameterInfo, TypeMeta } from '../../core/ElementMeta';
+import { ExistTypeMeta, ParameterInfo } from '../../core/ElementMeta';
 import { defineElement } from '../defineElement';
-import Asset from '/img/banner/1.png';
-import { shareOpenLink } from '@/utils/tools';
-import { XProperty } from '@/ts/base/schema';
 
-interface PosProps {
-  property?: XProperty;
-}
-
-interface DataProps extends PosProps {
-  data: schema.XThing | undefined;
-}
-
-const Name: React.FC<DataProps> = ({ data, property }) => {
-  let value = data?.['T' + property?.id ?? ''];
-  return (
-    <div style={{ display: 'flex', width: '100%' }}>
-      <div
-        style={{
-          flex: 1,
-          width: 0,
-          whiteSpace: 'nowrap',
-          textOverflow: 'ellipsis',
-          overflow: 'hidden',
-        }}>
-        <Tooltip title={value}>{value}</Tooltip>
-      </div>
-    </div>
-  );
-};
-
-const Content: React.FC<DataProps> = ({ data, property }) => {
-  let value = '';
-  if (data && property) {
-    value = property.name + ':' + (data['T' + property.id] ?? '');
-  }
-  return <div style={{ overflow: 'hidden', textOverflow: 'ellipsis' }}>{value}</div>;
-};
-
-const ImageContent: React.FC<DataProps> = ({ data, property }) => {
-  let shareLink = '';
-  if (data && property) {
-    let file = data['T' + property.id];
-    if (file) {
-      const parsedFile = JSON.parse(file);
-      if (parsedFile.length > 0) {
-        shareLink = parsedFile[0].shareLink;
-      }
-    }
-  }
-  return <Image height={200} src={shareLink ? shareOpenLink(shareLink) : Asset} />;
-};
-
-const ImagePosition: React.FC<PosProps> = () => {
-  return <Image src={Asset} height={200} />;
-};
-
-const DataInfo: ParameterInfo = {
+const data: ParameterInfo = {
   label: '数据',
   type: {
     type: 'type',
     label: '实体',
     typeName: 'thing',
-  } as ExistTypeMeta<schema.XThing>,
+  } as ExistTypeMeta<schema.XThing | undefined>,
 };
 
+const label: ParameterInfo = {
+  label: '位置名称',
+  type: { type: 'string' },
+};
+
+const valueType: ParameterInfo = {
+  label: '类型',
+  type: { type: 'string' },
+};
 
 export default defineElement({
-  render({ card, image, first, second, third, fourth, fifth }, ctx) {
+  render({ data, image, first, second, third, fourth, fifth }) {
     return (
       <Card
         hoverable
-        cover={image?.({ card })}
-        actions={[first({ card }), second({ card })]}>
+        cover={image({ data, label: '图片', valueType: '图片' })}
+        actions={[
+          first({ data, label: '字段-4', valueType: '描述' }),
+          second({ data, label: '字段-5', valueType: '描述' }),
+        ]}>
         <Card.Meta
-          title={third({ card })}
-          description={[fourth({ card }), fifth({ card })]}
+          title={third({ data, label: '字段-1', valueType: '标题' })}
+          description={[
+            fourth({ data, label: '字段-2', valueType: '描述' }),
+            fifth({ data, label: '字段-3', valueType: '描述' }),
+          ]}
         />
       </Card>
     );
@@ -86,49 +46,49 @@ export default defineElement({
   displayName: 'MetaCard',
   meta: {
     props: {
-      card: {
-        type: 'type',
+      data: {
+        type: 'string',
         typeName: 'empty',
         label: '数据',
         hidden: true,
-      } as ExistTypeMeta<schema.XThing>,
+      },
     },
     slots: {
       image: {
         label: '图片',
         single: true,
-        params: { card: DataInfo },
-        default: 'imageField',
+        params: { data, label, valueType },
+        default: 'Field',
       },
       first: {
         label: '位置-1',
         single: true,
-        params: { card: DataInfo },
-        default: 'textField',
+        params: { data, label, valueType },
+        default: 'Field',
       },
       second: {
         label: '位置-2',
         single: true,
-        params: { card: DataInfo },
-        default: 'textField',
+        params: { data, label, valueType },
+        default: 'Field',
       },
       third: {
         label: '位置-3',
         single: true,
-        params: { card: DataInfo },
-        default: 'textField',
+        params: { data, label, valueType },
+        default: 'Field',
       },
       fourth: {
         label: '位置-4',
         single: true,
-        params: { card: DataInfo },
-        default: 'textField',
+        params: { data, label, valueType },
+        default: 'Field',
       },
       fifth: {
         label: '位置-5',
         single: true,
-        params: { card: DataInfo },
-        default: 'textField',
+        params: { data, label, valueType },
+        default: 'Field',
       },
     },
     type: 'Element',

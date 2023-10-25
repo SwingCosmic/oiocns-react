@@ -67,6 +67,7 @@ export function mergeProps(
   props.style = style;
   props.id = e.id;
   props.children = e.children;
+  props.props = e.props;
 
   if (e.slots) {
     for (const [name, slot] of Object.entries(e.slots)) {

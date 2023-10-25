@@ -44,7 +44,7 @@ export default class DesignerManager
   }
   set currentElement(e) {
     this._currentElement = e;
-    this.emitter("current", "change");
+    this.emitter('current', 'change');
   }
 
   addElement<E extends PageElement>(

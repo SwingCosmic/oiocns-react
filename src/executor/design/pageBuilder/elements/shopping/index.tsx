@@ -75,7 +75,7 @@ const DesignEntities: React.FC<IProps> = (props) => {
   const [page, setPage] = useState<number>(1);
   const [size, setSize] = useState<number>(props.size);
   return (
-    <Space direction={'vertical'}>
+    <Space direction={'vertical'} align="center">
       <Row style={{ width: '100%' }} gutter={[16, 16]}>
         {Enumerable.Range(1, 10)
           .ToArray()
