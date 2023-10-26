@@ -60,6 +60,27 @@ const Design: React.FC<IProps> = (props) => {
     <Spin spinning={loading}>
       <div style={{ paddingTop: 10, paddingBottom: 10 }}>
         <Space direction="vertical">
+          <Space direction="vertical">
+            {filter.map((item, index) => {
+              return (
+                <Space key={index} align="start">
+                  <DeleteOutlined
+                    onClick={() => {
+                      props.filter.splice(index, 1);
+                      setFilter([...props.filter]);
+                    }}
+                  />
+                  <Center
+                    ctx={props.ctx}
+                    speciesItems={
+                      species.find((one) => one.id == item.id)?.species.items ?? []
+                    }
+                    item={item}
+                  />
+                </Space>
+              );
+            })}
+          </Space>
           <Space>
             <Button
               type="dashed"
@@ -102,27 +123,6 @@ const Design: React.FC<IProps> = (props) => {
               }}>
               添加数值条件
             </Button>
-          </Space>
-          <Space direction="vertical">
-            {filter.map((item, index) => {
-              return (
-                <Space key={index} align="start">
-                  <DeleteOutlined
-                    onClick={() => {
-                      props.filter.splice(index, 1);
-                      setFilter([...props.filter]);
-                    }}
-                  />
-                  <Center
-                    ctx={props.ctx}
-                    speciesItems={
-                      species.find((one) => one.id == item.id)?.species.items ?? []
-                    }
-                    item={item}
-                  />
-                </Space>
-              );
-            })}
           </Space>
         </Space>
         {center}
