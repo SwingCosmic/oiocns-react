@@ -24,24 +24,28 @@ const valueType: ParameterInfo = {
 };
 
 export default defineElement({
-  render({ data, image, first, second, third, fourth, fifth }) {
+  render(props) {
     return (
       <Card
         hoverable
-        cover={image({ data, label: '图片', valueType: '图片' })}
+        cover={props.image({ data: props.data, label: '图片', valueType: '图片' })}
         actions={[
-          <div key={'fourth'}>{first({ data, label: '字段-4', valueType: '描述' })}</div>,
-          <div key={'fifth'}>{second({ data, label: '字段-5', valueType: '描述' })}</div>,
+          <div key={'fourth'}>
+            {props.first({ data: props.data, label: '字段-4', valueType: '描述' })}
+          </div>,
+          <div key={'fifth'}>
+            {props.second({ data: props.data, label: '字段-5', valueType: '描述' })}
+          </div>,
         ]}>
         <Card.Meta
-          title={third({ data, label: '字段-1', valueType: '标题' })}
+          title={props.third({ data: props.data, label: '字段-1', valueType: '标题' })}
           description={
             <Space style={{ width: '100%' }} direction="vertical">
               <div key={'second'}>
-                {fourth({ data, label: '字段-2', valueType: '描述' })}
+                {props.fourth({ data: props.data, label: '字段-2', valueType: '描述' })}
               </div>
               <div key={'third'}>
-                {fifth({ data, label: '字段-3', valueType: '描述' })}
+                {props.fifth({ data: props.data, label: '字段-3', valueType: '描述' })}
               </div>
             </Space>
           }
@@ -53,11 +57,11 @@ export default defineElement({
   meta: {
     props: {
       data: {
-        type: 'string',
-        typeName: 'empty',
+        type: 'type',
+        typeName: 'thing',
         label: '数据',
         hidden: true,
-      },
+      } as ExistTypeMeta<schema.XThing | undefined>,
     },
     slots: {
       image: {

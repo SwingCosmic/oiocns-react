@@ -34,7 +34,7 @@ interface IProps {
   ctx: Context;
   filter: Filter[];
   species: string[];
-  content?: (params: { card: schema.XThing }) => ReactNode | ReactNode[];
+  content?: (params: { data: schema.XThing }) => ReactNode | ReactNode[];
 }
 
 interface ILayout {
@@ -72,7 +72,7 @@ const DesignEntities: React.FC<IProps> = (props) => {
               return (
                 <Col key={index} span={props.span} className={cls.contentCard}>
                   <Space.Compact direction="vertical">
-                    {props.content({ card: {} as schema.XThing })}
+                    {props.content({ data: {} as schema.XThing })}
                   </Space.Compact>
                 </Col>
               );
@@ -163,12 +163,13 @@ const ViewEntities: React.FC<IProps> = (props) => {
       <Space style={{ width: '100%' }} direction="vertical">
         <Row gutter={[16, 16]}>
           {data.map((item) => {
+            console.log(item);
             if (props.content) {
               const has = stagings.filter((staging) => staging.dataId == item.id);
               return (
                 <Col key={item.id} span={props.span} className={cls.contentCard}>
                   <Space.Compact direction="vertical">
-                    {props.content({ card: item })}
+                    {props.content({ data: item })}
                     {has.length == 0 && (
                       <Button
                         icon={<PlusCircleFilled style={{ color: 'green' }} />}
@@ -292,12 +293,12 @@ export default defineElement({
         label: '实体列表插槽',
         single: true,
         params: {
-          card: {
+          data: {
             label: '列表数据',
             type: {
               type: 'type',
               label: '卡片模板',
-              typeName: 'slot',
+              typeName: 'thing',
             } as ExistTypeMeta<schema.XThing | undefined>,
           },
         },

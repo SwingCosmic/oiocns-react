@@ -1,6 +1,6 @@
 import OpenFileDialog from '@/components/OpenFileDialog';
 import { schema } from '@/ts/base';
-import React, { useState } from 'react';
+import React, { DOMAttributes, useState } from 'react';
 import { Image, Tooltip } from 'antd';
 import { ExistTypeMeta } from '../../core/ElementMeta';
 import { Context } from '../../render/PageContext';
@@ -23,29 +23,42 @@ interface FieldProps extends IProps {
   onClick: () => void;
 }
 
+interface TextProps {
+  value: string;
+  onClick?: any;
+  onMouseEnter?: any;
+  onMouseLeave?: any;
+}
+
+const Text: React.FC<TextProps> = (props) => {
+  return (
+    <div
+      className={cls.textContent}
+      onClick={props.onClick}
+      onMouseEnter={props.onMouseEnter}
+      onMouseLeave={props.onMouseLeave}>
+      <div className={cls.textOverflow}>{props.value}</div>
+    </div>
+  );
+};
+
 const FieldDesign: React.FC<FieldProps> = (props) => {
   const value = props.property?.name ?? props.label;
   switch (props.valueType) {
     case '图片':
       return (
         <div className={cls.img} onClick={props.onClick}>
-          {value}
+          <Text value={value} />
         </div>
       );
     case '标题':
       return (
         <Tooltip title={value}>
-          <div className={cls.text} onClick={props.onClick}>
-            {value}
-          </div>
+          <Text value={value} onClick={props.onClick} />
         </Tooltip>
       );
     default:
-      return (
-        <div className={cls.text} onClick={props.onClick}>
-          {value}
-        </div>
-      );
+      return <Text value={value} />;
   }
 };
 
@@ -93,22 +106,27 @@ const View: React.FC<IProps> = (props) => {
       }
       return <Image height={200} src={shareLink ? shareOpenLink(shareLink) : Asset} />;
     }
+    case '标题': {
+      let value = props.data?.['T' + props.property?.id ?? ''] ?? '';
+      return (
+        <Tooltip title={value} showArrow>
+          <Text value={value} />
+        </Tooltip>
+      );
+    }
     default: {
       let value = props.property?.name ?? props.label;
       if (props.data && props.property) {
         value = props.property.name + ':' + (props.data['T' + props.property.id] ?? '');
       }
-      return (
-        <Tooltip title={value}>
-          <div style={{ overflow: 'hidden', textOverflow: 'ellipsis' }}>{value}</div>
-        </Tooltip>
-      );
+      return <Text value={value} />;
     }
   }
 };
 
 export default defineElement({
   render(props, ctx) {
+    console.log(props);
     if (ctx.view.mode == 'design') {
       return <Design {...props} ctx={ctx} />;
     }
@@ -129,6 +147,7 @@ export default defineElement({
       },
       data: {
         type: 'type',
+        typeName: 'thing',
         label: '数据',
       } as ExistTypeMeta<schema.XThing | undefined>,
       property: {
