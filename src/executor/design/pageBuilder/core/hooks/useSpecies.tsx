@@ -14,7 +14,6 @@ export type SpeciesNode = {
 
 const buildSpecies = (species: SpeciesEntity[]): SpeciesNode[] => {
   return species.map((item) => {
-    console.log(item);
     item.species.items.forEach((speciesItems) => {
       if (!speciesItems.parentId) {
         speciesItems.parentId = item.species.id;
@@ -34,7 +33,7 @@ export const buildItems = (items: schema.XSpeciesItem[], parent: SpeciesNode) =>
   for (const item of items) {
     if (propId + '-' + item.parentId == parent.key) {
       parent.children.push({
-        key: propId + '-' + item.id,
+        key: propId + '-' + item.parentId + '-' + (item.code || `S${item.id}`),
         label: item.name,
         children: [],
         items: items,
@@ -73,7 +72,6 @@ export const useSpecies = (init: SpeciesProp[], ctx: Context) => {
         });
       }
     }
-    console.log(result);
     setSpecies(result);
     setTree(buildSpecies(result));
     for (const item of items) {

@@ -2,14 +2,13 @@ import { kernel, schema } from '@/ts/base';
 import { Enumerable } from '@/ts/base/common/linq';
 import orgCtrl from '@/ts/controller';
 import { PlusCircleFilled } from '@ant-design/icons';
-import { Button, Col, Empty, Pagination, Row, Space } from 'antd';
-import React, { ReactNode, useEffect, useState } from 'react';
+import { Button, Col, Empty, Pagination, Row, Space, Spin } from 'antd';
+import React, { ReactNode, useEffect, useRef, useState } from 'react';
 import { ExistTypeMeta } from '../../core/ElementMeta';
 import { useCenter, useStagings } from '../../core/hooks/useChange';
 import { Context } from '../../render/PageContext';
 import { defineElement } from '../defineElement';
 import ShoppingBadge from './design/ShoppingBadge';
-import ShoppingList from './design/ShoppingList';
 import cls from './index.module.less';
 
 export interface Filter {
@@ -17,6 +16,7 @@ export interface Filter {
   name: string;
   valueType: string;
   rule: Range[];
+  speciesId: string;
 }
 
 export interface Range {
@@ -97,20 +97,28 @@ const DesignEntities: React.FC<IProps> = (props) => {
 
 const ViewEntities: React.FC<IProps> = (props) => {
   const current = props.ctx.view.pageInfo;
+  const [loading, setLoading] = useState(false);
   const [page, setPage] = useState<number>(1);
   const [size, setSize] = useState<number>(props.size);
   const [total, setTotal] = useState<number>(0);
   const [data, setData] = useState<any[]>([]);
+  const options = useRef<any>({});
   const stagings = useStagings(orgCtrl.box);
   const center = useCenter();
   useEffect(() => {
     loadData(size, page);
   }, []);
+  props.ctx.view.subscribe('speciesTree', 'checked', (args) => {
+    options.current = { userData: args };
+    loadData(size, 1);
+  });
   const loadData = async (take: number, page: number) => {
+    setLoading(true);
     const res = await kernel.loadThing(
       current.belongId,
       [current.directory.target.spaceId, current.directory.target.id],
       {
+        ...options.current,
         take: take,
         skip: (page - 1) * take,
         requireTotalCount: true,
@@ -120,65 +128,68 @@ const ViewEntities: React.FC<IProps> = (props) => {
     setSize(take);
     setPage(page);
     setTotal(res.totalCount);
+    setLoading(false);
   };
   return (
-    <Space style={{ width: '100%' }} direction="vertical">
-      <Row gutter={[16, 16]}>
-        {data.map((item) => {
-          if (props.content) {
-            const has = stagings.filter((staging) => staging.dataId == item.id);
-            return (
-              <Col key={item.id} span={props.span} className={cls.contentCard}>
-                <Space.Compact direction="vertical">
-                  {props.content({ card: item })}
-                  {has.length == 0 && (
-                    <Button
-                      icon={<PlusCircleFilled style={{ color: 'green' }} />}
-                      size="small"
-                      onClick={() => {
-                        orgCtrl.box.createStaging({
-                          typeName: '实体',
-                          dataId: item.id,
-                          data: item,
-                          relations: [
-                            current.directory.target.spaceId,
-                            current.directory.target.id,
-                          ],
-                        } as schema.XStaging);
-                      }}>
-                      {'加入购物车'}
-                    </Button>
-                  )}
-                  {has.length > 0 && (
-                    <Button
-                      icon={<PlusCircleFilled style={{ color: 'red' }} />}
-                      size="small"
-                      onClick={() => {
-                        orgCtrl.box.removeStaging(has);
-                      }}>
-                      {'取消加入'}
-                    </Button>
-                  )}
-                </Space.Compact>
-              </Col>
-            );
-          }
-          return <Empty key={item.id} description={'未放置组件'} />;
-        })}
-      </Row>
-      <div className={cls.page}>
-        <Pagination
-          current={page}
-          pageSize={size}
-          total={total}
-          onChange={(page, size) => {
-            loadData(size, page);
-          }}
-        />
-      </div>
-      <ShoppingBadge box={orgCtrl.box} />
-      {center}
-    </Space>
+    <Spin spinning={loading}>
+      <Space style={{ width: '100%' }} direction="vertical">
+        <Row gutter={[16, 16]}>
+          {data.map((item) => {
+            if (props.content) {
+              const has = stagings.filter((staging) => staging.dataId == item.id);
+              return (
+                <Col key={item.id} span={props.span} className={cls.contentCard}>
+                  <Space.Compact direction="vertical">
+                    {props.content({ card: item })}
+                    {has.length == 0 && (
+                      <Button
+                        icon={<PlusCircleFilled style={{ color: 'green' }} />}
+                        size="small"
+                        onClick={() => {
+                          orgCtrl.box.createStaging({
+                            typeName: '实体',
+                            dataId: item.id,
+                            data: item,
+                            relations: [
+                              current.directory.target.spaceId,
+                              current.directory.target.id,
+                            ],
+                          } as schema.XStaging);
+                        }}>
+                        {'加入购物车'}
+                      </Button>
+                    )}
+                    {has.length > 0 && (
+                      <Button
+                        icon={<PlusCircleFilled style={{ color: 'red' }} />}
+                        size="small"
+                        onClick={() => {
+                          orgCtrl.box.removeStaging(has);
+                        }}>
+                        {'取消加入'}
+                      </Button>
+                    )}
+                  </Space.Compact>
+                </Col>
+              );
+            }
+            return <Empty key={item.id} description={'未放置组件'} />;
+          })}
+        </Row>
+        <div className={cls.page}>
+          <Pagination
+            current={page}
+            pageSize={size}
+            total={total}
+            onChange={(page, size) => {
+              loadData(size, page);
+            }}
+          />
+        </div>
+        <ShoppingBadge box={orgCtrl.box} />
+        {center}
+      </Space>
+    </Spin>
   );
 };
 

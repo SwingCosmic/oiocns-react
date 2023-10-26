@@ -52,7 +52,7 @@ const Design: React.FC<IProps> = (props) => {
                     for (const file of files) {
                       const property = file as IProperty;
                       props.species.push({
-                        id: property.id,
+                        id: 'T' + property.id,
                         name: property.code + ' ' + property.name,
                         speciesId: property.metadata.speciesId,
                       });
@@ -89,9 +89,18 @@ const View: React.FC<IProps> = (props) => {
               setTree([...tree]);
             }
           }}
-          onCheck={(checked, info) => {
-            (checked as string[]).map((item) => item.split('-'));
-            props.ctx.view.emitter('speciesTree', 'checked');
+          onCheck={(checked) => {
+            const userData = new Set<string>();
+            for (const item of checked as string[]) {
+              const split = item.split('-');
+              if (split.length == 2) {
+                userData.add(split[0]);
+              } else if (split.length == 3) {
+                userData.add(split[0]);
+                userData.add(split[2]);
+              }
+            }
+            props.ctx.view.emitter('speciesTree', 'checked', [...userData]);
           }}
           fieldNames={{ title: 'label', key: 'key', children: 'children' }}
           treeData={tree}
