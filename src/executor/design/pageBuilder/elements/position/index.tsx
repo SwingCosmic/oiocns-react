@@ -1,12 +1,12 @@
 import OpenFileDialog from '@/components/OpenFileDialog';
 import { schema } from '@/ts/base';
-import React, { DOMAttributes, useState } from 'react';
+import { shareOpenLink } from '@/utils/tools';
 import { Image, Tooltip } from 'antd';
+import React, { useState } from 'react';
 import { ExistTypeMeta } from '../../core/ElementMeta';
 import { Context } from '../../render/PageContext';
 import { defineElement } from '../defineElement';
 import cls from './index.module.less';
-import { shareOpenLink } from '@/utils/tools';
 import Asset from '/img/banner/1.png';
 
 interface IProps {
@@ -58,7 +58,7 @@ const FieldDesign: React.FC<FieldProps> = (props) => {
         </Tooltip>
       );
     default:
-      return <Text value={value} />;
+      return <Text value={value} onClick={props.onClick}/>;
   }
 };
 
@@ -126,7 +126,6 @@ const View: React.FC<IProps> = (props) => {
 
 export default defineElement({
   render(props, ctx) {
-    console.log(props);
     if (ctx.view.mode == 'design') {
       return <Design {...props} ctx={ctx} />;
     }

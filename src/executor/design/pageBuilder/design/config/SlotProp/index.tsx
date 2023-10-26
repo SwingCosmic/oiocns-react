@@ -6,7 +6,6 @@ import { DesignContext, PageContext } from '../../../render/PageContext';
 import { IExistTypeProps } from '../IExistTypeEditor';
 
 const SlotProp: React.FC<IExistTypeProps<PageElement>> = ({ value, prop }) => {
-  console.log('slot', value, prop);
   const ctx = useContext(PageContext) as DesignContext;
   const [visible, setVisible] = useState<boolean>(false);
   return (

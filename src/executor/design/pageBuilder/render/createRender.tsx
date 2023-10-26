@@ -15,6 +15,7 @@ import { ElementFC } from '../elements/defineElement';
 import ErrorBoundary from './ErrorBoundary';
 import { DesignContext, PageContext } from './PageContext';
 import { Slot } from './Slot';
+import ElementFactory from '../core/ElementFactory';
 
 export type Render = FC<ElementRenderProps>;
 
@@ -40,11 +41,26 @@ export function createSlotRender(slot: PageElement | PageElement[]) {
  * @param e 要处理的元素
  * @returns ReactNode所需的属性对象
  */
-export function mergeProps(e: PageElement, slotParams: Dictionary<any> = {}) {
+export function mergeProps(
+  e: PageElement,
+  f: ElementFactory,
+  slotParams: Dictionary<any> = {},
+) {
+  const defaultMeta = f.getDefaultsFromMeta(e.kind);
+  for (const item of Object.entries(defaultMeta.props)) {
+    if (!e.props[item[0]]) {
+      e.props[item[0]] = item[1];
+    }
+  }
+
   const props = {
     ...e.props,
-    ...slotParams,
   };
+  for (const item of Object.entries(slotParams)) {
+    if (item[1]) {
+      props[item[0]] = item[1];
+    }
+  }
 
   let className = e.className;
   if (Array.isArray(className)) {
@@ -82,7 +98,14 @@ export function createRender(component: ElementFC, mode: HostMode): Render {
 
 function createViewRender(component: ElementFC) {
   return (props: ElementRenderProps) => {
-    return h(component, mergeProps(props.element, props.slotParams));
+    return h(
+      component,
+      mergeProps(
+        props.element,
+        (useContext(PageContext) as DesignContext).view.treeManager.factory,
+        props.slotParams,
+      ),
+    );
   };
 }
 
@@ -111,7 +134,10 @@ function createDesignRender(component: ElementFC) {
             element?.id == props.element.id ? 'is-current' : '',
           ].join(' ')}
           onClick={handleClick}>
-          {h(component, mergeProps(props.element, props.slotParams))}
+          {h(
+            component,
+            mergeProps(props.element, ctx.view.treeManager.factory, props.slotParams),
+          )}
         </div>
       </ErrorBoundary>
     );

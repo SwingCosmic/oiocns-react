@@ -4,7 +4,7 @@ import { IFile, IProperty } from '@/ts/core';
 import { DeleteOutlined } from '@ant-design/icons';
 import { EditableProTable, ProFormInstance } from '@ant-design/pro-components';
 import { Button, Modal, Row, Space, Spin, Tag } from 'antd';
-import React, { useRef, useState } from 'react';
+import React, { ReactNode, useRef, useState } from 'react';
 import { ExistTypeMeta } from '../../core/ElementMeta';
 import { SpeciesProp, useSpecies } from '../../core/hooks/useSpecies';
 import { Context } from '../../render/PageContext';
@@ -26,6 +26,10 @@ const loadDicts = (filter: Filter[]): SpeciesProp[] => {
         speciesId: item.speciesId,
       };
     });
+};
+
+const Layout: React.FC<{ children: ReactNode }> = (props) => {
+  return <div style={{ padding: 10 }}>{props.children}</div>;
 };
 
 const Design: React.FC<IProps> = (props) => {
@@ -58,7 +62,7 @@ const Design: React.FC<IProps> = (props) => {
   };
   return (
     <Spin spinning={loading}>
-      <div style={{ paddingTop: 10, paddingBottom: 10 }}>
+      <Layout>
         <Space direction="vertical">
           <Space direction="vertical">
             {filter.map((item, index) => {
@@ -100,7 +104,7 @@ const Design: React.FC<IProps> = (props) => {
                   setFilter([...props.filter]);
                 });
               }}>
-              添加字典条件
+              添加字典型
             </Button>
             <Button
               type="dashed"
@@ -123,7 +127,7 @@ const Design: React.FC<IProps> = (props) => {
                   false,
                 );
               }}>
-              添加数值条件
+              添加数值型
             </Button>
           </Space>
         </Space>
@@ -145,7 +149,7 @@ const Design: React.FC<IProps> = (props) => {
             }}
           />
         )}
-      </div>
+      </Layout>
     </Spin>
   );
 };
@@ -329,7 +333,7 @@ const View: React.FC<IProps> = (props) => {
   const { loading, species } = useSpecies(loadDicts(props.filter), props.ctx);
   return (
     <Spin spinning={loading}>
-      <div style={{ paddingTop: 10, paddingBottom: 10 }}>
+      <Layout>
         <Space direction="vertical">
           {props.filter.map((item, index) => {
             return (
@@ -344,7 +348,7 @@ const View: React.FC<IProps> = (props) => {
             );
           })}
         </Space>
-      </div>
+      </Layout>
     </Spin>
   );
 };

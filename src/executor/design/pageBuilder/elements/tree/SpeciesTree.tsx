@@ -67,7 +67,7 @@ const Design: React.FC<IProps> = (props) => {
               />,
             );
           }}>
-          新增分类
+          添加分类型
         </Button>
         {center}
       </Space>

@@ -10,6 +10,7 @@ import { Context } from '../../render/PageContext';
 import { defineElement } from '../defineElement';
 import ShoppingBadge from './design/ShoppingBadge';
 import cls from './index.module.less';
+import { Form } from '../search/FormSearch';
 
 export interface Filter {
   id: string;
@@ -27,13 +28,13 @@ export interface Range {
 }
 
 interface IProps {
+  ctx: Context;
   work: string | undefined;
   size: number;
   span: number;
   total: number;
-  ctx: Context;
-  filter: Filter[];
-  species: string[];
+  forms: Form[];
+  props: any;
   content?: (params: { data: schema.XThing }) => ReactNode | ReactNode[];
 }
 
@@ -43,7 +44,7 @@ const DesignEntities: React.FC<IProps> = (props) => {
   return (
     <Space style={{ width: '100%' }} direction={'vertical'} align="center">
       <Row style={{ width: '100%' }} gutter={[16, 16]}>
-        {Enumerable.Range(1, 10)
+        {Enumerable.Range(1, size)
           .ToArray()
           .map((_, index) => {
             if (props.content) {
@@ -64,6 +65,7 @@ const DesignEntities: React.FC<IProps> = (props) => {
           pageSize={size}
           total={props.total}
           onChange={(page, size) => {
+            props.props.size = size;
             setPage(page);
             setSize(size);
           }}
@@ -114,8 +116,9 @@ const ViewEntities: React.FC<IProps> = (props) => {
       requireTotalCount: true,
       filter: [],
     };
+    options.userData = props.forms.map((form) => 'F' + form.id);
     if (userData.current.length > 0) {
-      options.userData = userData.current;
+      options.userData.push(...userData.current);
     }
     for (const item of Object.entries(dictFilter.current)) {
       options.filter.push(item[1], 'and');
@@ -141,7 +144,6 @@ const ViewEntities: React.FC<IProps> = (props) => {
       <Space style={{ width: '100%' }} direction="vertical">
         <Row gutter={[16, 16]}>
           {data.map((item) => {
-            console.log(item);
             if (props.content) {
               const has = stagings.filter((staging) => staging.dataId == item.id);
               return (
@@ -206,14 +208,10 @@ export default defineElement({
       <div className={cls.layout}>
         <div className={cls.banner}>{props.banner?.({})}</div>
         <div className={cls.body}>
-          <div className={cls.species}>
-            <Space direction="vertical">
-              {props.leftForm?.({ forms: props.forms })}
-              {props.leftTree?.({ species: props.species })}
-            </Space>
-          </div>
+          <div className={cls.species}>{props.leftTree?.({})}</div>
           <div className={cls.content}>
-            <div className={cls.dicts}>{props.topDicts?.({ filter: props.filter })}</div>
+            <div>{props.topDicts?.({})}</div>
+            <div>{props.topForm?.({ forms: props.forms })}</div>
             <div className={cls.entities}>
               {ctx.view.mode == 'design' ? (
                 <DesignEntities ctx={ctx} {...props} />
@@ -249,32 +247,13 @@ export default defineElement({
         label: '默认总个数',
         default: 40,
       },
-      filter: {
+      forms: {
         type: 'array',
         label: '过滤',
         elementType: {
           type: 'type',
-          label: '过滤',
-          typeName: 'Filter',
-        } as ExistTypeMeta<Filter>,
-        default: [],
-      },
-      species: {
-        type: 'array',
-        label: '分类数组',
-        elementType: {
-          type: 'string',
-          label: '分类',
-        },
-        default: [],
-      },
-      forms: {
-        type: 'array',
-        label: '表单数组',
-        elementType: {
-          type: 'string',
-          label: '分类',
-        },
+          label: '表单',
+        } as ExistTypeMeta<Form>,
         default: [],
       },
     },
@@ -300,57 +279,35 @@ export default defineElement({
         },
         default: 'MetaCard',
       },
-      leftForm: {
-        label: '左侧表单插槽',
-        single: true,
-        params: {
-          forms: {
-            label: '已选表单数组',
-            type: {
-              type: 'array',
-              elementType: {
-                type: 'string',
-                label: '表单',
-              },
-            },
-          },
-        },
-        default: 'FormSearch',
-      },
       leftTree: {
         label: '左侧树插槽',
         single: true,
-        params: {
-          species: {
-            label: '已选分类数组',
-            type: {
-              type: 'array',
-              elementType: {
-                type: 'string',
-                label: '分类',
-              },
-            },
-          },
-        },
+        params: {},
         default: 'SpeciesTree',
       },
       topDicts: {
         label: '顶部字典',
         single: true,
+        params: {},
+        default: 'DictSearch',
+      },
+      topForm: {
+        label: '左侧表单插槽',
+        single: true,
         params: {
-          filter: {
-            label: '已选字典数组',
+          forms: {
+            label: '表单数据',
             type: {
               type: 'array',
+              label: '表单数组',
               elementType: {
                 type: 'type',
-                label: '过滤',
-                typeName: 'Filter',
-              } as ExistTypeMeta<Filter>,
+                label: '表单',
+              } as ExistTypeMeta<Form>,
             },
           },
         },
-        default: 'DictSearch',
+        default: 'FormSearch',
       },
     },
     type: 'Element',

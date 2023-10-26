@@ -1,12 +1,12 @@
 import OpenFileDialog from '@/components/OpenFileDialog';
 import { DeleteOutlined } from '@ant-design/icons';
 import { Button, Row, Space, Tag } from 'antd';
-import React, { useState } from 'react';
+import React, { ReactNode, useState } from 'react';
 import { ExistTypeMeta } from '../../core/ElementMeta';
 import { Context } from '../../render/PageContext';
 import { defineElement } from '../defineElement';
 
-interface Form {
+export interface Form {
   id: string;
   name: string;
 }
@@ -16,27 +16,40 @@ interface IProps {
   forms: Form[];
 }
 
+const Layout: React.FC<{ children: ReactNode }> = (props) => {
+  return <div style={{ padding: 10 }}>{props.children}</div>;
+};
+
 const Design: React.FC<IProps> = (props) => {
   const [forms, setForms] = useState(props.forms);
   const [center, setCenter] = useState(<></>);
   return (
-    <div style={{ paddingTop: 10, paddingBottom: 10 }}>
+    <Layout>
       <Space direction="vertical">
-        <Row gutter={[8, 8]}>
-          {forms.map((item, index) => {
-            return (
-              <Space key={index} align="start">
-                <DeleteOutlined
-                  onClick={() => {
-                    props.forms.splice(index, 1);
-                    setForms([...props.forms]);
-                  }}
-                />
-                <Tag>{item.name}</Tag>
-              </Space>
-            );
-          })}
-        </Row>
+        <Space align="start">
+          <DeleteOutlined
+            onClick={() => {
+              props.forms.splice(0, props.forms.length);
+              setForms([...props.forms]);
+            }}
+          />
+          <Tag color="blue">表单过滤</Tag>
+          <Row gutter={[8, 8]}>
+            {forms.map((item, index) => {
+              return (
+                <Space key={index} align="start">
+                  <DeleteOutlined
+                    onClick={() => {
+                      props.forms.splice(index, 1);
+                      setForms([...props.forms]);
+                    }}
+                  />
+                  <Tag>{item.name}</Tag>
+                </Space>
+              );
+            })}
+          </Row>
+        </Space>
         <Space>
           <Button
             type="dashed"
@@ -52,10 +65,11 @@ const Design: React.FC<IProps> = (props) => {
                     if (files.length > 0) {
                       for (const file of files) {
                         props.forms.push({
-                          id: 'F' + file.id,
+                          id: file.id,
                           name: file.name,
                         });
                       }
+                      setForms([...props.forms]);
                     }
                     setCenter(<></>);
                     return;
@@ -69,19 +83,7 @@ const Design: React.FC<IProps> = (props) => {
         </Space>
       </Space>
       {center}
-    </div>
-  );
-};
-
-const View: React.FC<IProps> = (props) => {
-  return (
-    <div style={{ padding: 10 }}>
-      <Space direction="vertical">
-        {props.forms.map((item, index) => {
-          return <Tag key={index}>{item.name}</Tag>;
-        })}
-      </Space>
-    </div>
+    </Layout>
   );
 };
 
@@ -90,7 +92,6 @@ export default defineElement({
     if (ctx.view.mode == 'design') {
       return <Design {...props} ctx={ctx} />;
     }
-    return <View {...props} ctx={ctx} />;
   },
   displayName: 'FormSearch',
   meta: {
