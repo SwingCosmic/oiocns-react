@@ -4,9 +4,9 @@ import { IFile, IProperty } from '@/ts/core';
 import { DeleteOutlined } from '@ant-design/icons';
 import { EditableProTable, ProFormInstance } from '@ant-design/pro-components';
 import { Button, Modal, Row, Space, Spin, Tag } from 'antd';
-import React, { ReactNode, useRef, useState } from 'react';
+import React, { ReactNode, useEffect, useRef, useState } from 'react';
 import { ExistTypeMeta } from '../../core/ElementMeta';
-import { SpeciesProp, useSpecies } from '../../core/hooks/useSpecies';
+import { SpeciesEntity, SpeciesProp, loadItems } from '../../core/hooks/useSpecies';
 import { Context } from '../../render/PageContext';
 import { defineElement } from '../defineElement';
 import { Filter, Range } from '../shopping';
@@ -21,7 +21,7 @@ const loadDicts = (filter: Filter[]): SpeciesProp[] => {
     .filter((item) => item.valueType == '选择型')
     .map((item) => {
       return {
-        id: item.id,
+        code: item.id,
         name: item.name,
         speciesId: item.speciesId,
       };
@@ -33,11 +33,20 @@ const Layout: React.FC<{ children: ReactNode }> = (props) => {
 };
 
 const Design: React.FC<IProps> = (props) => {
-  const { loading, species, setSpecies } = useSpecies(loadDicts(props.filter), props.ctx);
+  const [loading, setLoading] = useState(false);
+  const [species, setSpecies] = useState<SpeciesEntity[]>([]);
   const [current, setCurrent] = useState<Filter>();
   const [defineOpen, setDefineOpen] = useState(false);
   const [filter, setFilter] = useState(props.filter);
   const [center, setCenter] = useState(<></>);
+  const loadSpecies = async () => {
+    setLoading(true);
+    setSpecies(await loadItems(loadDicts(props.filter), props.ctx));
+    setLoading(false);
+  };
+  useEffect(() => {
+    loadSpecies();
+  }, []);
   const setOpenFile = (
     accepts: string[],
     onOk: (files: IFile[]) => void,
@@ -77,7 +86,7 @@ const Design: React.FC<IProps> = (props) => {
                   <Center
                     ctx={props.ctx}
                     speciesItems={
-                      species.find((one) => one.id == item.id)?.species.items ?? []
+                      species.find((one) => one.code == item.id)?.species.items ?? []
                     }
                     item={item}
                   />
@@ -100,7 +109,7 @@ const Design: React.FC<IProps> = (props) => {
                       rule: [],
                     });
                   }
-                  setSpecies(loadDicts(props.filter), props.ctx);
+                  loadSpecies();
                   setFilter([...props.filter]);
                 });
               }}>
@@ -330,7 +339,15 @@ const Center: React.FC<CenterProps> = (props) => {
 };
 
 const View: React.FC<IProps> = (props) => {
-  const { loading, species } = useSpecies(loadDicts(props.filter), props.ctx);
+  const [loading, setLoading] = useState(false);
+  const [species, setSpecies] = useState<SpeciesEntity[]>([]);
+  useEffect(() => {
+    setLoading(true);
+    loadItems(loadDicts(props.filter), props.ctx).then((res) => {
+      setSpecies(res);
+      setLoading(false);
+    });
+  }, []);
   return (
     <Spin spinning={loading}>
       <Layout>
@@ -340,7 +357,7 @@ const View: React.FC<IProps> = (props) => {
               <Center
                 ctx={props.ctx}
                 speciesItems={
-                  species.find((one) => one.id == item.id)?.species.items ?? []
+                  species.find((one) => one.code == item.id)?.species.items ?? []
                 }
                 key={index}
                 item={item}

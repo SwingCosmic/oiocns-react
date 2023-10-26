@@ -3,11 +3,20 @@ import OpenFileDialog from '@/components/OpenFileDialog';
 import { IProperty } from '@/ts/core';
 import { DeleteOutlined } from '@ant-design/icons';
 import { Button, Space, Spin } from 'antd';
-import React, { useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { ExistTypeMeta } from '../../core/ElementMeta';
-import { SpeciesProp, buildItems, search, useSpecies } from '../../core/hooks/useSpecies';
+import {
+  SpeciesEntity,
+  SpeciesNode,
+  SpeciesProp,
+  loadItems,
+} from '../../core/hooks/useSpecies';
 import { Context } from '../../render/PageContext';
 import { defineElement } from '../defineElement';
+import CustomMenu from '@/components/CustomMenu';
+import useMenuUpdate from '@/hooks/useMenuUpdate';
+import { Controller } from '@/ts/controller';
+import { schema } from '@/ts/base';
 
 interface IProps {
   ctx: Context;
@@ -15,8 +24,17 @@ interface IProps {
 }
 
 const Design: React.FC<IProps> = (props) => {
-  const { loading, species, setSpecies } = useSpecies(props.species, props.ctx);
+  const [loading, setLoading] = useState(false);
+  const [species, setSpecies] = useState<SpeciesEntity[]>([]);
   const [center, setCenter] = useState(<></>);
+  const loadSpecies = async () => {
+    setLoading(true);
+    setSpecies(await loadItems(props.species, props.ctx));
+    setLoading(false);
+  };
+  useEffect(() => {
+    loadSpecies();
+  }, []);
   return (
     <Spin spinning={loading}>
       <Space style={{ width: 300, padding: '0 10px' }} direction="vertical">
@@ -30,7 +48,7 @@ const Design: React.FC<IProps> = (props) => {
                   onClick={() => {
                     const index = props.species.findIndex((id) => id == node.id);
                     props.species.splice(index, 1);
-                    setSpecies(props.species, props.ctx);
+                    loadSpecies();
                   }}
                 />
                 {node.name}
@@ -46,19 +64,19 @@ const Design: React.FC<IProps> = (props) => {
               <OpenFileDialog
                 accepts={['分类型']}
                 rootKey={props.ctx.view.pageInfo.directory.spaceKey}
-                excludeIds={props.species.map((item) => item.id)}
+                excludeIds={props.species.map((item) => item.code)}
                 multiple={true}
                 onOk={async (files) => {
                   if (files.length > 0) {
                     for (const file of files) {
                       const property = file as IProperty;
                       props.species.push({
-                        id: 'T' + property.id,
+                        code: 'T' + property.id,
                         name: property.code + ' ' + property.name,
                         speciesId: property.metadata.speciesId,
                       });
                     }
-                    setSpecies(props.species, props.ctx);
+                    loadSpecies();
                   }
                   setCenter(<></>);
                   return;
@@ -75,37 +93,96 @@ const Design: React.FC<IProps> = (props) => {
   );
 };
 
+const buildSpecies = (species: SpeciesEntity[]): SpeciesNode[] => {
+  return species.map((item) => {
+    item.species.items.forEach((speciesItems) => {
+      if (!speciesItems.parentId) {
+        speciesItems.parentId = item.species.id;
+      }
+    });
+    const key = item.code + '-' + item.species.id;
+    return {
+      key: key,
+      label: item.name,
+      children: buildItems(item.species.items, key),
+      itemType: '分类',
+      item: item,
+    };
+  });
+};
+
+const buildItems = (items: schema.XSpeciesItem[], parentKey: string) => {
+  const prop = parentKey.split('-')[0];
+  const result: SpeciesNode[] = [];
+  for (const item of items) {
+    if (prop + '-' + item.parentId == parentKey) {
+      const key = prop + '-' + item.id;
+      result.push({
+        key: key,
+        label: item.name,
+        children: buildItems(items, key),
+        itemType: '分类项',
+        item: item,
+      });
+    }
+  }
+  return result;
+};
+
 const View: React.FC<IProps> = (props) => {
-  const { loading, tree, setTree } = useSpecies(props.species, props.ctx);
+  const [ctrl] = useState(new Controller('ctrl'));
+  const [loading, setLoading] = useState(false);
+  const species = useRef<SpeciesEntity[]>([]);
+  const loadSpecies = async () => {
+    setLoading(true);
+    species.current = await loadItems(props.species, props.ctx);
+    setLoading(false);
+    ctrl.changCallback();
+  };
+  const [_, rootMenu, selectMenu, setSelectMenu] = useMenuUpdate(() => {
+    return {
+      key: 'speciesTree',
+      label: '分类树',
+      itemType: '分类树',
+      children: buildSpecies(species.current),
+    };
+  }, ctrl);
+  useEffect(() => {
+    loadSpecies();
+  }, []);
+  if (!selectMenu || !rootMenu) {
+    return <></>;
+  }
+  const parentMenu = selectMenu.parentMenu ?? rootMenu;
   return (
     <Spin spinning={loading}>
-      <div style={{ width: 300, padding: 10 }}>
-        <CustomTree
-          checkable
-          searchable
-          loadData={async (props) => {
-            const node = search(tree, props.key as string);
-            if (node) {
-              buildItems(node.items, node);
-              setTree([...tree]);
+      <Space style={{ width: 300, padding: 10 }} direction="vertical">
+        <div
+          style={{ textAlign: 'center' }}
+          title={parentMenu.label}
+          onClick={() => {
+            setSelectMenu(parentMenu);
+            props.ctx.view.emitter(
+              'species',
+              'checked',
+              parentMenu.item?.code ? [parentMenu.item.code] : [],
+            );
+          }}>
+          <span style={{ fontSize: 20, margin: '0 6px' }}>{parentMenu.icon}</span>
+          <strong>{parentMenu.label}</strong>
+        </div>
+        <CustomMenu
+          collapsed={false}
+          selectMenu={selectMenu}
+          item={selectMenu.parentMenu ?? rootMenu}
+          onSelect={(node) => {
+            setSelectMenu(node);
+            if (node.item.code) {
+              props.ctx.view.emitter('species', 'checked', [node.item.code]);
             }
           }}
-          onCheck={(_, info) => {
-            const userData = new Set<string>();
-            for (const node of info.checkedNodes) {
-              const item = (node as any).item;
-              if (item.id.startsWith('T')) {
-                userData.add(item.id);
-              } else {
-                userData.add(item.code || `S${item.id}`);
-              }
-            }
-            props.ctx.view.emitter('species', 'checked', [...userData]);
-          }}
-          fieldNames={{ title: 'label', key: 'key', children: 'children' }}
-          treeData={tree}
         />
-      </div>
+      </Space>
     </Spin>
   );
 };

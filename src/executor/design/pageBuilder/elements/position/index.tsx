@@ -7,7 +7,7 @@ import { ExistTypeMeta } from '../../core/ElementMeta';
 import { Context } from '../../render/PageContext';
 import { defineElement } from '../defineElement';
 import cls from './index.module.less';
-import Asset from '/img/banner/1.png';
+import Asset from '/img/innovate.png';
 
 interface IProps {
   id: string;
@@ -58,7 +58,7 @@ const FieldDesign: React.FC<FieldProps> = (props) => {
         </Tooltip>
       );
     default:
-      return <Text value={value} onClick={props.onClick}/>;
+      return <Text value={value} onClick={props.onClick} />;
   }
 };
 
@@ -117,7 +117,17 @@ const View: React.FC<IProps> = (props) => {
     default: {
       let value = props.property?.name ?? props.label;
       if (props.data && props.property) {
-        value = props.property.name + ':' + (props.data['T' + props.property.id] ?? '');
+        let suffix = '';
+        switch (props.property.valueType) {
+          case '选择型':
+          case '分类型':
+            suffix = props.data[props.data['T' + props.property.id]] ?? '';
+            break;
+          default:
+            suffix = props.data['T' + props.property.id] ?? ''
+            break;
+        }
+        value = props.property.name + ':' + suffix;
       }
       return <Text value={value} />;
     }
