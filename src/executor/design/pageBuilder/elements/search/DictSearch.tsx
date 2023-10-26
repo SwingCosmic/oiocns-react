@@ -84,6 +84,7 @@ const Design: React.FC<IProps> = (props) => {
           <Space>
             <Button
               type="dashed"
+              size="small"
               onClick={() => {
                 setOpenFile(['选择型'], (files) => {
                   for (const file of files) {
@@ -103,6 +104,7 @@ const Design: React.FC<IProps> = (props) => {
             </Button>
             <Button
               type="dashed"
+              size="small"
               onClick={() => {
                 setOpenFile(
                   ['数值型'],

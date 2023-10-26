@@ -39,6 +39,8 @@ const Design: React.FC<IProps> = (props) => {
           }}
         />
         <Button
+          type="dashed"
+          size="small"
           onClick={() => {
             setCenter(
               <OpenFileDialog

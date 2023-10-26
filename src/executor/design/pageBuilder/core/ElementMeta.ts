@@ -129,5 +129,5 @@ export type ExtractSlot<T extends SlotMeta> = SlotFunction<ExtractParams<T["para
 export type ExtractMetaToType<T extends ElementMeta> = {
   [P in keyof T["props"]]: ExtractType<T["props"][P]>;
 } & {
-  [S in keyof T["slots"]]: ExtractSlot<T["slots"][S]>;
+  [S in keyof T["slots"]]?: ExtractSlot<T["slots"][S]>;
 };

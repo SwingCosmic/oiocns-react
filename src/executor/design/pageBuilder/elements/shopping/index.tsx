@@ -37,28 +37,6 @@ interface IProps {
   content?: (params: { data: schema.XThing }) => ReactNode | ReactNode[];
 }
 
-interface ILayout {
-  banner?: ReactNode;
-  species?: ReactNode;
-  dicts?: ReactNode;
-  entities: ReactNode;
-}
-
-const ShoppingLayout: React.FC<ILayout> = (props) => {
-  return (
-    <div className={cls.layout}>
-      <div className={cls.banner}>{props.banner}</div>
-      <div className={cls.body}>
-        <div className={cls.species}>{props.species}</div>
-        <div className={cls.content}>
-          <div className={cls.dicts}>{props.dicts}</div>
-          <div className={cls.entities}>{props.entities}</div>
-        </div>
-      </div>
-    </div>
-  );
-};
-
 const DesignEntities: React.FC<IProps> = (props) => {
   const [page, setPage] = useState<number>(1);
   const [size, setSize] = useState<number>(props.size);
@@ -225,18 +203,27 @@ const ViewEntities: React.FC<IProps> = (props) => {
 export default defineElement({
   render(props, ctx) {
     return (
-      <ShoppingLayout
-        banner={props.banner({})}
-        species={props.leftTree({ species: props.species })}
-        dicts={props.topDicts({ filter: props.filter })}
-        entities={
-          ctx.view.mode == 'design' ? (
-            <DesignEntities ctx={ctx} {...props} />
-          ) : (
-            <ViewEntities ctx={ctx} {...props} />
-          )
-        }
-      />
+      <div className={cls.layout}>
+        <div className={cls.banner}>{props.banner?.({})}</div>
+        <div className={cls.body}>
+          <div className={cls.species}>
+            <Space direction="vertical">
+              {props.leftForm?.({ forms: props.forms })}
+              {props.leftTree?.({ species: props.species })}
+            </Space>
+          </div>
+          <div className={cls.content}>
+            <div className={cls.dicts}>{props.topDicts?.({ filter: props.filter })}</div>
+            <div className={cls.entities}>
+              {ctx.view.mode == 'design' ? (
+                <DesignEntities ctx={ctx} {...props} />
+              ) : (
+                <ViewEntities ctx={ctx} {...props} />
+              )}
+            </div>
+          </div>
+        </div>
+      </div>
     );
   },
   displayName: 'Welfare',
@@ -281,6 +268,15 @@ export default defineElement({
         },
         default: [],
       },
+      forms: {
+        type: 'array',
+        label: '表单数组',
+        elementType: {
+          type: 'string',
+          label: '分类',
+        },
+        default: [],
+      },
     },
     slots: {
       banner: {
@@ -303,6 +299,23 @@ export default defineElement({
           },
         },
         default: 'MetaCard',
+      },
+      leftForm: {
+        label: '左侧表单插槽',
+        single: true,
+        params: {
+          forms: {
+            label: '已选表单数组',
+            type: {
+              type: 'array',
+              elementType: {
+                type: 'string',
+                label: '表单',
+              },
+            },
+          },
+        },
+        default: 'FormSearch',
       },
       leftTree: {
         label: '左侧树插槽',

@@ -28,24 +28,24 @@ export default defineElement({
     return (
       <Card
         hoverable
-        cover={props.image({ data: props.data, label: '图片', valueType: '图片' })}
+        cover={props.image?.({ data: props.data, label: '图片', valueType: '图片' })}
         actions={[
           <div key={'fourth'}>
-            {props.first({ data: props.data, label: '字段-4', valueType: '描述' })}
+            {props.first?.({ data: props.data, label: '字段-4', valueType: '描述' })}
           </div>,
           <div key={'fifth'}>
-            {props.second({ data: props.data, label: '字段-5', valueType: '描述' })}
+            {props.second?.({ data: props.data, label: '字段-5', valueType: '描述' })}
           </div>,
         ]}>
         <Card.Meta
-          title={props.third({ data: props.data, label: '字段-1', valueType: '标题' })}
+          title={props.third?.({ data: props.data, label: '字段-1', valueType: '标题' })}
           description={
             <Space style={{ width: '100%' }} direction="vertical">
               <div key={'second'}>
-                {props.fourth({ data: props.data, label: '字段-2', valueType: '描述' })}
+                {props.fourth?.({ data: props.data, label: '字段-2', valueType: '描述' })}
               </div>
               <div key={'third'}>
-                {props.fifth({ data: props.data, label: '字段-3', valueType: '描述' })}
+                {props.fifth?.({ data: props.data, label: '字段-3', valueType: '描述' })}
               </div>
             </Space>
           }
