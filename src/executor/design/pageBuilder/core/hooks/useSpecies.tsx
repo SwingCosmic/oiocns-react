@@ -9,6 +9,7 @@ export type SpeciesNode = {
   key: string;
   label: string;
   children: SpeciesNode[];
+  item: any;
   items: schema.XSpeciesItem[];
 };
 
@@ -23,6 +24,7 @@ const buildSpecies = (species: SpeciesEntity[]): SpeciesNode[] => {
       key: item.id + '-' + item.species.id,
       label: item.name,
       children: [],
+      item: item,
       items: item.species.items,
     };
   });
@@ -33,9 +35,10 @@ export const buildItems = (items: schema.XSpeciesItem[], parent: SpeciesNode) =>
   for (const item of items) {
     if (propId + '-' + item.parentId == parent.key) {
       parent.children.push({
-        key: propId + '-' + item.parentId + '-' + (item.code || `S${item.id}`),
+        key: propId + '-' + item.id,
         label: item.name,
         children: [],
+        item: item,
         items: items,
       });
     }

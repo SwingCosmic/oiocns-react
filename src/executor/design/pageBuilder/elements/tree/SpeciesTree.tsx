@@ -22,7 +22,6 @@ const Design: React.FC<IProps> = (props) => {
       <Space style={{ width: 300, padding: '0 10px' }} direction="vertical">
         <CustomTree
           searchable
-          fieldNames={{ title: 'name', key: 'id', children: 'children' }}
           treeData={species}
           titleRender={(node: any) => {
             return (
@@ -89,15 +88,14 @@ const View: React.FC<IProps> = (props) => {
               setTree([...tree]);
             }
           }}
-          onCheck={(checked) => {
+          onCheck={(_, info) => {
             const userData = new Set<string>();
-            for (const item of checked as string[]) {
-              const split = item.split('-');
-              if (split.length == 2) {
-                userData.add(split[0]);
-              } else if (split.length == 3) {
-                userData.add(split[0]);
-                userData.add(split[2]);
+            for (const node of info.checkedNodes) {
+              const item = (node as any).item;
+              if (item.id.startsWith('T')) {
+                userData.add(item.id);
+              } else {
+                userData.add(item.code || `S${item.id}`);
               }
             }
             props.ctx.view.emitter('speciesTree', 'checked', [...userData]);
