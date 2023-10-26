@@ -93,9 +93,9 @@ const Design: React.FC<IProps> = (props) => {
                       speciesId: '',
                       rule: [],
                     };
-                    props.filter.push(current);
                     setFilter([...props.filter]);
                     setCurrent(current);
+                    setDefineOpen(true);
                   },
                   false,
                 );
@@ -114,6 +114,7 @@ const Design: React.FC<IProps> = (props) => {
                     }}
                   />
                   <Center
+                    ctx={props.ctx}
                     speciesItems={
                       species.find((one) => one.id == item.id)?.species.items ?? []
                     }
@@ -178,7 +179,7 @@ const DefineModal: React.FC<DefineProps> = (props) => {
               dataIndex: 'start',
             },
             {
-              title: '中止',
+              title: '结束',
               dataIndex: 'end',
             },
             {
@@ -216,18 +217,72 @@ const DefineModal: React.FC<DefineProps> = (props) => {
 };
 
 interface ItemProps<T = any> {
-  name: string;
+  ctx: Context;
+  item: Filter;
   items: T[];
   tag: (item: T) => string;
 }
 
 function Template<T>(props: ItemProps<T>) {
+  const [selected, setSelected] = useState<number>();
   return (
     <Space align="start" direction="horizontal">
-      <Tag color="blue">{props.name}</Tag>
+      <Tag color="blue">{props.item.name}</Tag>
       <Row gutter={[6, 6]}>
         {props.items.map((up, index) => {
-          return <Tag key={index}>{props.tag(up)}</Tag>;
+          const border = selected == index ? '1px dashed green' : '';
+          return (
+            <Tag
+              style={{ border: border }}
+              key={index}
+              onClick={() => {
+                if (index == selected) {
+                  setSelected(undefined);
+                  switch (props.item.valueType) {
+                    case '选择型':
+                      props.ctx.view.emitter('dicts', 'delete', props.item.id);
+                      break;
+                    case '数值型':
+                      props.ctx.view.emitter('ranges', 'delete', props.item.id);
+                      break;
+                  }
+                  return;
+                }
+                setSelected(index);
+                switch (props.item.valueType) {
+                  case '选择型':
+                    {
+                      const item = up as schema.XSpeciesItem;
+                      const args = [`T${props.item.id}`, '=', item.code || `S${item.id}`];
+                      props.ctx.view.emitter('dicts', 'changed', {
+                        id: props.item.id,
+                        data: args,
+                      });
+                    }
+                    break;
+                  case '数值型':
+                    {
+                      const item = up as Range;
+                      const args = [];
+                      if (item.start || item.start === 0) {
+                        args.push([`T${props.item.id}`, '>=', Number(item.start)]);
+                      }
+                      if (item.end || item.end === 0) {
+                        args.push([`T${props.item.id}`, '<=', Number(item.end)]);
+                      }
+                      if (args.length > 0) {
+                        props.ctx.view.emitter('ranges', 'changed', {
+                          id: props.item.id,
+                          data: args,
+                        });
+                      }
+                    }
+                    break;
+                }
+              }}>
+              {props.tag(up)}
+            </Tag>
+          );
         })}
       </Row>
     </Space>
@@ -235,6 +290,7 @@ function Template<T>(props: ItemProps<T>) {
 }
 
 interface CenterProps {
+  ctx: Context;
   item: Filter;
   speciesItems: schema.XSpeciesItem[];
 }
@@ -244,7 +300,8 @@ const Center: React.FC<CenterProps> = (props) => {
     case '选择型':
       return (
         <Template<schema.XSpeciesItem>
-          name={props.item.name}
+          ctx={props.ctx}
+          item={props.item}
           items={props.speciesItems}
           tag={(item) => item.name}
         />
@@ -252,7 +309,8 @@ const Center: React.FC<CenterProps> = (props) => {
     case '数值型':
       return (
         <Template<Range>
-          name={props.item.name}
+          ctx={props.ctx}
+          item={props.item}
           items={props.item.rule}
           tag={(item) => {
             let start = `${item.start ?? ''}${item.unit ?? ''}`;
@@ -274,6 +332,7 @@ const View: React.FC<IProps> = (props) => {
           {props.filter.map((item, index) => {
             return (
               <Center
+                ctx={props.ctx}
                 speciesItems={
                   species.find((one) => one.id == item.id)?.species.items ?? []
                 }

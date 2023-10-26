@@ -105,12 +105,13 @@ function createDesignRender(component: ElementFC) {
       e.stopPropagation();
       ctx.view.currentElement = props.element;
     }, []);
-    ctx.view.subscribe('props', 'change', (args) => {
-      if (args == props.element.id) {
+    ctx.view.subscribe((type, cmd, args) => {
+      if (type == 'props' && cmd == 'change' && args == props.element.id) {
         setKey(generateUuid());
+      } else if (type == 'current' && cmd == 'change') {
+        setElement(ctx.view.currentElement);
       }
     });
-    ctx.view.subscribe('current', 'change', () => setElement(ctx.view.currentElement));
     return (
       <ErrorBoundary>
         <div

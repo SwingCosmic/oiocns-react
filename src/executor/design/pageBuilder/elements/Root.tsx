@@ -7,8 +7,8 @@ export default defineElement({
   render(props, ctx) {
     const isDesign = ctx.view.mode == 'design';
     const [layoutType, setLayoutType] = useState(props.layoutType);
-    ctx.view.subscribe('props', 'change', (args) => {
-      if (props.id == args) {
+    ctx.view.subscribe((type, cmd, args) => {
+      if (type == 'props' && cmd == 'change' && props.id == args) {
         const layout = ctx.view.treeManager.allElements[props.id].props.layoutType;
         setLayoutType(layout);
       }

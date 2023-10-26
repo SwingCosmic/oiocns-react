@@ -98,7 +98,7 @@ const View: React.FC<IProps> = (props) => {
                 userData.add(item.code || `S${item.id}`);
               }
             }
-            props.ctx.view.emitter('speciesTree', 'checked', [...userData]);
+            props.ctx.view.emitter('species', 'checked', [...userData]);
           }}
           fieldNames={{ title: 'label', key: 'key', children: 'children' }}
           treeData={tree}

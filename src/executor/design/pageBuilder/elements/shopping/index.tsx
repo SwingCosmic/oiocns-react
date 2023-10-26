@@ -102,27 +102,55 @@ const ViewEntities: React.FC<IProps> = (props) => {
   const [size, setSize] = useState<number>(props.size);
   const [total, setTotal] = useState<number>(0);
   const [data, setData] = useState<any[]>([]);
-  const options = useRef<any>({});
+  const userData = useRef<string[]>([]);
+  const dictFilter = useRef<{ [id: string]: any }>({});
+  const rangeFilter = useRef<{ [id: string]: any[] }>({});
   const stagings = useStagings(orgCtrl.box);
   const center = useCenter();
   useEffect(() => {
     loadData(size, page);
   }, []);
-  props.ctx.view.subscribe('speciesTree', 'checked', (args) => {
-    options.current = { userData: args };
+  props.ctx.view.subscribe((type, cmd, args) => {
+    if (type == 'species' && cmd == 'checked') {
+      userData.current = args;
+    } else if (type == 'dicts') {
+      if (cmd == 'changed') {
+        dictFilter.current[args.id] = args.data;
+      } else if (cmd == 'delete') {
+        delete dictFilter.current[args];
+      }
+    } else if (type == 'ranges') {
+      if (cmd == 'changed') {
+        rangeFilter.current[args.id] = args.data;
+      } else if (cmd == 'delete') {
+        delete rangeFilter.current[args];
+      }
+    }
     loadData(size, 1);
   });
   const loadData = async (take: number, page: number) => {
     setLoading(true);
+    const options: any = {
+      take: take,
+      skip: (page - 1) * take,
+      requireTotalCount: true,
+      filter: [],
+    };
+    if (userData.current.length > 0) {
+      options.userData = userData.current;
+    }
+    for (const item of Object.entries(dictFilter.current)) {
+      options.filter.push(item[1], 'and');
+    }
+    for (const items of Object.entries(rangeFilter.current)) {
+      for (const item of items[1]) {
+        options.filter.push(item, 'and');
+      }
+    }
     const res = await kernel.loadThing(
       current.belongId,
       [current.directory.target.spaceId, current.directory.target.id],
-      {
-        ...options.current,
-        take: take,
-        skip: (page - 1) * take,
-        requireTotalCount: true,
-      },
+      options,
     );
     setData(res.data ?? []);
     setSize(take);

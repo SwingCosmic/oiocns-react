@@ -27,7 +27,11 @@ export async function removeElement(element: PageElement | null, ctx: DesignCont
 export default function ElementProps() {
   const ctx = useContext<DesignContext>(PageContext as any);
   const [element, setElement] = useState<PageElement | null>(ctx.view.currentElement);
-  ctx.view.subscribe('current', 'change', () => setElement(ctx.view.currentElement));
+  ctx.view.subscribe((type, cmd) => {
+    if (type == 'current' && cmd == 'change') {
+      setElement(ctx.view.currentElement);
+    }
+  });
 
   const commonTypeMeta: Dictionary<TypeMeta> = {
     id: {

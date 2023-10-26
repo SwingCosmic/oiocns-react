@@ -45,12 +45,10 @@ export default class HostManagerBase<T extends HostMode>
   }
 
   /** 订阅变动 */
-  subscribe(t: string, c: string, onChange: (args: any) => void) {
+  subscribe(onChange: (type: string, cmd: string, args: any) => void) {
     useEffect(() => {
       const subId = this.pageInfo.command.subscribe((type, cmd, args) => {
-        if (type == t && cmd == c) {
-          onChange(args);
-        }
+        onChange(type, cmd, args);
       });
       return () => {
         this.pageInfo.command.unsubscribe(subId);

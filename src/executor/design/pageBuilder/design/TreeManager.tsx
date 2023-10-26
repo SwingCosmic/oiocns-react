@@ -76,8 +76,13 @@ const TreeManager: React.FC<{}> = () => {
   const [visible, setVisible] = useState<boolean>(false);
   const [tree, setTree] = useState(buildTree(ctx));
   const [current, setCurrent] = useState(ctx.view.currentElement);
-  ctx.view.subscribe('elements', 'change', () => setTree(buildTree(ctx)));
-  ctx.view.subscribe('current', 'change', () => setCurrent(ctx.view.currentElement));
+  ctx.view.subscribe((type, cmd) => {
+    if (type == 'elements' && cmd == 'change') {
+      setTree(buildTree(ctx));
+    } else if (type == 'current' && cmd == 'change') {
+      setCurrent(ctx.view.currentElement);
+    }
+  });
   const prop = useRef();
   return (
     <div style={{ margin: '0 8px' }}>

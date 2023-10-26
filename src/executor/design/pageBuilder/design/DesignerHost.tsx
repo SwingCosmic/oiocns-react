@@ -25,7 +25,11 @@ export function DesignerHost({ ctx }: DesignerProps) {
   const [active, setActive] = useState<string>();
   const [status, setStatus] = useState(false);
   const [open, setOpen] = useState(false);
-  ctx.view.subscribe('elements', 'change', () => setStatus(!status));
+  ctx.view.subscribe((type, cmd) => {
+    if (type == 'elements' && cmd == 'change') {
+      setStatus(!status);
+    }
+  });
 
   console.log('re-render');
 
