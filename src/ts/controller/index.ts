@@ -71,7 +71,7 @@ class IndexController extends Controller {
     const pages: IPageTemplate[] = [];
     for (const directory of this.targets.map((t) => t.directory)) {
       const templates = await directory.loadAllTemplate();
-      pages.push(...templates);
+      pages.push(...templates.filter((item) => item.metadata.public));
     }
     return pages;
   }

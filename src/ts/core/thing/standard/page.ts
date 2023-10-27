@@ -1,6 +1,6 @@
 import { Command, schema } from '@/ts/base';
-import { IStandardFileInfo, StandardFileInfo } from '../fileinfo';
 import { IDirectory } from '../directory';
+import { IStandardFileInfo, StandardFileInfo } from '../fileinfo';
 import { ISpecies, Species } from './species';
 
 export interface IPageTemplate extends IStandardFileInfo<schema.XPageTemplate> {
@@ -16,15 +16,15 @@ export class PageTemplate
   extends StandardFileInfo<schema.XPageTemplate>
   implements IPageTemplate
 {
+  constructor(_metadata: schema.XPageTemplate, _directory: IDirectory) {
+    super(_metadata, _directory, _directory.resource.templateColl);
+    this.command = new Command();
+  }
   canDesign: boolean = true;
   command: Command;
   species: ISpecies[] = [];
   get cacheFlag() {
     return 'pages';
-  }
-  constructor(_metadata: schema.XPageTemplate, _directory: IDirectory) {
-    super(_metadata, _directory, _directory.resource.templateColl);
-    this.command = new Command();
   }
   async copy(destination: IDirectory): Promise<boolean> {
     if (this.allowCopy(destination)) {

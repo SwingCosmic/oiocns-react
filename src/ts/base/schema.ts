@@ -637,4 +637,8 @@ export type XStaging = {
   relations: string[];
 } & Xbase;
 
-export interface XPageTemplate extends XStandard {}
+// 页面模板
+export interface XPageTemplate extends XStandard {
+  // 是否发布
+  public: boolean;
+}

@@ -5,6 +5,7 @@ import { IDirectory } from '@/ts/core';
 import { ProFormColumnsType } from '@ant-design/pro-components';
 import React from 'react';
 import { IPageTemplate } from '@/ts/core/thing/standard/page';
+import UploadItem from '@/executor/tools/uploadItem';
 
 interface IProps {
   formType: string;
@@ -13,13 +14,30 @@ interface IProps {
 }
 
 const PageTemplateForm: React.FC<IProps> = ({ formType, current, finished }) => {
-  let initialValue = {};
+  let initialValue: any = {};
   switch (formType) {
     case 'updatePageTemplate':
       initialValue = current.metadata;
       break;
   }
   const columns: ProFormColumnsType<schema.XPageTemplate>[] = [
+    {
+      title: '图标',
+      dataIndex: 'icon',
+      colProps: { span: 24 },
+      renderFormItem: (_, __, form) => {
+        return (
+          <UploadItem
+            typeName={'模板'}
+            icon={initialValue.icon}
+            onChanged={(icon) => {
+              form.setFieldValue('icon', icon);
+            }}
+            directory={current.directory}
+          />
+        );
+      },
+    },
     {
       title: '名称',
       dataIndex: 'name',
@@ -30,6 +48,15 @@ const PageTemplateForm: React.FC<IProps> = ({ formType, current, finished }) => 
     {
       title: '编码',
       dataIndex: 'code',
+      formItemProps: {
+        rules: [{ required: true, message: '编码为必填项' }],
+      },
+    },
+    {
+      title: '是否发布',
+      dataIndex: 'public',
+      valueType: 'switch',
+      initialValue: initialValue.public ?? true,
       formItemProps: {
         rules: [{ required: true, message: '编码为必填项' }],
       },
