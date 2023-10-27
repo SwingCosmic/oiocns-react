@@ -1,4 +1,4 @@
-import { defineElement } from './defineElement';
+import { defineElement } from '../defineElement';
 import React from 'react';
 import CohortActivity from '@/pages/Home/components/Content/Activity/cohort';
 

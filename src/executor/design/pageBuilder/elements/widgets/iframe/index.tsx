@@ -1,5 +1,5 @@
 import React from 'react';
-import { defineElement } from '../defineElement';
+import { defineElement } from '../../defineElement';
 import cls from './index.module.less';
 
 export default defineElement({

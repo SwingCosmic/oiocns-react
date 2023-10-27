@@ -1,7 +1,8 @@
 import { schema } from '@/ts/base';
-import { ExistTypeMeta } from '../../core/ElementMeta';
-import { defineElement } from '../defineElement';
+import { ExistTypeMeta } from '../../../core/ElementMeta';
+import { defineElement } from '../../defineElement';
 import React from 'react';
+import { Space } from 'antd';
 
 export default defineElement({
   render(props) {
@@ -12,8 +13,12 @@ export default defineElement({
           background: `no-repeat url(${props.url?.id}) #fafafa center `,
           backgroundSize: 'cover',
           height: props.height,
-        }}
-      />
+        }}>
+        <Space style={{ left: 10, bottom: 10 }}>
+          <></>
+          <></>
+        </Space>
+      </div>
     );
   },
   displayName: 'HeadBanner',

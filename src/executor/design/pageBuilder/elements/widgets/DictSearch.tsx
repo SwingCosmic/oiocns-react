@@ -9,7 +9,7 @@ import { ExistTypeMeta } from '../../core/ElementMeta';
 import { SpeciesEntity, SpeciesProp, loadItems } from '../../core/hooks/useSpecies';
 import { Context } from '../../render/PageContext';
 import { defineElement } from '../defineElement';
-import { Filter, Range } from '../shopping';
+import { Filter, Range } from '../templates/transaction';
 
 interface IProps {
   ctx: Context;

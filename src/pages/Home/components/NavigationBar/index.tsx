@@ -8,8 +8,8 @@ import { EllipsisOutlined, MinusCircleFilled, PlusCircleFilled } from '@ant-desi
 import { Badge, Button, Row, Typography, message } from 'antd';
 import { NavigationItem } from '../..';
 import cls from './index.module.less';
-import { ViewerHost } from '@/executor/design/pageBuilder/view/ViewerHost';
-import ViewerManager from '@/executor/design/pageBuilder/view/ViewerManager';
+import { ViewerHost } from '@/executor/open/page/view/ViewerHost';
+import ViewerManager from '@/executor/open/page/view/ViewerManager';
 
 const NavigationBar: React.FC<{
   list: NavigationItem[];

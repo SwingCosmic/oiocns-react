@@ -1,4 +1,4 @@
-import HostManagerBase from '../render/HostManager';
+import HostManagerBase from '../../../design/pageBuilder/render/HostManager';
 import { IPageTemplate } from '@/ts/core/thing/standard/page';
 import { IDisposable } from '@/ts/base/common';
 

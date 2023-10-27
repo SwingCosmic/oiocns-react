@@ -1,8 +1,7 @@
 import { Layout, Menu, message } from 'antd';
-import React, { ReactNode, useState } from 'react';
+import React, { ReactNode, useContext, useState } from 'react';
 import { DesignContext, PageContext } from '../render/PageContext';
-import Coder from './context';
-
+import FullScreenModal from '@/components/Common/fullScreen';
 import { AiOutlineApartment } from '@/icons/ai';
 import {
   CheckOutlined,
@@ -10,16 +9,42 @@ import {
   RightCircleOutlined,
   SettingOutlined,
 } from '@ant-design/icons';
+import { json } from '@codemirror/lang-json';
+import CodeMirror from '@uiw/react-codemirror';
+import { ViewerHost } from '../../../open/page/view/ViewerHost';
+import ViewerManager from '../../../open/page/view/ViewerManager';
 import TreeManager from './TreeManager';
 import ElementProps from './config/ElementProps';
 import css from './designer.module.less';
-import { ViewerHost } from '../view/ViewerHost';
-import ViewerManager from '../view/ViewerManager';
-import FullScreenModal from '@/components/Common/fullScreen';
 
 export interface DesignerProps {
   ctx: DesignContext;
 }
+
+const stringify = (ctx: DesignContext) => {
+  return JSON.stringify(ctx.view.rootChildren, null, 2);
+};
+
+const Coder: React.FC<{}> = () => {
+  const ctx = useContext<DesignContext>(PageContext as any);
+  const [data, setData] = useState<string>(stringify(ctx));
+  ctx.view.subscribe((type, cmd) => {
+    if (type == 'elements' && cmd == 'change') {
+      setData(stringify(ctx));
+    } else if (type == 'props' && cmd == 'change') {
+      setData(stringify(ctx));
+    }
+  });
+  return (
+    <CodeMirror
+      style={{ marginTop: 10 }}
+      value={data}
+      editable={false}
+      extensions={[json()]}
+      onChange={setData}
+    />
+  );
+};
 
 export function DesignerHost({ ctx }: DesignerProps) {
   const [active, setActive] = useState<string>();

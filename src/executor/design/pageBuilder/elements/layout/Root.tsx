@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
-import { defineElement } from './defineElement';
-import { EnumTypeMeta } from '../core/ElementMeta';
-import { Slot } from '../render/Slot';
+import { defineElement } from '../defineElement';
+import { EnumTypeMeta } from '../../core/ElementMeta';
+import { Slot } from '../../render/Slot';
 
 export default defineElement({
   render(props, ctx) {

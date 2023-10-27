@@ -1,8 +1,8 @@
 import { schema } from '@/ts/base';
 import { Card, Space } from 'antd';
 import React from 'react';
-import { ExistTypeMeta, ParameterInfo } from '../../core/ElementMeta';
-import { defineElement } from '../defineElement';
+import { ExistTypeMeta, ParameterInfo } from '../../../core/ElementMeta';
+import { defineElement } from '../../defineElement';
 
 const data: ParameterInfo = {
   label: '数据',

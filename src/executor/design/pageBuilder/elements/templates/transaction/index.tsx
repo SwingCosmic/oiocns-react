@@ -1,17 +1,19 @@
-import { kernel, schema } from '@/ts/base';
+import { command, kernel, schema } from '@/ts/base';
 import { Enumerable } from '@/ts/base/common/linq';
 import orgCtrl from '@/ts/controller';
 import { PlusCircleFilled } from '@ant-design/icons';
-import { Button, Col, Empty, Pagination, Row, Space, Spin } from 'antd';
+import { AiOutlineShoppingCart } from '@react-icons/all-files/ai/AiOutlineShoppingCart';
+import { Badge, Button, Col, Empty, Modal, Pagination, Row, Space, Spin } from 'antd';
 import React, { ReactNode, useEffect, useRef, useState } from 'react';
-import { ExistTypeMeta } from '../../core/ElementMeta';
-import { useCenter, useStagings } from '../../core/hooks/useChange';
-import { Context } from '../../render/PageContext';
-import { defineElement } from '../defineElement';
-import ShoppingBadge from './design/ShoppingBadge';
+import { ExistTypeMeta } from '../../../core/ElementMeta';
+import { useCenter, useStagings } from '../../../core/hooks/useChange';
+import { Context } from '../../../render/PageContext';
+import { defineElement } from '../../defineElement';
+import { Form } from '../../widgets/FormSearch';
 import cls from './index.module.less';
-import { Form } from '../search/FormSearch';
 import Transaction from '/img/transaction.png';
+import GenerateThingTable from '@/executor/tools/generate/thingTable';
+import CustomStore from 'devextreme/data/custom_store';
 
 export interface Filter {
   id: string;
@@ -73,6 +75,121 @@ const DesignEntities: React.FC<IProps> = (props) => {
         />
       </div>
     </Space>
+  );
+};
+
+const ShoppingBadge: React.FC<{}> = () => {
+  const stagings = useStagings(orgCtrl.box);
+  return (
+    <div className={cls.shoppingBtn}>
+      <Badge count={stagings.length}>
+        <Button
+          size="large"
+          type="primary"
+          shape="circle"
+          onClick={() => command.emitter('stagings', 'open')}
+          icon={<AiOutlineShoppingCart />}
+        />
+      </Badge>
+    </div>
+  );
+};
+
+const ShoppingList: React.FC<IProps> = ({}) => {
+  const [open, setOpen] = useState(false);
+  const [selected, setSelected] = useState<any[]>([]);
+  const stagings = useStagings(orgCtrl.box);
+  useEffect(() => {
+    const id = command.subscribe((type, cmd) => {
+      if (type == 'stagings' && cmd == 'open') {
+        setOpen(true);
+      }
+    });
+    return () => {
+      command.unsubscribe(id);
+    };
+  }, []);
+  return (
+    <Modal
+      open={open}
+      width={'80vw'}
+      cancelButtonProps={{ hidden: true }}
+      okText={'关闭'}
+      onCancel={() => setOpen(false)}
+      onOk={() => setOpen(false)}>
+      <GenerateThingTable
+        fields={[]}
+        height={'70vh'}
+        columnChooser={{ enabled: true }}
+        selection={{
+          mode: 'multiple',
+          allowSelectAll: true,
+          selectAllMode: 'page',
+          showCheckBoxesMode: 'always',
+        }}
+        selectedRowKeys={selected}
+        onSelectedRowKeysChange={setSelected}
+        toolbar={{
+          visible: true,
+          items: [
+            {
+              name: 'add',
+              location: 'after',
+              widget: 'dxButton',
+              options: {
+                text: '发起申领',
+                icon: 'add',
+                onClick: async () => {},
+              },
+            },
+            {
+              name: 'delete',
+              location: 'after',
+              widget: 'dxButton',
+              options: {
+                text: '删除物品',
+                icon: 'add',
+                onClick: () => {
+                  orgCtrl.box.removeStaging(
+                    stagings.filter((item) => selected.includes(item.dataId)),
+                  );
+                },
+              },
+            },
+            {
+              name: 'columnChooserButton',
+              location: 'after',
+            },
+            {
+              name: 'searchPanel',
+              location: 'after',
+            },
+          ],
+        }}
+        dataSource={
+          new CustomStore({
+            key: 'id',
+            async load(options) {
+              const skip = options.skip ?? 0;
+              const take = options.take ?? 20;
+              return {
+                totalCount: stagings.length,
+                data: stagings.slice(skip, skip + take).map((item) => item.data),
+              };
+            },
+          })
+        }
+        hideColumns={[
+          'createTime',
+          'createUser',
+          'createUser',
+          'updateTime',
+          'chainId',
+          'code',
+        ]}
+        remoteOperations={true}
+      />
+    </Modal>
   );
 };
 
@@ -196,7 +313,7 @@ const ViewEntities: React.FC<IProps> = (props) => {
             }}
           />
         </div>
-        <ShoppingBadge box={orgCtrl.box} />
+        <ShoppingBadge />
         {center}
       </Space>
     </Spin>

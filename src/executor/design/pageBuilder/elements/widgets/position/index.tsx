@@ -3,9 +3,9 @@ import { schema } from '@/ts/base';
 import { shareOpenLink } from '@/utils/tools';
 import { Image, Tooltip } from 'antd';
 import React, { useState } from 'react';
-import { ExistTypeMeta } from '../../core/ElementMeta';
-import { Context } from '../../render/PageContext';
-import { defineElement } from '../defineElement';
+import { ExistTypeMeta } from '../../../core/ElementMeta';
+import { Context } from '../../../render/PageContext';
+import { defineElement } from '../../defineElement';
 import cls from './index.module.less';
 import Asset from '/img/innovate.png';
 

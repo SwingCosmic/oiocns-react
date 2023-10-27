@@ -1,6 +1,6 @@
 import FullScreenModal from '@/components/Common/fullScreen';
-import { ViewerHost } from '@/executor/design/pageBuilder/view/ViewerHost';
-import ViewerManager from '@/executor/design/pageBuilder/view/ViewerManager';
+import { ViewerHost } from '@/executor/open/page/view/ViewerHost';
+import ViewerManager from '@/executor/open/page/view/ViewerManager';
 import { IPageTemplate } from '@/ts/core/thing/standard/page';
 import React from 'react';
 
