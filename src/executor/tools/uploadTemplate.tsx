@@ -119,7 +119,7 @@ const generate = async (dir: IDirectory, name: string, excel: IExcel) => {
   };
   dir.taskList.push(task);
   const counting = (dir: IDirectory) => {
-    let count = dir.standard.forms.length + dir.standard.specieses.length;
+    let count = 1;
     for (let child of dir.children) {
       count += counting(child);
     }

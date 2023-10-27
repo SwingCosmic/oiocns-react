@@ -154,7 +154,6 @@ export class DirectoryHandler extends i.SheetHandler<DirectorySheet> {
           }
         }
         dirData.species[species.code] = speciesData;
-        onItemCompleted(50);
       }
       for (const property of dir.standard.propertys) {
         if (property.metadata.code) {
@@ -178,8 +177,8 @@ export class DirectoryHandler extends i.SheetHandler<DirectorySheet> {
           };
         }
         dirData.forms[form.code] = formData;
-        onItemCompleted(50);
       }
+      onItemCompleted(50);
       children.push(dirData);
       children.push(...(await this.dirTree(dir, onItemCompleted)));
     }
