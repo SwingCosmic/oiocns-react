@@ -7,16 +7,22 @@ import { IExistTypeProps } from '../IExistTypeEditor';
 
 const SlotProp: React.FC<IExistTypeProps<PageElement>> = ({ value, prop }) => {
   const ctx = useContext(PageContext) as DesignContext;
-  const [visible, setVisible] = useState<boolean>(false);
+  const [center, setCenter] = useState(<></>);
   return (
     <>
-      <Input value={value?.name} onClick={() => setVisible(true)} />
-      <AddElementModal
-        visible={visible}
-        parentId={ctx.view.currentElement?.id!}
-        onVisibleChange={(v) => setVisible(v)}
-        prop={prop}
+      <Input
+        value={value?.name}
+        onClick={() => {
+          setCenter(
+            <AddElementModal
+              parentId={ctx.view.currentElement?.id!}
+              prop={prop}
+              onFinished={() => setCenter(<></>)}
+            />,
+          );
+        }}
       />
+      {center}
     </>
   );
 };
