@@ -32,13 +32,15 @@ interface TextProps {
 
 const Text: React.FC<TextProps> = (props) => {
   return (
-    <div
-      className={cls.textContent}
-      onClick={props.onClick}
-      onMouseEnter={props.onMouseEnter}
-      onMouseLeave={props.onMouseLeave}>
-      <div className={cls.textOverflow}>{props.value}</div>
-    </div>
+    <Tooltip title={props.value}>
+      <div
+        className={cls.textContent}
+        onClick={props.onClick}
+        onMouseEnter={props.onMouseEnter}
+        onMouseLeave={props.onMouseLeave}>
+        <div className={cls.textOverflow}>{props.value}</div>
+      </div>
+    </Tooltip>
   );
 };
 
@@ -50,12 +52,6 @@ const FieldDesign: React.FC<FieldProps> = (props) => {
         <div className={cls.img} onClick={props.onClick}>
           <Text value={value} />
         </div>
-      );
-    case '标题':
-      return (
-        <Tooltip title={value}>
-          <Text value={value} onClick={props.onClick} />
-        </Tooltip>
       );
     default:
       return <Text value={value} onClick={props.onClick} />;
@@ -108,11 +104,7 @@ const View: React.FC<IProps> = (props) => {
     }
     case '标题': {
       let value = props.data?.['T' + props.property?.id ?? ''] ?? '';
-      return (
-        <Tooltip title={value} showArrow>
-          <Text value={value} />
-        </Tooltip>
-      );
+      return <Text value={value} />;
     }
     default: {
       let value = props.property?.name ?? props.label;
@@ -124,7 +116,7 @@ const View: React.FC<IProps> = (props) => {
             suffix = props.data[props.data['T' + props.property.id]] ?? '';
             break;
           default:
-            suffix = props.data['T' + props.property.id] ?? ''
+            suffix = props.data['T' + props.property.id] ?? '';
             break;
         }
         value = props.property.name + ':' + suffix;
