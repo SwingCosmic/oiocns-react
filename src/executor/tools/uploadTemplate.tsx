@@ -165,14 +165,14 @@ const showErrors = (errors: Error[]) => {
   Modal.info({
     icon: <></>,
     okText: '关闭',
-    width: 860,
+    width: 1000,
     title: '错误信息',
     maskClosable: true,
     content: (
       <ProTable
         dataSource={errors}
         cardProps={{ bodyStyle: { padding: 0 } }}
-        scroll={{ y: 300 }}
+        scroll={{ y: 500 }}
         options={false}
         search={false}
         columns={[
