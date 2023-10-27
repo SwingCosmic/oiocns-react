@@ -35,7 +35,6 @@ interface IProps {
   work: string | undefined;
   size: number;
   span: number;
-  total: number;
   forms: Form[];
   props: any;
   content?: (params: { data: schema.XThing }) => ReactNode | ReactNode[];
@@ -66,7 +65,7 @@ const DesignEntities: React.FC<IProps> = (props) => {
         <Pagination
           current={page}
           pageSize={size}
-          total={props.total}
+          total={size * 5}
           onChange={(page, size) => {
             props.props.size = size;
             setPage(page);
@@ -359,11 +358,6 @@ export default defineElement({
         type: 'number',
         label: '行卡片占比',
         default: 4,
-      },
-      total: {
-        type: 'number',
-        label: '默认总个数',
-        default: 40,
       },
       forms: {
         type: 'array',
