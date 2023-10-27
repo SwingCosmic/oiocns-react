@@ -49,7 +49,7 @@ const Coder: React.FC<{}> = () => {
 export function DesignerHost({ ctx }: DesignerProps) {
   const [active, setActive] = useState<string>();
   const [status, setStatus] = useState(false);
-  const [open, setOpen] = useState(false);
+  const [center, setCenter] = useState(<></>);
   ctx.view.subscribe((type, cmd) => {
     if (type == 'elements' && cmd == 'change') {
       setStatus(!status);
@@ -109,7 +109,18 @@ export function DesignerHost({ ctx }: DesignerProps) {
                   ctx.view.update().then(() => message.success('保存成功！'));
                   break;
                 case 'preview':
-                  setOpen(true);
+                  setCenter(
+                    <FullScreenModal
+                      open
+                      centered
+                      destroyOnClose
+                      width={'80vw'}
+                      bodyHeight={'80vh'}
+                      title={'页面预览'}
+                      onCancel={() => setCenter(<></>)}>
+                      <ViewerHost ctx={{ view: new ViewerManager(ctx.view.pageInfo) }} />
+                    </FullScreenModal>,
+                  );
                   break;
                 default:
                   setActive(info.key);
@@ -126,16 +137,7 @@ export function DesignerHost({ ctx }: DesignerProps) {
           <RootRender element={ctx.view.rootElement} />
         </div>
       </div>
-      <FullScreenModal
-        open={open}
-        centered
-        destroyOnClose
-        width={'80vw'}
-        bodyHeight={'80vh'}
-        title={'页面预览'}
-        onCancel={() => setOpen(false)}>
-        <ViewerHost ctx={{ view: new ViewerManager(ctx.view.pageInfo) }} />
-      </FullScreenModal>
+      {center}
     </PageContext.Provider>
   );
 }
