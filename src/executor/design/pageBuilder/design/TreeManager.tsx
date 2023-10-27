@@ -73,9 +73,9 @@ const buildTree = (ctx: DesignContext) => {
 
 const TreeManager: React.FC<{}> = () => {
   const ctx = useContext<DesignContext>(PageContext as any);
-  const [visible, setVisible] = useState<boolean>(false);
   const [tree, setTree] = useState(buildTree(ctx));
   const [current, setCurrent] = useState(ctx.view.currentElement);
+  const [center, setCenter] = useState(<></>);
   ctx.view.subscribe((type, cmd) => {
     if (type == 'elements' && cmd == 'change') {
       setTree(buildTree(ctx));
@@ -84,6 +84,15 @@ const TreeManager: React.FC<{}> = () => {
     }
   });
   const prop = useRef();
+  const open = () => {
+    setCenter(
+      <AddElementModal
+        parentId={ctx.view.currentElement?.id!}
+        prop={prop.current}
+        onFinished={() => setCenter(<></>)}
+      />,
+    );
+  };
   return (
     <div style={{ margin: '0 8px' }}>
       <CustomTree
@@ -96,7 +105,7 @@ const TreeManager: React.FC<{}> = () => {
           if (['ArraySlot', 'Slot'].includes(node.typeName) && node.item.props.seize) {
             ctx.view.currentElement = node.parent;
             prop.current = node.prop;
-            setVisible(true);
+            open();
             return;
           }
           ctx.view.currentElement = node.item;
@@ -118,7 +127,10 @@ const TreeManager: React.FC<{}> = () => {
                     shape="circle"
                     size="small"
                     icon={<PlusOutlined />}
-                    onClick={() => setVisible(true)}
+                    onClick={() => {
+                      ctx.view.currentElement = node.item;
+                      open();
+                    }}
                   />
                 )}
                 {ctx.view.rootElement != node.item && !node.item.props.seize && (
@@ -152,12 +164,7 @@ const TreeManager: React.FC<{}> = () => {
           }
         }}
       />
-      <AddElementModal
-        visible={visible}
-        parentId={current?.id!}
-        onVisibleChange={(v) => setVisible(v)}
-        prop={prop.current}
-      />
+      {center}
     </div>
   );
 };
