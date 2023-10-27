@@ -11,6 +11,7 @@ import { defineElement } from '../defineElement';
 import ShoppingBadge from './design/ShoppingBadge';
 import cls from './index.module.less';
 import { Form } from '../search/FormSearch';
+import Transaction from '/img/transaction.png';
 
 export interface Filter {
   id: string;
@@ -224,7 +225,7 @@ export default defineElement({
       </div>
     );
   },
-  displayName: 'Welfare',
+  displayName: 'MallTemplate',
   meta: {
     props: {
       work: {
@@ -310,7 +311,9 @@ export default defineElement({
         default: 'FormSearch',
       },
     },
-    type: 'Element',
-    label: '商城',
+    type: 'Template',
+    label: '商城模板',
+    photo: Transaction,
+    description: '用于展示交易商品',
   },
 });

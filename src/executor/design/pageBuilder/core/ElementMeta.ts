@@ -5,12 +5,13 @@
 export type PrimitiveType = "string" | "number" | "boolean" | "date";
 export type ComplexType = "enum" | "array" | "object" | "type";
 export type DataType = PrimitiveType | ComplexType;
-export type ElementType = "Element" | "Container" | 'Slot' | 'ArraySlot';
+export type ElementType = "Element" | "Container" | 'Slot' | 'ArraySlot' | 'Template';
 export enum ElementTypeName {
   Element = '元素',
   Container = '容器',
   Slot = '插槽',
   ArraySlot = '数组插槽',
+  Template = '模板'
 }
 
 export interface TypeMetaBase<T extends DataType> {
@@ -99,6 +100,10 @@ export interface ElementMeta {
   type: ElementType;
   /** 元素插槽 */
   slots?: Dictionary<SlotMeta>;
+  /** 模板图片 */
+  photo?: string;
+  /** 组件描述 */
+  description?: string;
 }
 
 /**

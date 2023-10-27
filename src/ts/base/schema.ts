@@ -641,4 +641,6 @@ export type XStaging = {
 export interface XPageTemplate extends XStandard {
   // 是否发布
   public: boolean;
+  // 模板类型
+  kind?: string;
 }

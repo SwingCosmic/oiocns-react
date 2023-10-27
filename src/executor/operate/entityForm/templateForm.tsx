@@ -1,11 +1,15 @@
+import FullScreenModal from '@/components/Common/fullScreen';
 import SchemaForm from '@/components/SchemaForm';
+import staticContext from '@/executor/design/pageBuilder';
+import ElementFactory from '@/executor/design/pageBuilder/core/ElementFactory';
 import ElementTreeManager from '@/executor/design/pageBuilder/core/ElementTreeManager';
+import UploadItem from '@/executor/tools/uploadItem';
 import { schema } from '@/ts/base';
 import { IDirectory } from '@/ts/core';
-import { ProFormColumnsType } from '@ant-design/pro-components';
-import React from 'react';
 import { IPageTemplate } from '@/ts/core/thing/standard/page';
-import UploadItem from '@/executor/tools/uploadItem';
+import { ProFormColumnsType } from '@ant-design/pro-components';
+import { Card, Col, Input, Radio, Row } from 'antd';
+import React, { useState } from 'react';
 
 interface IProps {
   formType: string;
@@ -13,7 +17,59 @@ interface IProps {
   finished: () => void;
 }
 
+interface ITemplate {
+  value?: string;
+  onChange: (value?: string) => void;
+}
+
+const Template: React.FC<ITemplate> = ({ value, onChange }) => {
+  return (
+    <FullScreenModal
+      open
+      fullScreen
+      title={'模板选择'}
+      width={1000}
+      onCancel={() => onChange(value)}>
+      <Radio.Group
+        style={{ width: '100%', height: '100%' }}
+        value={value}
+        onChange={(e) => onChange(e.target.value)}>
+        <Row style={{ padding: 10 }} justify={'center'} gutter={[20, 20]}>
+          {Object.entries(staticContext.components)
+            .map((item) => item[1])
+            .filter((item) => item.meta.type == 'Template')
+            .map((item, index) => {
+              return (
+                <Col key={index} onClick={() => onChange(item.displayName)}>
+                  <Card
+                    hoverable
+                    style={{ width: 240 }}
+                    cover={<img src={item.meta.photo} />}>
+                    <Card.Meta
+                      title={<Radio value={item.displayName}>{item.meta.label}</Radio>}
+                      description={item.meta.description}
+                    />
+                  </Card>
+                </Col>
+              );
+            })}
+        </Row>
+      </Radio.Group>
+    </FullScreenModal>
+  );
+};
+
+const getComponentLabel = (kind: string) => {
+  for (const item of Object.entries(staticContext.components)) {
+    if (item[0] == kind) {
+      return item[1].meta.label;
+    }
+  }
+  return '';
+};
+
 const PageTemplateForm: React.FC<IProps> = ({ formType, current, finished }) => {
+  const [center, setCenter] = useState(<></>);
   let initialValue: any = {};
   switch (formType) {
     case 'updatePageTemplate':
@@ -57,8 +113,34 @@ const PageTemplateForm: React.FC<IProps> = ({ formType, current, finished }) => 
       dataIndex: 'public',
       valueType: 'switch',
       initialValue: initialValue.public ?? true,
+      colProps: { span: 12 },
       formItemProps: {
         rules: [{ required: true, message: '编码为必填项' }],
+      },
+    },
+    {
+      title: '模板',
+      dataIndex: 'kind',
+      colProps: { span: 12 },
+      renderFormItem: (_, __, form) => {
+        const kind = form.getFieldValue('kind');
+        return (
+          <Input
+            allowClear
+            value={getComponentLabel(kind)}
+            onClick={() => {
+              setCenter(
+                <Template
+                  value={kind}
+                  onChange={(value) => {
+                    form.setFieldValue('kind', value);
+                    setCenter(<></>);
+                  }}
+                />,
+              );
+            }}
+          />
+        );
       },
     },
     {
@@ -72,38 +154,49 @@ const PageTemplateForm: React.FC<IProps> = ({ formType, current, finished }) => 
     },
   ];
   return (
-    <SchemaForm<schema.XPageTemplate>
-      open
-      title="页面模板定义"
-      width={640}
-      columns={columns}
-      initialValues={initialValue}
-      rowProps={{
-        gutter: [24, 0],
-      }}
-      layoutType="ModalForm"
-      onOpenChange={(open: boolean) => {
-        if (!open) {
-          finished();
-        }
-      }}
-      onFinish={async (values) => {
-        switch (formType) {
-          case 'newPageTemplate': {
-            values.typeName = '页面模板';
-            values.rootElement = ElementTreeManager.createRoot();
-            await (current as IDirectory).standard.createTemplate(values);
+    <div>
+      <SchemaForm<schema.XPageTemplate>
+        open
+        title="页面模板定义"
+        width={640}
+        columns={columns}
+        initialValues={initialValue}
+        rowProps={{
+          gutter: [24, 0],
+        }}
+        layoutType="ModalForm"
+        onOpenChange={(open: boolean) => {
+          if (!open) {
             finished();
-            break;
           }
-          case 'updatePageTemplate': {
-            (current as IPageTemplate).update({ ...initialValue, ...values });
-            finished();
-            break;
+        }}
+        onFinish={async (values) => {
+          switch (formType) {
+            case 'newPageTemplate': {
+              values.typeName = '页面模板';
+              values.rootElement = ElementTreeManager.createRoot();
+              if (values.kind) {
+                values.rootElement.children.push(
+                  new ElementFactory(staticContext.metas).create(
+                    values.kind,
+                    getComponentLabel(values.kind),
+                  ),
+                );
+              }
+              await (current as IDirectory).standard.createTemplate(values);
+              finished();
+              break;
+            }
+            case 'updatePageTemplate': {
+              (current as IPageTemplate).update({ ...initialValue, ...values });
+              finished();
+              break;
+            }
           }
-        }
-      }}
-    />
+        }}
+      />
+      {center}
+    </div>
   );
 };
 
