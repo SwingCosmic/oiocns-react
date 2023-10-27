@@ -71,7 +71,7 @@ const Design: React.FC<IProps> = (props) => {
                     for (const file of files) {
                       const property = file as IProperty;
                       props.species.push({
-                        code: 'T' + property.id,
+                        code: property.id,
                         name: property.code + ' ' + property.name,
                         speciesId: property.metadata.speciesId,
                       });
@@ -165,7 +165,7 @@ const View: React.FC<IProps> = (props) => {
             props.ctx.view.emitter(
               'species',
               'checked',
-              parentMenu.item?.code ? [parentMenu.item.code] : [],
+              parentMenu.item?.code ? ['T' + parentMenu.item.code] : [],
             );
           }}>
           <span style={{ fontSize: 20, margin: '0 6px' }}>{parentMenu.icon}</span>
@@ -178,7 +178,7 @@ const View: React.FC<IProps> = (props) => {
           onSelect={(node) => {
             setSelectMenu(node);
             if (node.item.code) {
-              props.ctx.view.emitter('species', 'checked', [node.item.code]);
+              props.ctx.view.emitter('species', 'checked', ["T" + node.item.code]);
             }
           }}
         />
