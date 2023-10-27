@@ -432,5 +432,6 @@ export default defineElement({
     label: '商城模板',
     photo: Transaction,
     description: '用于展示交易商品',
+    layoutType: 'full',
   },
 });

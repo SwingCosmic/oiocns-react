@@ -104,6 +104,8 @@ export interface ElementMeta {
   photo?: string;
   /** 组件描述 */
   description?: string;
+  /** 根排布 */
+  layoutType?: string;
 }
 
 /**

@@ -59,13 +59,13 @@ const Template: React.FC<ITemplate> = ({ value, onChange }) => {
   );
 };
 
-const getComponentLabel = (kind: string) => {
+const getMeta = (kind: string) => {
   for (const item of Object.entries(staticContext.components)) {
     if (item[0] == kind) {
-      return item[1].meta.label;
+      return item[1].meta;
     }
   }
-  return '';
+  return;
 };
 
 const PageTemplateForm: React.FC<IProps> = ({ formType, current, finished }) => {
@@ -127,7 +127,7 @@ const PageTemplateForm: React.FC<IProps> = ({ formType, current, finished }) => 
         return (
           <Input
             allowClear
-            value={getComponentLabel(kind)}
+            value={getMeta(kind)?.label}
             onClick={() => {
               setCenter(
                 <Template
@@ -176,12 +176,16 @@ const PageTemplateForm: React.FC<IProps> = ({ formType, current, finished }) => 
               values.typeName = '页面模板';
               values.rootElement = ElementTreeManager.createRoot();
               if (values.kind) {
-                values.rootElement.children.push(
-                  new ElementFactory(staticContext.metas).create(
-                    values.kind,
-                    getComponentLabel(values.kind),
-                  ),
-                );
+                const meta = getMeta(values.kind);
+                if (meta) {
+                  values.rootElement.props.layoutType = meta.layoutType;
+                  values.rootElement.children.push(
+                    new ElementFactory(staticContext.metas).create(
+                      values.kind,
+                      meta.label,
+                    ),
+                  );
+                }
               }
               await (current as IDirectory).standard.createTemplate(values);
               finished();
