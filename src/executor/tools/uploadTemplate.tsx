@@ -1,4 +1,4 @@
-import { command, model } from '@/ts/base';
+import { command, model, schema } from '@/ts/base';
 import { IDirectory } from '@/ts/core';
 import { formatDate } from '@/utils';
 import { Error, IExcel, Excel, getSheets, generateXlsx, readXlsx } from '@/utils/excel';
@@ -148,10 +148,9 @@ const generate = async (dir: IDirectory, name: string, excel: IExcel) => {
         },
         '生成数据模板',
       );
-      const dirSheet = excel.handlers.find((item) => item.sheet.name == '目录');
-      if (dirSheet) {
-        dir.notify('refresh', dirSheet.sheet.data);
-      }
+      dir.notify('refresh', [
+        { ...dir.metadata, directoryId: dir.id.replaceAll('_', '') } as schema.XEntity,
+      ]);
     },
     onReadError: (errors) => {
       showErrors(errors);
