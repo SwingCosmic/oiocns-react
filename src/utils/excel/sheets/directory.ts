@@ -132,6 +132,7 @@ export class DirectoryHandler extends i.SheetHandler<DirectorySheet> {
   ): Promise<t.DirData[]> {
     const children: t.DirData[] = [];
     for (const dir of parent.children) {
+      await dir.standard.loadStandardFiles();
       const dirData: t.DirData = {
         meta: { ...dir.metadata, directoryCode: isRoot ? undefined : parent.code },
         species: {},

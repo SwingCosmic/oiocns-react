@@ -147,7 +147,9 @@ export class StandardFiles {
       return res;
     }
   }
-  async createTemplate(data: schema.XPageTemplate): Promise<schema.XPageTemplate | undefined> {
+  async createTemplate(
+    data: schema.XPageTemplate,
+  ): Promise<schema.XPageTemplate | undefined> {
     const res = await this.resource.templateColl.insert({
       ...data,
       directoryId: this.id,
