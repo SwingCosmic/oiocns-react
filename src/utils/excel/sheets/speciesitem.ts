@@ -65,6 +65,24 @@ export class DictItemHandler extends i.SheetHandler<DictItemSheet> {
       ]);
       allErrors.push(...errors);
     });
+    const groups = new t.List(
+      this.sheet.data.map((item, index) => {
+        return {
+          index: index,
+          data: item,
+        };
+      }),
+    ).GroupBy((item) => item.data.speciesCode);
+    for (const group of Object.entries(groups)) {
+      const items = new t.List(group[1]).GroupBy((item) => item.data.info);
+      for (const item of Object.entries(items)) {
+        const errors = this.assert(
+          item[1].map((i) => i.index),
+          [{ res: item[1].length > 1, error: '同一字典中附加信息不能重复！' }],
+        );
+        allErrors.push(...errors);
+      }
+    }
     return allErrors;
   }
   /**
