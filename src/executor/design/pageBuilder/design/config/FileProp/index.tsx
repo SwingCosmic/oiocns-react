@@ -1,124 +1,73 @@
-import OpenFileDialog from '@/components/OpenFileDialog';
+import OpenFileDialog, { IFileDialogProps } from '@/components/OpenFileDialog';
 import { schema } from '@/ts/base';
-import orgCtrl from '@/ts/controller';
-import { Input } from 'antd';
-import React, { useContext, useEffect, useState } from 'react';
+import { Tooltip } from 'antd';
+import React, { ReactNode, useContext, useState } from 'react';
 import { PageContext } from '../../../render/PageContext';
 import { IExistTypeProps } from '../IExistTypeEditor';
-import { IFile } from '@/ts/core';
+import cls from './index.module.less';
 
-interface BaseProps {
-  showName?: string;
-  onSelected: (file: IFile[]) => void;
-  accepts: string[];
+interface IProps extends Omit<IFileDialogProps, 'rootKey' | 'onCancel'> {
+  children: ReactNode;
 }
 
-function Base({ accepts, onSelected, showName }: BaseProps) {
+export const File: React.FC<IProps> = (props) => {
   const ctx = useContext(PageContext);
   const [center, setCenter] = useState(<></>);
-  const open = () => {
-    setCenter(
-      <OpenFileDialog
-        accepts={accepts}
-        rootKey={ctx.view.pageInfo.directory.spaceKey}
-        multiple={false}
-        onOk={(files) => {
-          if (files.length > 0) {
-            onSelected(files);
-          }
-          setCenter(<></>);
-        }}
-        onCancel={() => setCenter(<></>)}
-      />,
-    );
-  };
   return (
     <>
-      <Input value={showName} onClick={open} />
+      <div
+        onClick={() => {
+          setCenter(
+            <OpenFileDialog
+              {...props}
+              rootKey={ctx.view.pageInfo.directory.spaceKey}
+              onOk={(files) => {
+                if (files.length > 0) {
+                  props.onOk(files);
+                }
+                setCenter(<></>);
+              }}
+              onCancel={() => setCenter(<></>)}
+            />,
+          );
+        }}>
+        {props.children}
+      </div>
       {center}
     </>
   );
+};
+
+export interface TextProps {
+  value?: string;
+  width?: string | number;
+  height?: string | number;
 }
 
-interface IProps extends IExistTypeProps<string> {
-  accepts: string[];
-}
-
-const Entity: React.FC<IProps> = ({ accepts, value, onChange }) => {
-  const ctx = useContext(PageContext);
-  const [entity, setEntity] = useState<schema.XEntity>();
-  const loadEntity = async () => {
-    if (!value) return;
-    const collLoad = async (coll: 'formColl' | 'propertyColl') => {
-      const entities = await ctx.view.pageInfo.directory.resource[coll].find([value]);
-      if (entities.length > 0) {
-        setEntity(entities[0]);
-      }
-      return entities.length > 0;
-    };
-    for (const accept of accepts) {
-      switch (accept) {
-        case '实体配置':
-        case '事项配置':
-          if (await collLoad('formColl')) {
-            return;
-          }
-          break;
-        case '属性配置':
-          if (await collLoad('propertyColl')) {
-            return;
-          }
-          break;
-        case '办事':
-          {
-            for (const app of await orgCtrl.loadApplications()) {
-              for (const work of await app.loadWorks()) {
-                if (work.id == value) {
-                  setEntity(work.metadata);
-                }
-              }
-            }
-          }
-          break;
-      }
-    }
-  };
-  useEffect(() => {
-    loadEntity();
-  }, []);
+export const TipDesignText: React.FC<TextProps> = (props) => {
   return (
-    <Base
-      showName={entity?.name}
-      onSelected={(file) => {
-        onChange(file[0].id);
-      }}
-      accepts={accepts}
-    />
+    <Tooltip title={props.value}>
+      <div style={{ height: props.height }} className={cls.designText}>
+        <div className={cls.textOverflow}>{props.value}</div>
+      </div>
+    </Tooltip>
   );
 };
 
-export const FormFile: React.FC<IExistTypeProps<string>> = (props) => {
-  return <Entity {...props} accepts={['实体配置', '事项配置']} />;
-};
-
-export const WorkFile: React.FC<IExistTypeProps<string>> = (props) => {
-  return <Entity {...props} accepts={['办事']} />;
-};
-
-export const PicFile: React.FC<IExistTypeProps<schema.XEntity>> = (props) => {
+export const TipText: React.FC<{ value?: string }> = (props) => {
   return (
-    <Base
-      showName={props.value?.name}
-      onSelected={(file: IFile[]) => {
-        props.onChange(file[0].metadata);
-      }}
-      accepts={['图片']}
-    />
+    <Tooltip title={props.value}>
+      <div className={cls.viewText}>
+        <div className={cls.textOverflow}>{props.value}</div>
+      </div>
+    </Tooltip>
   );
 };
 
-export const PropFile: React.FC<IExistTypeProps<string>> = (props) => {
-  return <Entity {...props} accepts={['属性']} />;
+export const Picture: React.FC<IExistTypeProps<schema.XEntity>> = (props) => {
+  return (
+    <File onOk={(f) => props.onChange(f[0].metadata)} accepts={['图片']}>
+      <TipDesignText value={props.value?.name} />
+    </File>
+  );
 };
-
-export default Entity;

@@ -1,5 +1,8 @@
+import CustomMenu from '@/components/CustomMenu';
 import CustomTree from '@/components/CustomTree';
-import OpenFileDialog from '@/components/OpenFileDialog';
+import useMenuUpdate from '@/hooks/useMenuUpdate';
+import { schema } from '@/ts/base';
+import { Controller } from '@/ts/controller';
 import { IProperty } from '@/ts/core';
 import { DeleteOutlined } from '@ant-design/icons';
 import { Button, Space, Spin } from 'antd';
@@ -11,12 +14,9 @@ import {
   SpeciesProp,
   loadItems,
 } from '../../core/hooks/useSpecies';
+import { File } from '../../design/config/FileProp';
 import { Context } from '../../render/PageContext';
 import { defineElement } from '../defineElement';
-import CustomMenu from '@/components/CustomMenu';
-import useMenuUpdate from '@/hooks/useMenuUpdate';
-import { Controller } from '@/ts/controller';
-import { schema } from '@/ts/base';
 
 interface IProps {
   ctx: Context;
@@ -26,7 +26,6 @@ interface IProps {
 const Design: React.FC<IProps> = (props) => {
   const [loading, setLoading] = useState(false);
   const [species, setSpecies] = useState<SpeciesEntity[]>([]);
-  const [center, setCenter] = useState(<></>);
   const loadSpecies = async () => {
     setLoading(true);
     setSpecies(await loadItems(props.species, props.ctx));
@@ -56,38 +55,25 @@ const Design: React.FC<IProps> = (props) => {
             );
           }}
         />
-        <Button
-          type="dashed"
-          size="small"
-          onClick={() => {
-            setCenter(
-              <OpenFileDialog
-                accepts={['分类型']}
-                rootKey={props.ctx.view.pageInfo.directory.spaceKey}
-                excludeIds={props.species.map((item) => item.code)}
-                multiple={true}
-                onOk={async (files) => {
-                  if (files.length > 0) {
-                    for (const file of files) {
-                      const property = file as IProperty;
-                      props.species.push({
-                        code: property.id,
-                        name: property.code + ' ' + property.name,
-                        speciesId: property.metadata.speciesId,
-                      });
-                    }
-                    loadSpecies();
-                  }
-                  setCenter(<></>);
-                  return;
-                }}
-                onCancel={() => setCenter(<></>)}
-              />,
-            );
+        <File
+          accepts={['分类型']}
+          multiple={true}
+          excludeIds={props.species.map((item) => item.code)}
+          onOk={(files) => {
+            files.forEach((file) => {
+              const property = file as IProperty;
+              props.species.push({
+                code: property.id,
+                name: property.code + ' ' + property.name,
+                speciesId: property.metadata.speciesId,
+              });
+            });
+            loadSpecies();
           }}>
-          添加分类型
-        </Button>
-        {center}
+          <Button type="dashed" size="small">
+            添加分类型
+          </Button>
+        </File>
       </Space>
     </Spin>
   );
@@ -139,6 +125,7 @@ const View: React.FC<IProps> = (props) => {
     setLoading(false);
     ctrl.changCallback();
   };
+  // eslint-disable-next-line no-unused-vars
   const [_, rootMenu, selectMenu, setSelectMenu] = useMenuUpdate(() => {
     return {
       key: 'speciesTree',
@@ -178,7 +165,7 @@ const View: React.FC<IProps> = (props) => {
           onSelect={(node) => {
             setSelectMenu(node);
             if (node.item.code) {
-              props.ctx.view.emitter('species', 'checked', ["T" + node.item.code]);
+              props.ctx.view.emitter('species', 'checked', ['T' + node.item.code]);
             }
           }}
         />

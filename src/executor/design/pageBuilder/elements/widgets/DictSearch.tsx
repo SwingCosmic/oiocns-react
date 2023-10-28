@@ -1,12 +1,12 @@
-import OpenFileDialog from '@/components/OpenFileDialog';
 import { schema } from '@/ts/base';
-import { IFile, IProperty } from '@/ts/core';
+import { IProperty } from '@/ts/core';
 import { DeleteOutlined } from '@ant-design/icons';
 import { EditableProTable, ProFormInstance } from '@ant-design/pro-components';
 import { Button, Modal, Row, Space, Spin, Tag } from 'antd';
 import React, { ReactNode, useEffect, useRef, useState } from 'react';
 import { ExistTypeMeta } from '../../core/ElementMeta';
 import { SpeciesEntity, SpeciesProp, loadItems } from '../../core/hooks/useSpecies';
+import { File } from '../../design/config/FileProp';
 import { Context } from '../../render/PageContext';
 import { defineElement } from '../defineElement';
 import { Filter, Range } from '../templates/transaction';
@@ -38,7 +38,6 @@ const Design: React.FC<IProps> = (props) => {
   const [current, setCurrent] = useState<Filter>();
   const [defineOpen, setDefineOpen] = useState(false);
   const [filter, setFilter] = useState(props.filter);
-  const [center, setCenter] = useState(<></>);
   const loadSpecies = async () => {
     setLoading(true);
     setSpecies(await loadItems(loadDicts(props.filter), props.ctx));
@@ -47,28 +46,6 @@ const Design: React.FC<IProps> = (props) => {
   useEffect(() => {
     loadSpecies();
   }, []);
-  const setOpenFile = (
-    accepts: string[],
-    onOk: (files: IFile[]) => void,
-    multiple: boolean = true,
-  ) => {
-    setCenter(
-      <OpenFileDialog
-        accepts={accepts}
-        rootKey={props.ctx.view.pageInfo.directory.spaceKey}
-        excludeIds={props.filter.map((item) => item.id)}
-        multiple={multiple}
-        onOk={async (files) => {
-          if (files.length > 0) {
-            onOk(files);
-          }
-          setCenter(<></>);
-          return;
-        }}
-        onCancel={() => setCenter(<></>)}
-      />,
-    );
-  };
   return (
     <Spin spinning={loading}>
       <Layout>
@@ -95,52 +72,46 @@ const Design: React.FC<IProps> = (props) => {
             })}
           </Space>
           <Space>
-            <Button
-              type="dashed"
-              size="small"
-              onClick={() => {
-                setOpenFile(['选择型'], (files) => {
-                  for (const file of files) {
-                    props.filter.push({
-                      id: file.id,
-                      name: file.name,
-                      valueType: '选择型',
-                      speciesId: (file as IProperty).metadata.speciesId,
-                      rule: [],
-                    });
-                  }
-                  loadSpecies();
-                  setFilter([...props.filter]);
+            <File
+              accepts={['选择型']}
+              multiple={true}
+              onOk={(files) => {
+                files.forEach((file) => {
+                  props.filter.push({
+                    id: file.id,
+                    name: file.name,
+                    valueType: '选择型',
+                    speciesId: (file as IProperty).metadata.speciesId,
+                    rule: [],
+                  });
                 });
+                setFilter([...props.filter]);
+                loadSpecies();
               }}>
-              添加字典型
-            </Button>
-            <Button
-              type="dashed"
-              size="small"
-              onClick={() => {
-                setOpenFile(
-                  ['数值型'],
-                  (files) => {
-                    let current = {
-                      id: files[0].id,
-                      name: files[0].name,
-                      valueType: '数值型',
-                      speciesId: '',
-                      rule: [],
-                    };
-                    setFilter([...props.filter]);
-                    setCurrent(current);
-                    setDefineOpen(true);
-                  },
-                  false,
-                );
+              <Button type="dashed" size="small">
+                添加字典型
+              </Button>
+            </File>
+            <File
+              accepts={['数值型']}
+              onOk={(files) => {
+                let current = {
+                  id: files[0].id,
+                  name: files[0].name,
+                  valueType: '数值型',
+                  speciesId: '',
+                  rule: [],
+                };
+                setFilter([...props.filter]);
+                setCurrent(current);
+                setDefineOpen(true);
               }}>
-              添加数值型
-            </Button>
+              <Button type="dashed" size="small">
+                添加数值型
+              </Button>
+            </File>
           </Space>
         </Space>
-        {center}
         {current && (
           <DefineModal
             open={defineOpen}

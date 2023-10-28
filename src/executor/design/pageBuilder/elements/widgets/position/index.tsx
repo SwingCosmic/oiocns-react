@@ -1,98 +1,68 @@
-import OpenFileDialog from '@/components/OpenFileDialog';
 import { schema } from '@/ts/base';
 import { shareOpenLink } from '@/utils/tools';
-import { Image, Tooltip } from 'antd';
-import React, { useState } from 'react';
+import { Image, Space, Tag } from 'antd';
+import React from 'react';
 import { ExistTypeMeta } from '../../../core/ElementMeta';
+import { File, TipDesignText, TipText } from '../../../design/config/FileProp';
 import { Context } from '../../../render/PageContext';
 import { defineElement } from '../../defineElement';
-import cls from './index.module.less';
 import Asset from '/img/innovate.png';
 
+export type DisplayType = 'Photo' | 'Text' | 'Tags';
+
 interface IProps {
-  id: string;
   ctx: Context;
   props: any;
   label: string;
-  valueType: string;
+  valueType: DisplayType;
   data?: schema.XThing;
   property?: schema.XProperty;
+  properties: schema.XProperty[];
 }
 
-interface FieldProps extends IProps {
-  onClick: () => void;
-}
-
-interface TextProps {
-  value: string;
-  onClick?: any;
-  onMouseEnter?: any;
-  onMouseLeave?: any;
-}
-
-const Text: React.FC<TextProps> = (props) => {
-  return (
-    <Tooltip title={props.value}>
-      <div
-        className={cls.textContent}
-        onClick={props.onClick}
-        onMouseEnter={props.onMouseEnter}
-        onMouseLeave={props.onMouseLeave}>
-        <div className={cls.textOverflow}>{props.value}</div>
-      </div>
-    </Tooltip>
-  );
-};
-
-const FieldDesign: React.FC<FieldProps> = (props) => {
-  const value = props.property?.name ?? props.label;
-  switch (props.valueType) {
-    case '图片':
+const Design: React.FC<IProps> = ({ property, properties, label, valueType, props }) => {
+  switch (valueType) {
+    case 'Tags':
       return (
-        <div className={cls.img} onClick={props.onClick}>
-          <Text value={value} />
-        </div>
+        <File
+          accepts={['属性']}
+          onOk={(files) => {
+            properties.push(...files.map((item) => item.metadata as schema.XProperty));
+            props.ctx.view.emitter('props', 'change', props.id);
+          }}>
+          <Space direction="horizontal">
+            {properties.map((item, index) => {
+              return (
+                <Space key={index}>
+                  <Tag>{item.name}</Tag>
+                </Space>
+              );
+            })}
+          </Space>
+        </File>
       );
     default:
-      return <Text value={value} onClick={props.onClick} />;
+      return (
+        <File
+          accepts={['属性']}
+          onOk={(files) => {
+            props['property'] = files[0].metadata;
+          }}>
+          <TipDesignText
+            height={valueType == 'Photo' ? 200 : undefined}
+            value={property?.name ?? label}
+          />
+        </File>
+      );
   }
 };
 
-const Design: React.FC<IProps> = (props) => {
-  const [center, setCenter] = useState(<></>);
-  return (
-    <div className={cls.position}>
-      <FieldDesign
-        {...props}
-        onClick={() =>
-          setCenter(
-            <OpenFileDialog
-              accepts={['属性']}
-              rootKey={props.ctx.view.pageInfo.directory.spaceKey}
-              multiple={false}
-              onOk={(files) => {
-                if (files.length > 0) {
-                  props.props['property'] = files[0].metadata as schema.XProperty;
-                  props.ctx.view.emitter('props', 'change', props.id);
-                }
-                setCenter(<></>);
-              }}
-              onCancel={() => setCenter(<></>)}
-            />,
-          )
-        }
-      />
-      {center}
-    </div>
-  );
-};
-
-const View: React.FC<IProps> = (props) => {
-  switch (props.valueType) {
-    case '图片': {
+const View: React.FC<IProps> = ({ valueType, data, property, label }) => {
+  switch (valueType) {
+    case 'Photo': {
       let shareLink = '';
-      if (props.data && props.property) {
-        let file = props.data['T' + props.property.id];
+      if (data && property) {
+        let file = data['T' + property.id];
         if (file) {
           const parsedFile = JSON.parse(file);
           if (parsedFile.length > 0) {
@@ -102,26 +72,22 @@ const View: React.FC<IProps> = (props) => {
       }
       return <Image height={200} src={shareLink ? shareOpenLink(shareLink) : Asset} />;
     }
-    case '标题': {
-      let value = props.data?.['T' + props.property?.id ?? ''] ?? '';
-      return <Text value={value} />;
-    }
     default: {
-      let value = props.property?.name ?? props.label;
-      if (props.data && props.property) {
+      let value = property?.name ?? label;
+      if (data && property) {
         let suffix = '';
-        switch (props.property.valueType) {
+        switch (property.valueType) {
           case '选择型':
           case '分类型':
-            suffix = props.data[props.data['T' + props.property.id]] ?? '';
+            suffix = data[data['T' + property.id]] ?? '';
             break;
           default:
-            suffix = props.data['T' + props.property.id] ?? '';
+            suffix = data['T' + property.id] ?? '';
             break;
         }
-        value = props.property.name + ':' + suffix;
+        value = property.name + ':' + suffix;
       }
-      return <Text value={value} />;
+      return <TipText value={value} />;
     }
   }
 };
@@ -143,9 +109,10 @@ export default defineElement({
         label: '名称',
       },
       valueType: {
-        type: 'string',
-        label: '字段类型',
-      },
+        type: 'type',
+        label: '组件类型',
+        default: 'Text',
+      } as ExistTypeMeta<DisplayType>,
       data: {
         type: 'type',
         typeName: 'thing',
@@ -156,6 +123,12 @@ export default defineElement({
         label: '属性',
         typeName: 'propFile',
       } as ExistTypeMeta<schema.XProperty | undefined>,
+      properties: {
+        type: 'type',
+        label: '属性组',
+        typeName: 'propFile',
+        default: [],
+      } as ExistTypeMeta<schema.XProperty[]>,
     },
   },
 });

@@ -6,14 +6,12 @@ import { AiOutlineShoppingCart } from '@react-icons/all-files/ai/AiOutlineShoppi
 import { Badge, Button, Col, Empty, Modal, Pagination, Row, Space, Spin } from 'antd';
 import React, { ReactNode, useEffect, useRef, useState } from 'react';
 import { ExistTypeMeta } from '../../../core/ElementMeta';
-import { useCenter, useStagings } from '../../../core/hooks/useChange';
+import { useStagings } from '../../../core/hooks/useChange';
 import { Context } from '../../../render/PageContext';
 import { defineElement } from '../../defineElement';
 import { Form } from '../../widgets/FormSearch';
 import cls from './index.module.less';
 import Transaction from '/img/transaction.png';
-import GenerateThingTable from '@/executor/tools/generate/thingTable';
-import CustomStore from 'devextreme/data/custom_store';
 
 export interface Filter {
   id: string;
@@ -37,6 +35,7 @@ interface IProps {
   span: number;
   forms: Form[];
   props: any;
+  shoppingCar?: (params: { data: schema.XStaging[] }) => ReactNode | ReactNode[];
   content?: (params: { data: schema.XThing }) => ReactNode | ReactNode[];
 }
 
@@ -52,7 +51,7 @@ const DesignEntities: React.FC<IProps> = (props) => {
             if (props.content) {
               return (
                 <Col key={index} span={props.span} className={cls.contentCard}>
-                  <Space.Compact direction="vertical">
+                  <Space.Compact style={{ width: '100%' }} direction="vertical">
                     {props.content({ data: {} as schema.XThing })}
                   </Space.Compact>
                 </Col>
@@ -77,11 +76,11 @@ const DesignEntities: React.FC<IProps> = (props) => {
   );
 };
 
-const ShoppingBadge: React.FC<{}> = () => {
+const ShoppingBadge: React.FC<IProps> = ({ ctx }) => {
   const stagings = useStagings(orgCtrl.box);
   return (
     <div className={cls.shoppingBtn}>
-      <Badge count={stagings.length}>
+      <Badge count={ctx.view.mode == 'design' ? 20 : stagings.length}>
         <Button
           size="large"
           type="primary"
@@ -94,9 +93,8 @@ const ShoppingBadge: React.FC<{}> = () => {
   );
 };
 
-const ShoppingList: React.FC<IProps> = ({}) => {
+const ShoppingList: React.FC<IProps> = (props) => {
   const [open, setOpen] = useState(false);
-  const [selected, setSelected] = useState<any[]>([]);
   const stagings = useStagings(orgCtrl.box);
   useEffect(() => {
     const id = command.subscribe((type, cmd) => {
@@ -116,78 +114,7 @@ const ShoppingList: React.FC<IProps> = ({}) => {
       okText={'关闭'}
       onCancel={() => setOpen(false)}
       onOk={() => setOpen(false)}>
-      <GenerateThingTable
-        fields={[]}
-        height={'70vh'}
-        columnChooser={{ enabled: true }}
-        selection={{
-          mode: 'multiple',
-          allowSelectAll: true,
-          selectAllMode: 'page',
-          showCheckBoxesMode: 'always',
-        }}
-        selectedRowKeys={selected}
-        onSelectedRowKeysChange={setSelected}
-        toolbar={{
-          visible: true,
-          items: [
-            {
-              name: 'add',
-              location: 'after',
-              widget: 'dxButton',
-              options: {
-                text: '发起申领',
-                icon: 'add',
-                onClick: async () => {},
-              },
-            },
-            {
-              name: 'delete',
-              location: 'after',
-              widget: 'dxButton',
-              options: {
-                text: '删除物品',
-                icon: 'add',
-                onClick: () => {
-                  orgCtrl.box.removeStaging(
-                    stagings.filter((item) => selected.includes(item.dataId)),
-                  );
-                },
-              },
-            },
-            {
-              name: 'columnChooserButton',
-              location: 'after',
-            },
-            {
-              name: 'searchPanel',
-              location: 'after',
-            },
-          ],
-        }}
-        dataSource={
-          new CustomStore({
-            key: 'id',
-            async load(options) {
-              const skip = options.skip ?? 0;
-              const take = options.take ?? 20;
-              return {
-                totalCount: stagings.length,
-                data: stagings.slice(skip, skip + take).map((item) => item.data),
-              };
-            },
-          })
-        }
-        hideColumns={[
-          'createTime',
-          'createUser',
-          'createUser',
-          'updateTime',
-          'chainId',
-          'code',
-        ]}
-        remoteOperations={true}
-      />
+      {props.shoppingCar?.({ data: stagings })}
     </Modal>
   );
 };
@@ -203,19 +130,20 @@ const ViewEntities: React.FC<IProps> = (props) => {
   const dictFilter = useRef<{ [id: string]: any }>({});
   const rangeFilter = useRef<{ [id: string]: any[] }>({});
   const stagings = useStagings(orgCtrl.box);
-  const center = useCenter();
   useEffect(() => {
     loadData(size, page);
   }, []);
   props.ctx.view.subscribe((type, cmd, args) => {
     if (type == 'species' && cmd == 'checked') {
       userData.current = args;
+      loadData(size, 1);
     } else if (type == 'dicts') {
       if (cmd == 'changed') {
         dictFilter.current[args.id] = args.data;
       } else if (cmd == 'delete') {
         delete dictFilter.current[args];
       }
+      loadData(size, 1);
     } else if (type == 'ranges') {
       if (cmd == 'changed') {
         rangeFilter.current[args.id] = args.data;
@@ -265,7 +193,7 @@ const ViewEntities: React.FC<IProps> = (props) => {
               const has = stagings.filter((staging) => staging.dataId == item.id);
               return (
                 <Col key={item.id} span={props.span} className={cls.contentCard}>
-                  <Space.Compact direction="vertical">
+                  <Space.Compact style={{ width: '100%' }} direction="vertical">
                     {props.content({ data: item })}
                     {has.length == 0 && (
                       <Button
@@ -312,8 +240,6 @@ const ViewEntities: React.FC<IProps> = (props) => {
             }}
           />
         </div>
-        <ShoppingBadge />
-        {center}
       </Space>
     </Spin>
   );
@@ -338,6 +264,8 @@ export default defineElement({
             </div>
           </div>
         </div>
+        <ShoppingBadge {...props} ctx={ctx} />
+        <ShoppingList {...props} ctx={ctx} />
       </div>
     );
   },
@@ -420,6 +348,23 @@ export default defineElement({
           },
         },
         default: 'FormSearch',
+      },
+      shoppingCar: {
+        label: '购物车插槽',
+        single: true,
+        params: {
+          data: {
+            label: '暂存数据',
+            type: {
+              type: 'array',
+              label: '暂存数组',
+              elementType: {
+                type: 'type',
+                typeName: '暂存',
+              } as ExistTypeMeta<schema.XStaging>,
+            },
+          },
+        },
       },
     },
     type: 'Template',
