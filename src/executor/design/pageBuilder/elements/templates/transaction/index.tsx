@@ -1,17 +1,16 @@
-import { command, kernel, schema } from '@/ts/base';
+import { kernel, schema } from '@/ts/base';
 import { Enumerable } from '@/ts/base/common/linq';
 import orgCtrl from '@/ts/controller';
 import { PlusCircleFilled } from '@ant-design/icons';
-import { AiOutlineShoppingCart } from '@react-icons/all-files/ai/AiOutlineShoppingCart';
-import { Badge, Button, Col, Empty, Modal, Pagination, Row, Space, Spin } from 'antd';
+import { Button, Col, Empty, Pagination, Row, Space, Spin } from 'antd';
 import React, { ReactNode, useEffect, useRef, useState } from 'react';
 import { ExistTypeMeta } from '../../../core/ElementMeta';
 import { useStagings } from '../../../core/hooks/useChange';
+import { SEntity } from '../../../design/config/FileProp';
 import { Context } from '../../../render/PageContext';
 import { defineElement } from '../../defineElement';
 import cls from './index.module.less';
 import Transaction from '/img/transaction.png';
-import { SEntity } from '../../../design/config/FileProp';
 
 export interface Filter {
   id: string;
@@ -73,49 +72,6 @@ const DesignEntities: React.FC<IProps> = (props) => {
         />
       </div>
     </Space>
-  );
-};
-
-const ShoppingBadge: React.FC<IProps> = ({ ctx }) => {
-  const stagings = useStagings(orgCtrl.box);
-  return (
-    <div className={cls.shoppingBtn}>
-      <Badge count={ctx.view.mode == 'design' ? 20 : stagings.length}>
-        <Button
-          size="large"
-          type="primary"
-          shape="circle"
-          onClick={() => command.emitter('stagings', 'open')}
-          icon={<AiOutlineShoppingCart />}
-        />
-      </Badge>
-    </div>
-  );
-};
-
-const ShoppingList: React.FC<IProps> = (props) => {
-  const [open, setOpen] = useState(false);
-  const stagings = useStagings(orgCtrl.box);
-  useEffect(() => {
-    const id = command.subscribe((type, cmd) => {
-      if (type == 'stagings' && cmd == 'open') {
-        setOpen(true);
-      }
-    });
-    return () => {
-      command.unsubscribe(id);
-    };
-  }, []);
-  return (
-    <Modal
-      open={open}
-      width={'80vw'}
-      cancelButtonProps={{ hidden: true }}
-      okText={'关闭'}
-      onCancel={() => setOpen(false)}
-      onOk={() => setOpen(false)}>
-      {props.shoppingCar?.({ data: stagings })}
-    </Modal>
   );
 };
 
@@ -264,8 +220,10 @@ export default defineElement({
             </div>
           </div>
         </div>
-        <ShoppingBadge {...props} ctx={ctx} />
-        <ShoppingList {...props} ctx={ctx} />
+        <div className={cls.shoppingBtn}>
+          {props.badge?.({})}
+          {props.car?.({})}
+        </div>
       </div>
     );
   },
@@ -349,22 +307,16 @@ export default defineElement({
         },
         default: 'FormSearch',
       },
-      shoppingCar: {
-        label: '购物车插槽',
+      badge: {
+        label: '购物车徽标',
         single: true,
-        params: {
-          data: {
-            label: '暂存数据',
-            type: {
-              type: 'array',
-              label: '暂存数组',
-              elementType: {
-                type: 'type',
-                typeName: '暂存',
-              } as ExistTypeMeta<schema.XStaging>,
-            },
-          },
-        },
+        params: {},
+        default: 'Badge',
+      },
+      car: {
+        label: '购物车列表',
+        single: true,
+        params: {},
         default: 'ListItem',
       },
     },

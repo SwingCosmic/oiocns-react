@@ -113,6 +113,7 @@ export function DesignerHost({ ctx }: DesignerProps) {
                     <FullScreenModal
                       open
                       centered
+                      fullScreen
                       destroyOnClose
                       width={'80vw'}
                       bodyHeight={'80vh'}
