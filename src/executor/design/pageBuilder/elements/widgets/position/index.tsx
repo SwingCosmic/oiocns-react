@@ -87,7 +87,12 @@ const View: React.FC<IProps> = ({ valueType, data, property, label }) => {
           }
         }
       }
-      return <Image height={200} src={shareLink ? shareOpenLink(shareLink) : Asset} />;
+      return (
+        <Image
+          style={{ objectFit: 'cover', height: 200 }}
+          src={shareLink ? shareOpenLink(shareLink) : Asset}
+        />
+      );
     }
     default: {
       let value = property?.name ?? label;
