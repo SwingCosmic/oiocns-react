@@ -7,16 +7,16 @@ import { IProperty } from '@/ts/core';
 import { DeleteOutlined } from '@ant-design/icons';
 import { Button, Space, Spin } from 'antd';
 import React, { useEffect, useRef, useState } from 'react';
-import { ExistTypeMeta } from '../../core/ElementMeta';
+import { ExistTypeMeta } from '../../../core/ElementMeta';
 import {
   SpeciesEntity,
   SpeciesNode,
   SpeciesProp,
   loadItems,
-} from '../../core/hooks/useSpecies';
-import { File } from '../../design/config/FileProp';
-import { Context } from '../../render/PageContext';
-import { defineElement } from '../defineElement';
+} from '../../../core/hooks/useSpecies';
+import { File } from '../../../design/config/FileProp';
+import { Context } from '../../../render/PageContext';
+import { defineElement } from '../../defineElement';
 
 interface IProps {
   ctx: Context;

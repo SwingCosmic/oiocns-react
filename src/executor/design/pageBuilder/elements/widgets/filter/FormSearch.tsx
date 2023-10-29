@@ -1,10 +1,10 @@
 import { DeleteOutlined } from '@ant-design/icons';
 import { Button, Row, Space, Tag } from 'antd';
 import React, { ReactNode, useState } from 'react';
-import { ExistTypeMeta } from '../../core/ElementMeta';
-import { File, SEntity } from '../../design/config/FileProp';
-import { Context } from '../../render/PageContext';
-import { defineElement } from '../defineElement';
+import { ExistTypeMeta } from '../../../core/ElementMeta';
+import { File, SEntity } from '../../../design/config/FileProp';
+import { Context } from '../../../render/PageContext';
+import { defineElement } from '../../defineElement';
 
 interface IProps {
   ctx: Context;
