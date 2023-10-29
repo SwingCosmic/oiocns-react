@@ -21,7 +21,13 @@ export const valueType: ParameterInfo = {
   type: { type: 'type' } as ExistTypeMeta<DisplayType>,
 };
 
-export const Length: ParameterInfo = {
+export const length: ParameterInfo = {
   label: '长度',
   type: { type: 'type' } as ExistTypeMeta<number | undefined>,
 };
+
+export const hasPrefix: ParameterInfo = {
+  label: '是否有字段名前缀',
+  type: { type: 'type' } as ExistTypeMeta<boolean | undefined>,
+};
+

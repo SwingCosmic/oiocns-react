@@ -1,5 +1,6 @@
 import { schema } from '@/ts/base';
 import { shareOpenLink } from '@/utils/tools';
+import { DeleteOutlined } from '@ant-design/icons';
 import { Button, Image, Space, Tag } from 'antd';
 import React, { ReactNode } from 'react';
 import { ExistTypeMeta } from '../../../core/ElementMeta';
@@ -7,7 +8,6 @@ import { File, SProperty, TipDesignText, TipText } from '../../../design/config/
 import { Context } from '../../../render/PageContext';
 import { defineElement } from '../../defineElement';
 import Asset from '/img/innovate.png';
-import { DeleteOutlined } from '@ant-design/icons';
 
 export type DisplayType = 'Photo' | 'Avatar' | 'Text' | 'Tags';
 
@@ -16,6 +16,7 @@ interface IProps {
   ctx: Context;
   width?: number;
   height?: number;
+  hasPrefix?: boolean;
   props: any;
   label: string;
   valueType: DisplayType;
@@ -25,6 +26,14 @@ interface IProps {
 }
 
 const Design: React.FC<IProps> = (props) => {
+  const mapping = (item: schema.XProperty) => {
+    return {
+      id: item.id,
+      name: item.name,
+      valueType: item.valueType,
+      unit: item.unit,
+    };
+  };
   switch (props.valueType) {
     case 'Tags':
       return (
@@ -34,13 +43,7 @@ const Design: React.FC<IProps> = (props) => {
           multiple={true}
           onOk={(files) => {
             props.properties.push(
-              ...files.map((item) => {
-                return {
-                  id: item.id,
-                  name: item.name,
-                  valueType: (item.metadata as schema.XProperty).valueType,
-                };
-              }),
+              ...files.map((item) => mapping(item.metadata as schema.XProperty)),
             );
             props.ctx.view.emitter('props', 'change', props.id);
           }}>
@@ -69,7 +72,7 @@ const Design: React.FC<IProps> = (props) => {
         <File
           accepts={['属性']}
           onOk={(files) => {
-            props.props.property = files[0].metadata;
+            props.props.property = mapping(files[0].metadata as schema.XProperty);
             props.ctx.view.emitter('props', 'change', props.id);
           }}>
           <TipDesignText
@@ -136,7 +139,10 @@ const View: React.FC<IProps> = (props) => {
     default: {
       let value = '[暂无内容]';
       if (props.data && props.property) {
-        value = props.property.name + ':' + getValue(props.data, props.property);
+        value = getValue(props.data, props.property);
+        if (props.hasPrefix || props.property.valueType == '数值型') {
+          value = props.property.name + '：' + value;
+        }
       }
       return <TipText value={value} />;
     }
@@ -167,6 +173,10 @@ export default defineElement({
         type: 'type',
         label: '高度',
       } as ExistTypeMeta<number | undefined>,
+      hasPrefix: {
+        type: 'type',
+        label: '是否有前缀',
+      } as ExistTypeMeta<boolean | undefined>,
       valueType: {
         type: 'type',
         label: '组件类型',

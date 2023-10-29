@@ -3,7 +3,7 @@ import { Card, Space } from 'antd';
 import React from 'react';
 import { ExistTypeMeta } from '../../../core/ElementMeta';
 import { defineElement } from '../../defineElement';
-import { Length, data, label, valueType } from './type';
+import { length, data, label, valueType } from './type';
 
 export default defineElement({
   render(props) {
@@ -18,21 +18,19 @@ export default defineElement({
         })}
         actions={[
           <div key={'fourth'}>
-            {props.first?.({ data: props.data, label: '字段-4' })}
+            {props.fourth?.({ data: props.data, label: '字段-4' })}
           </div>,
-          <div key={'fifth'}>
-            {props.second?.({ data: props.data, label: '字段-5' })}
-          </div>,
+          <div key={'fifth'}>{props.fifth?.({ data: props.data, label: '字段-5' })}</div>,
         ]}>
         <Card.Meta
-          title={props.third?.({ data: props.data, label: '字段-1' })}
+          title={props.first?.({ data: props.data, label: '字段-1' })}
           description={
             <Space style={{ width: '100%' }} direction="vertical">
               <div key={'second'}>
-                {props.fourth?.({ data: props.data, label: '字段-2' })}
+                {props.second?.({ data: props.data, label: '字段-2' })}
               </div>
               <div key={'third'}>
-                {props.fifth?.({ data: props.data, label: '字段-3' })}
+                {props.third?.({ data: props.data, label: '字段-3' })}
               </div>
             </Space>
           }
@@ -54,7 +52,7 @@ export default defineElement({
       image: {
         label: '图片',
         single: true,
-        params: { data, label, valueType, height: Length },
+        params: { data, label, valueType, height: length },
         default: 'Field',
       },
       first: {

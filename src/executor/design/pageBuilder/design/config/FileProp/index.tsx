@@ -10,6 +10,7 @@ export interface SEntity extends Pick<schema.XEntity, 'id' | 'name'> {}
 
 export interface SProperty extends SEntity {
   valueType: string;
+  unit?: string;
 }
 
 interface IProps extends Omit<IFileDialogProps, 'rootKey' | 'onCancel'> {

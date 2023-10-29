@@ -4,7 +4,7 @@ import { ProList } from '@ant-design/pro-components';
 import React from 'react';
 import { ExistTypeMeta } from '../../../core/ElementMeta';
 import { defineElement } from '../../defineElement';
-import { Length, data, label, valueType } from './type';
+import { length, data, label, valueType } from './type';
 
 export default defineElement({
   render(props, ctx) {
@@ -88,7 +88,7 @@ export default defineElement({
       avatar: {
         label: '头像',
         single: true,
-        params: { data, label, valueType, width: Length, height: Length },
+        params: { data, label, valueType, width: length, height: length },
         default: 'Field',
       },
       description: {
