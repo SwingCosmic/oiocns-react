@@ -85,7 +85,7 @@ const ViewEntities: React.FC<IProps> = (props) => {
   const userData = useRef<string[]>([]);
   const dictFilter = useRef<{ [id: string]: any }>({});
   const rangeFilter = useRef<{ [id: string]: any[] }>({});
-  const stagings = useStagings(orgCtrl.box);
+  const stagings = useStagings(orgCtrl.box, current.relations);
   useEffect(() => {
     loadData(size, page);
   }, []);
@@ -146,7 +146,7 @@ const ViewEntities: React.FC<IProps> = (props) => {
         <Row gutter={[16, 16]}>
           {data.map((item) => {
             if (props.content) {
-              const has = stagings.filter((staging) => staging.dataId == item.id);
+              const has = stagings.filter((staging) => staging.data.id == item.id);
               return (
                 <Col key={item.id} span={props.span} className={cls.contentCard}>
                   <Space.Compact style={{ width: '100%' }} direction="vertical">
@@ -158,12 +158,8 @@ const ViewEntities: React.FC<IProps> = (props) => {
                         onClick={() => {
                           orgCtrl.box.createStaging({
                             typeName: '实体',
-                            dataId: item.id,
                             data: item,
-                            relations: [
-                              current.directory.target.spaceId,
-                              current.directory.target.id,
-                            ],
+                            relations: current.relations,
                           } as schema.XStaging);
                         }}>
                         {'加入购物车'}

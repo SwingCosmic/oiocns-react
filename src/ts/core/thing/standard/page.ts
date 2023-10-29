@@ -8,6 +8,8 @@ export interface IPageTemplate extends IStandardFileInfo<schema.XPageTemplate> {
   command: Command;
   /** 分类 */
   species: ISpecies[];
+  /** 关系 */
+  relations: string;
   /** 加载分类 */
   loadSpecies: (speciesIds: string[]) => Promise<ISpecies[]>;
 }
@@ -25,6 +27,9 @@ export class PageTemplate
   species: ISpecies[] = [];
   get cacheFlag() {
     return 'pages';
+  }
+  get relations() {
+    return [this.directory.target.spaceId, this.directory.target.id].join('-');
   }
   async copy(destination: IDirectory): Promise<boolean> {
     if (this.allowCopy(destination)) {

@@ -1,4 +1,4 @@
-import { command, kernel, schema } from '@/ts/base';
+import { List, command, kernel, schema } from '@/ts/base';
 import { generateUuid } from '@/ts/base/common';
 import { UserProvider } from '..';
 
@@ -10,6 +10,8 @@ export interface IBoxProvider {
   stagings: schema.XStaging[];
   // 获取同一类物品
   groups(typeNames: string[]): schema.XStaging[];
+  // 获取关系物品
+  relations(relations: string, typeNames: string[]): schema.XStaging[];
   /** 放入物品 */
   createStaging(data: schema.XStaging): Promise<schema.XStaging | undefined>;
   /** 拿出物品 */
@@ -54,6 +56,12 @@ export class BoxProvider implements IBoxProvider {
     return this.stagings.filter((item) => typeNames.includes(item.typeName));
   }
 
+  relations(relations: string, typeNames: string[]): schema.XStaging[] {
+    return this.stagings
+      .filter((item) => item.relations == relations)
+      .filter((item) => typeNames.includes(item.typeName));
+  }
+
   async createStaging(data: schema.XStaging): Promise<schema.XStaging | undefined> {
     const res = await this.coll?.insert(data);
     if (res) {
@@ -85,19 +93,16 @@ export class BoxProvider implements IBoxProvider {
   }
 
   private async _loadThings(stagings: schema.XStaging[]) {
-    const thingIds = stagings.map((item) => item.dataId);
-    const relations = new Set(stagings.flatMap((item) => item.relations));
-    const res = await kernel.loadThing(this.provider.user!.belongId, [...relations], {
-      match: {
-        id: {
-          _in_: thingIds,
-        },
-      },
-    });
-    if (res && res.data) {
-      for (const staging of stagings) {
-        for (const thing of res.data) {
-          staging.data = thing;
+    const groups = new List(stagings).GroupBy((item) => item.relations);
+    for (const key in groups) {
+      const res = await kernel.loadThing(this.provider.user!.belongId, key.split('-'), {
+        match: { id: { _in_: groups[key].map((item) => item.data.id) } },
+      });
+      if (res && res.data) {
+        for (const staging of groups[key]) {
+          for (const thing of res.data) {
+            staging.data = thing;
+          }
         }
       }
     }

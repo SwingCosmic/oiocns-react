@@ -27,7 +27,7 @@ const Design: React.FC<IProps> = ({ length, ctx }) => {
 };
 
 const View: React.FC<Pick<IProps, 'ctx'>> = ({ ctx }) => {
-  const stagings = useStagings(orgCtrl.box);
+  const stagings = useStagings(orgCtrl.box, ctx.view.pageInfo.relations);
   return <Design length={stagings.length} ctx={ctx} />;
 };
 

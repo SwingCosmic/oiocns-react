@@ -87,7 +87,7 @@ const Design: React.FC<IProps> = (props) => {
 
 const View: React.FC<IProps> = (props) => {
   const getValue = (data: schema.XThing, property: SProperty) => {
-    let suffix = '';
+    let suffix: any = '';
     switch (property.valueType) {
       case '选择型':
       case '分类型':
@@ -137,11 +137,15 @@ const View: React.FC<IProps> = (props) => {
       return <Space direction={'horizontal'}>{tags}</Space>;
     }
     default: {
-      let value = '[暂无内容]';
+      let value = '[暂无数据]';
       if (props.data && props.property) {
-        value = getValue(props.data, props.property);
-        if (props.hasPrefix || props.property.valueType == '数值型') {
-          value = props.property.name + '：' + value;
+        let current = getValue(props.data, props.property);
+        if (current || current === 0) {
+          if (props.hasPrefix || props.property.valueType == '数值型') {
+            value = props.property.name + '：' + current;
+          } else {
+            value = current;
+          }
         }
       }
       return <TipText value={value} />;

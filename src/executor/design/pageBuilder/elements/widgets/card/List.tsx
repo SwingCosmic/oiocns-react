@@ -1,9 +1,9 @@
 import { command, schema } from '@/ts/base';
 import { XStaging } from '@/ts/base/schema';
 import orgCtrl from '@/ts/controller';
-import { ProList } from '@ant-design/pro-components';
-import { Button, Modal } from 'antd';
-import React, { ReactNode, useEffect, useState } from 'react';
+import { ProList, ProListProps } from '@ant-design/pro-components';
+import { Button, Modal, Space } from 'antd';
+import React, { Key, ReactNode, useEffect, useState } from 'react';
 import { useStagings } from '../../../core/hooks/useChange';
 import { defineElement } from '../../defineElement';
 import { DisplayType } from '../position';
@@ -25,7 +25,11 @@ interface AvatarParams extends TypeParams {
   height: number;
 }
 
-interface IProps {
+interface IProps
+  extends Pick<
+    ProListProps<schema.XStaging>,
+    'rowSelection' | 'headerTitle' | 'rowKey' | 'toolBarRender'
+  > {
   ctx: Context;
   data: XStaging[];
   title?: (params: Params) => ReactNode;
@@ -62,6 +66,10 @@ const Design: React.FC<IProps> = (props) => {
       <ProList<schema.XStaging>
         style={{ height: '70vh', overflow: 'auto' }}
         dataSource={props.data}
+        toolBarRender={props.toolBarRender}
+        rowKey={props.rowKey}
+        headerTitle={props.headerTitle}
+        rowSelection={props.rowSelection}
         metas={{
           title: {
             render: (_, entity) => {
@@ -111,14 +119,38 @@ const Design: React.FC<IProps> = (props) => {
 };
 
 const View: React.FC<Omit<IProps, 'data'>> = (props) => {
-  const stagings = useStagings(orgCtrl.box);
+  const stagings = useStagings(orgCtrl.box, props.ctx.view.pageInfo.relations);
+  const [keys, setKeys] = useState<Key[]>([]);
   return (
     <Design
       {...props}
       data={stagings}
+      rowKey={'id'}
+      toolBarRender={() => {
+        return [<Button>发起申领</Button>];
+      }}
+      headerTitle={
+        <Space>
+          <Button size="small" onClick={() => setKeys(stagings.map((item) => item.id))}>
+            全选
+          </Button>
+          <Button size="small" onClick={() => setKeys([])}>
+            取消
+          </Button>
+        </Space>
+      }
+      rowSelection={{
+        selectedRowKeys: keys,
+        onChange: (keys: React.Key[]) => setKeys(keys),
+      }}
       action={(entity) => {
         return (
-          <Button type="dashed" onClick={() => orgCtrl.box.removeStaging([entity])}>
+          <Button
+            type="dashed"
+            onClick={() => {
+              setKeys(keys.filter((id) => id != entity.id));
+              orgCtrl.box.removeStaging([entity]);
+            }}>
             删除
           </Button>
         );

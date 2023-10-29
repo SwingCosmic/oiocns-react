@@ -629,12 +629,10 @@ export type XWorkTask = {
 export type XStaging = {
   // 类型
   typeName: string;
-  // 关联数据 ID
-  dataId: string;
   // 数据
-  data: any;
-  // 关系举证
-  relations: string[];
+  data: XThing;
+  // 关系举证（-连接）
+  relations: string;
 } & Xbase;
 
 // 页面模板
