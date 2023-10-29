@@ -137,7 +137,7 @@ export default defineElement({
         });
       return <Design {...props} data={data} ctx={ctx} />;
     }
-    return <View ctx={ctx} />;
+    return <View {...props} ctx={ctx} />;
   },
   displayName: 'ListItem',
   meta: {
