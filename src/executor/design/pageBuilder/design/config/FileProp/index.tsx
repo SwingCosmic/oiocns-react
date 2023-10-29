@@ -6,6 +6,8 @@ import { PageContext } from '../../../render/PageContext';
 import { IExistTypeProps } from '../IExistTypeEditor';
 import cls from './index.module.less';
 import { CloseCircleOutlined } from '@ant-design/icons';
+import { IFile } from '@/ts/core';
+import { pick } from 'lodash';
 
 export interface SEntity extends Pick<schema.XEntity, 'id' | 'name'> {}
 
@@ -95,22 +97,51 @@ export const Delete: React.FC<IExistTypeProps<any>> = (props) => {
   );
 };
 
-export const Picture: React.FC<IExistTypeProps<schema.XEntity>> = (props) => {
+interface IBase extends IExistTypeProps<any> {
+  accepts: string[];
+  showName: any;
+  onOk: (fs: IFile[]) => void;
+}
+
+export const BaseFile: React.FC<IBase> = (props) => {
   return (
-    <File onOk={(f) => props.onChange(f[0].metadata)} accepts={['图片']}>
-      <TipDesignText value={props.value?.name}>
+    <File onOk={props.onOk} accepts={props.accepts}>
+      <TipDesignText value={props.showName}>
         <Delete {...props} />
       </TipDesignText>
     </File>
   );
 };
 
+export const Picture: React.FC<IExistTypeProps<SEntity>> = (props) => {
+  return (
+    <BaseFile
+      {...props}
+      accepts={['图片']}
+      showName={props.value?.name ?? '绑定图片'}
+      onOk={(fs) => props.onChange(pick(fs[0].metadata, 'id', 'name'))}
+    />
+  );
+};
+
 export const Work: React.FC<IExistTypeProps<SEntity>> = (props) => {
   return (
-    <File onOk={(f) => props.onChange(f[0].metadata)} accepts={['办事']}>
-      <TipDesignText value={props.value?.name ?? '绑定办事'}>
-        <Delete {...props} />
-      </TipDesignText>
-    </File>
+    <BaseFile
+      {...props}
+      accepts={['办事']}
+      showName={props.value?.name ?? '绑定办事'}
+      onOk={(fs) => props.onChange(pick(fs[0].metadata, 'id', 'name'))}
+    />
+  );
+};
+
+export const Form: React.FC<IExistTypeProps<SEntity>> = (props) => {
+  return (
+    <BaseFile
+      {...props}
+      accepts={['实体配置', '事项配置']}
+      showName={props.value?.name ?? '绑定表单'}
+      onOk={(fs) => props.onChange(pick(fs[0].metadata, 'id', 'name'))}
+    />
   );
 };

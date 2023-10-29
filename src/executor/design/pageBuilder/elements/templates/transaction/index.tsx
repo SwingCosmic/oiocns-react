@@ -29,12 +29,10 @@ export interface Range {
 
 interface IProps {
   ctx: Context;
-  work: string | undefined;
   size: number;
   span: number;
   forms: SEntity[];
   props: any;
-  shoppingCar?: (params: { data: schema.XStaging[] }) => ReactNode | ReactNode[];
   content?: (params: { data: schema.XThing }) => ReactNode | ReactNode[];
 }
 
@@ -226,11 +224,6 @@ export default defineElement({
   displayName: 'MallTemplate',
   meta: {
     props: {
-      work: {
-        type: 'type',
-        label: '绑定办事',
-        typeName: 'workFile',
-      } as ExistTypeMeta<string | undefined>,
       size: {
         type: 'number',
         label: '每页个数',

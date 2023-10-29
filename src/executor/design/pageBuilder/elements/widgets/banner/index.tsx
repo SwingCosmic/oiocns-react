@@ -1,13 +1,12 @@
-import { schema } from '@/ts/base';
 import { Button } from 'antd';
 import React, { CSSProperties, useState } from 'react';
 import { ExistTypeMeta } from '../../../core/ElementMeta';
-import { File } from '../../../design/config/FileProp';
+import { File, SEntity } from '../../../design/config/FileProp';
 import { Context } from '../../../render/PageContext';
 import { defineElement } from '../../defineElement';
 interface IProps {
   height: number;
-  url?: schema.XEntity;
+  url?: SEntity;
   props: any;
   ctx: Context;
 }
@@ -67,7 +66,7 @@ export default defineElement({
         type: 'type',
         label: '关联图片',
         typeName: 'picFile',
-      } as ExistTypeMeta<schema.XEntity | undefined>,
+      } as ExistTypeMeta<SEntity | undefined>,
     },
     label: '横幅',
     type: 'Element',
