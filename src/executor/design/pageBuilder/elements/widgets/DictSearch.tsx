@@ -75,6 +75,7 @@ const Design: React.FC<IProps> = (props) => {
             <File
               accepts={['选择型']}
               multiple={true}
+              excludeIds={props.filter.map((item) => item.id)}
               onOk={(files) => {
                 files.forEach((file) => {
                   props.filter.push({
@@ -94,6 +95,7 @@ const Design: React.FC<IProps> = (props) => {
             </File>
             <File
               accepts={['数值型']}
+              excludeIds={props.filter.map((item) => item.id)}
               onOk={(files) => {
                 let current = {
                   id: files[0].id,
