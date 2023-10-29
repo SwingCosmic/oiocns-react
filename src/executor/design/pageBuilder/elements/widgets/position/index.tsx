@@ -3,37 +3,53 @@ import { shareOpenLink } from '@/utils/tools';
 import { Image, Space, Tag } from 'antd';
 import React from 'react';
 import { ExistTypeMeta } from '../../../core/ElementMeta';
-import { File, TipDesignText, TipText } from '../../../design/config/FileProp';
+import { File, SProperty, TipDesignText, TipText } from '../../../design/config/FileProp';
 import { Context } from '../../../render/PageContext';
 import { defineElement } from '../../defineElement';
 import Asset from '/img/innovate.png';
+import { DeleteOutlined } from '@ant-design/icons';
 
 export type DisplayType = 'Photo' | 'Text' | 'Tags';
 
 interface IProps {
+  id: string;
   ctx: Context;
   props: any;
   label: string;
   valueType: DisplayType;
   data?: schema.XThing;
-  property?: schema.XProperty;
-  properties: schema.XProperty[];
+  property?: SProperty;
+  properties: SProperty[];
 }
 
-const Design: React.FC<IProps> = ({ property, properties, label, valueType, props }) => {
-  switch (valueType) {
+const Design: React.FC<IProps> = (props) => {
+  switch (props.valueType) {
     case 'Tags':
       return (
         <File
-          accepts={['属性']}
+          accepts={['选择型', '分类型']}
           onOk={(files) => {
-            properties.push(...files.map((item) => item.metadata as schema.XProperty));
+            props.properties.push(
+              ...files.map((item) => {
+                return {
+                  id: item.id,
+                  name: item.name,
+                  valueType: (item.metadata as schema.XProperty).valueType,
+                };
+              }),
+            );
             props.ctx.view.emitter('props', 'change', props.id);
           }}>
           <Space direction="horizontal">
-            {properties.map((item, index) => {
+            {props.properties.map((item, index) => {
               return (
                 <Space key={index}>
+                  <DeleteOutlined
+                    onClick={() => {
+                      props.properties.splice(index, 1);
+                      props.ctx.view.emitter('props', 'change', props.id);
+                    }}
+                  />
                   <Tag>{item.name}</Tag>
                 </Space>
               );
@@ -46,11 +62,12 @@ const Design: React.FC<IProps> = ({ property, properties, label, valueType, prop
         <File
           accepts={['属性']}
           onOk={(files) => {
-            props['property'] = files[0].metadata;
+            props.props.property = files[0].metadata;
+            props.ctx.view.emitter('props', 'change', props.id);
           }}>
           <TipDesignText
-            height={valueType == 'Photo' ? 200 : undefined}
-            value={property?.name ?? label}
+            height={props.valueType == 'Photo' ? 200 : undefined}
+            value={props.property?.name ?? props.label}
           />
         </File>
       );
@@ -122,13 +139,13 @@ export default defineElement({
         type: 'type',
         label: '属性',
         typeName: 'propFile',
-      } as ExistTypeMeta<schema.XProperty | undefined>,
+      } as ExistTypeMeta<SProperty | undefined>,
       properties: {
         type: 'type',
         label: '属性组',
         typeName: 'propFile',
         default: [],
-      } as ExistTypeMeta<schema.XProperty[]>,
+      } as ExistTypeMeta<SProperty[]>,
     },
   },
 });

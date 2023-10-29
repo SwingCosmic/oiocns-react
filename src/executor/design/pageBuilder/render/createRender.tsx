@@ -9,13 +9,13 @@ import React, {
   useContext,
   useState,
 } from 'react';
+import ElementFactory from '../core/ElementFactory';
 import { HostMode } from '../core/IViewHost';
 import { PageElement } from '../core/PageElement';
 import { ElementFC } from '../elements/defineElement';
 import ErrorBoundary from './ErrorBoundary';
-import { DesignContext, PageContext } from './PageContext';
+import { DesignContext, PageContext, ViewContext } from './PageContext';
 import { Slot } from './Slot';
-import ElementFactory from '../core/ElementFactory';
 
 export type Render = FC<ElementRenderProps>;
 
@@ -98,13 +98,10 @@ export function createRender(component: ElementFC, mode: HostMode): Render {
 
 function createViewRender(component: ElementFC) {
   return (props: ElementRenderProps) => {
+    const ctx = useContext(PageContext) as ViewContext;
     return h(
       component,
-      mergeProps(
-        props.element,
-        (useContext(PageContext) as DesignContext).view.treeManager.factory,
-        props.slotParams,
-      ),
+      mergeProps(props.element, ctx.view.treeManager.factory, props.slotParams),
     );
   };
 }

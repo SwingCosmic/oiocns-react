@@ -6,6 +6,12 @@ import { PageContext } from '../../../render/PageContext';
 import { IExistTypeProps } from '../IExistTypeEditor';
 import cls from './index.module.less';
 
+export interface SEntity extends Pick<schema.XEntity, 'id' | 'name'> {}
+
+export interface SProperty extends SEntity {
+  valueType: string;
+}
+
 interface IProps extends Omit<IFileDialogProps, 'rootKey' | 'onCancel'> {
   children: ReactNode;
 }
@@ -40,7 +46,6 @@ export const File: React.FC<IProps> = (props) => {
 
 export interface TextProps {
   value?: string;
-  width?: string | number;
   height?: string | number;
 }
 

@@ -1,19 +1,14 @@
-import OpenFileDialog from '@/components/OpenFileDialog';
 import { DeleteOutlined } from '@ant-design/icons';
 import { Button, Row, Space, Tag } from 'antd';
 import React, { ReactNode, useState } from 'react';
 import { ExistTypeMeta } from '../../core/ElementMeta';
+import { File, SEntity } from '../../design/config/FileProp';
 import { Context } from '../../render/PageContext';
 import { defineElement } from '../defineElement';
 
-export interface Form {
-  id: string;
-  name: string;
-}
-
 interface IProps {
   ctx: Context;
-  forms: Form[];
+  forms: SEntity[];
 }
 
 const Layout: React.FC<{ children: ReactNode }> = (props) => {
@@ -22,7 +17,6 @@ const Layout: React.FC<{ children: ReactNode }> = (props) => {
 
 const Design: React.FC<IProps> = (props) => {
   const [forms, setForms] = useState(props.forms);
-  const [center, setCenter] = useState(<></>);
   return (
     <Layout>
       <Space direction="vertical">
@@ -51,38 +45,25 @@ const Design: React.FC<IProps> = (props) => {
           </Row>
         </Space>
         <Space>
-          <Button
-            type="dashed"
-            size="small"
-            onClick={() => {
-              setCenter(
-                <OpenFileDialog
-                  accepts={['表单']}
-                  rootKey={props.ctx.view.pageInfo.directory.spaceKey}
-                  excludeIds={props.forms.map((item) => item.id)}
-                  multiple={true}
-                  onOk={async (files) => {
-                    if (files.length > 0) {
-                      for (const file of files) {
-                        props.forms.push({
-                          id: file.id,
-                          name: file.name,
-                        });
-                      }
-                      setForms([...props.forms]);
-                    }
-                    setCenter(<></>);
-                    return;
-                  }}
-                  onCancel={() => setCenter(<></>)}
-                />,
-              );
+          <File
+            accepts={['表单']}
+            excludeIds={props.forms.map((item) => item.id)}
+            multiple={true}
+            onOk={(files) => {
+              files.forEach((file) => {
+                props.forms.push({
+                  id: file.id,
+                  name: file.name,
+                });
+              });
+              setForms([...props.forms]);
             }}>
-            添加表单
-          </Button>
+            <Button type="dashed" size="small">
+              添加表单
+            </Button>
+          </File>
         </Space>
       </Space>
-      {center}
     </Layout>
   );
 };
@@ -104,7 +85,7 @@ export default defineElement({
         elementType: {
           type: 'type',
           label: '表单',
-        } as ExistTypeMeta<Form>,
+        } as ExistTypeMeta<SEntity>,
         default: [],
       },
     },

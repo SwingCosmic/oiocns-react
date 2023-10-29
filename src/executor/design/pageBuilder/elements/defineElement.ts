@@ -4,7 +4,7 @@ import { ElementMeta, ExtractMetaToType } from '../core/ElementMeta';
 import { PageElement } from '../core/PageElement';
 import { Context, PageContext } from '../render/PageContext';
 
-type WithCommonProps<P extends {}> = P &
+export type WithCommonProps<P extends {}> = P &
   Pick<HTMLAttributes<any>, 'className' | 'style'> &
   Pick<PageElement, 'children' | 'id' | 'props'>;
 

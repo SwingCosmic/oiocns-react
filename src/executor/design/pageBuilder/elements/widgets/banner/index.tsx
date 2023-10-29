@@ -1,8 +1,8 @@
-import OpenFileDialog from '@/components/OpenFileDialog';
 import { schema } from '@/ts/base';
-import { Button, Space } from 'antd';
+import { Button } from 'antd';
 import React, { CSSProperties, useState } from 'react';
 import { ExistTypeMeta } from '../../../core/ElementMeta';
+import { File } from '../../../design/config/FileProp';
 import { Context } from '../../../render/PageContext';
 import { defineElement } from '../../defineElement';
 interface IProps {
@@ -29,35 +29,22 @@ const View: React.FC<IProps> = (props) => {
 };
 
 const Design: React.FC<IProps> = (props) => {
-  const [center, setCenter] = useState(<></>);
   const [url, setUrl] = useState(props.url?.id);
   return (
     <div style={style(props.height, url)}>
-      <Space style={{ position: 'absolute', left: 10, bottom: 10 }}>
+      <File
+        accepts={['图片']}
+        onOk={(files) => {
+          props.props.url = files[0].metadata;
+          setUrl(props.props.url.id);
+        }}>
         <Button
+          style={{ position: 'absolute', left: 10, bottom: 10 }}
           type="dashed"
-          size="small"
-          onClick={() => {
-            setCenter(
-              <OpenFileDialog
-                accepts={['图片']}
-                rootKey={props.ctx.view.pageInfo.directory.spaceKey}
-                multiple={false}
-                onOk={(files) => {
-                  if (files.length > 0) {
-                    props.props.url = files[0].metadata;
-                    setUrl(props.props.url.id);
-                  }
-                  setCenter(<></>);
-                }}
-                onCancel={() => setCenter(<></>)}
-              />,
-            );
-          }}>
+          size="small">
           添加图片
         </Button>
-      </Space>
-      {center}
+      </File>
     </div>
   );
 };

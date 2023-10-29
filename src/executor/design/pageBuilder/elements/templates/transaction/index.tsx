@@ -9,9 +9,9 @@ import { ExistTypeMeta } from '../../../core/ElementMeta';
 import { useStagings } from '../../../core/hooks/useChange';
 import { Context } from '../../../render/PageContext';
 import { defineElement } from '../../defineElement';
-import { Form } from '../../widgets/FormSearch';
 import cls from './index.module.less';
 import Transaction from '/img/transaction.png';
+import { SEntity } from '../../../design/config/FileProp';
 
 export interface Filter {
   id: string;
@@ -33,7 +33,7 @@ interface IProps {
   work: string | undefined;
   size: number;
   span: number;
-  forms: Form[];
+  forms: SEntity[];
   props: any;
   shoppingCar?: (params: { data: schema.XStaging[] }) => ReactNode | ReactNode[];
   content?: (params: { data: schema.XThing }) => ReactNode | ReactNode[];
@@ -43,8 +43,8 @@ const DesignEntities: React.FC<IProps> = (props) => {
   const [page, setPage] = useState<number>(1);
   const [size, setSize] = useState<number>(props.size);
   return (
-    <Space style={{ width: '100%' }} direction={'vertical'} align="center">
-      <Row style={{ width: '100%' }} gutter={[16, 16]}>
+    <Space style={{ width: '100%' }} direction="vertical">
+      <Row gutter={[16, 16]}>
         {Enumerable.Range(1, size)
           .ToArray()
           .map((_, index) => {
@@ -293,7 +293,7 @@ export default defineElement({
         elementType: {
           type: 'type',
           label: '表单',
-        } as ExistTypeMeta<Form>,
+        } as ExistTypeMeta<SEntity>,
         default: [],
       },
     },
@@ -343,7 +343,7 @@ export default defineElement({
               elementType: {
                 type: 'type',
                 label: '表单',
-              } as ExistTypeMeta<Form>,
+              } as ExistTypeMeta<SEntity>,
             },
           },
         },
@@ -365,10 +365,11 @@ export default defineElement({
             },
           },
         },
+        default: 'ListItem',
       },
     },
     type: 'Template',
-    label: '商城模板',
+    label: '商城',
     photo: Transaction,
     description: '用于展示交易商品',
     layoutType: 'full',

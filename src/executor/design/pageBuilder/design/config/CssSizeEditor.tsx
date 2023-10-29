@@ -1,6 +1,5 @@
-import { computed, useSignal, useSignalEffect } from '@preact/signals-react';
 import { InputNumber, Select } from 'antd';
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import { IExistTypeEditor } from './IExistTypeEditor';
 
 export const CSSUnits = [
@@ -19,53 +18,53 @@ export const CSSUnits = [
 export type CSSUnit = (typeof CSSUnits)[number];
 
 const CssSizeEditor: IExistTypeEditor<string> = ({ value, onChange }) => {
-  const type = useSignal<'value' | 'auto' | 'none'>('value');
-  const number = useSignal<number | null>(null);
-  const unit = useSignal<CSSUnit | null>(null);
-  const realValue = computed(() => {
-    if (type.value == 'none') {
+  const [type, setType] = useState<'value' | 'auto' | 'none'>('value');
+  const [number, setNumber] = useState<number | null>(null);
+  const [unit, setUnit] = useState<CSSUnit | null>(null);
+  const realValue = (type: string, number: number | null, unit: CSSUnit | null) => {
+    if (type == 'none') {
       return '';
-    } else if (type.value == 'auto') {
+    } else if (type == 'auto') {
       return 'auto';
     } else {
-      return number.value || number.value === 0 ? `${number.value}${unit.value}` : '';
+      return number || number === 0 ? `${number}${unit}` : '';
     }
-  });
-  useSignalEffect(() => {
-    onChange(realValue.value);
-  });
+  };
 
   useEffect(() => {
     if (!value) {
-      type.value = 'none';
-      number.value = null;
-      unit.value = null;
+      setType('none');
+      setNumber(null);
+      setUnit(null);
     } else if (value == 'auto') {
-      type.value = 'auto';
-      number.value = null;
-      unit.value = null;
+      setType('auto');
+      setNumber(null);
+      setUnit(null);
     } else {
       const match = /^(\d+)([a-zA-Z%]+)$/.exec(value);
       if (match) {
-        type.value = 'value';
-        number.value = parseFloat(match[1]);
-        unit.value = match[2] as CSSUnit;
+        setType('value');
+        setNumber(parseFloat(match[1]));
+        setUnit(match[2] as CSSUnit);
       } else {
-        type.value = 'none';
-        number.value = null;
-        unit.value = null;
+        setType('none');
+        setNumber(null);
+        setUnit(null);
       }
     }
   }, [value]);
 
   const prefix = (
     <Select
-      value={type.value}
+      value={type}
       onChange={(v) => {
-        if (v == 'value' && !unit.value) {
-          unit.value = 'px';
+        let old: CSSUnit | null = unit;
+        if (v == 'value' && !old) {
+          old = 'px';
+          setUnit(old);
         }
-        type.value = v;
+        setType(v);
+        onChange(realValue(v, number, old));
       }}>
       <Select.Option value="value">数值</Select.Option>
       <Select.Option value="auto">自动</Select.Option>
@@ -74,9 +73,12 @@ const CssSizeEditor: IExistTypeEditor<string> = ({ value, onChange }) => {
   );
   const postfix = (
     <Select
-      value={unit.value}
-      onChange={(v) => (unit.value = v)}
-      disabled={type.value != 'value'}>
+      value={unit}
+      onChange={(v) => {
+        setUnit(v);
+        onChange(realValue(type, number, v));
+      }}
+      disabled={type != 'value'}>
       {CSSUnits.map((v) => (
         <Select.Option key={v} value={v}>
           {v}
@@ -86,8 +88,11 @@ const CssSizeEditor: IExistTypeEditor<string> = ({ value, onChange }) => {
   );
   return (
     <InputNumber
-      value={number.value}
-      onChange={(v) => (number.value = v)}
+      value={number}
+      onChange={(v) => {
+        setNumber(v);
+        onChange(realValue(type, v, unit));
+      }}
       addonBefore={prefix}
       addonAfter={postfix}
     />

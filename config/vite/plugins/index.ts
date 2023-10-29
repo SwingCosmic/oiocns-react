@@ -20,9 +20,7 @@ import configVisualizerPlugin from './visualizer';
 export function createVitePlugins(viteEnv: string, isBuild: boolean) {
   const vitePlugins: (PluginOption | PluginOption[])[] = [
     // have to
-    react({
-      jsxRuntime: "classic",// 处理@preact/signals-react等库对jsx的额外要求
-    }),
+    react({}),
   ];
 
   // @vitejs/plugin-legacy

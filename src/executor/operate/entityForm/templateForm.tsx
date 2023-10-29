@@ -8,7 +8,7 @@ import { schema } from '@/ts/base';
 import { IDirectory } from '@/ts/core';
 import { IPageTemplate } from '@/ts/core/thing/standard/page';
 import { ProFormColumnsType } from '@ant-design/pro-components';
-import { Card, Col, Input, Radio, Row } from 'antd';
+import { Card, Col, Input, Radio, Row, Image } from 'antd';
 import React, { useState } from 'react';
 
 interface IProps {
@@ -44,7 +44,14 @@ const Template: React.FC<ITemplate> = ({ value, onChange }) => {
                   <Card
                     hoverable
                     style={{ width: 240 }}
-                    cover={<img src={item.meta.photo} />}>
+                    cover={
+                      <Image
+                        height={200}
+                        style={{ objectFit: 'cover' }}
+                        src={item.meta.photo}
+                        onClick={(e) => e.stopPropagation()}
+                      />
+                    }>
                     <Card.Meta
                       title={<Radio value={item.displayName}>{item.meta.label}</Radio>}
                       description={item.meta.description}
@@ -112,7 +119,7 @@ const PageTemplateForm: React.FC<IProps> = ({ formType, current, finished }) => 
       title: '是否发布',
       dataIndex: 'public',
       valueType: 'switch',
-      initialValue: initialValue.public ?? true,
+      initialValue: initialValue.public ?? false,
       colProps: { span: 12 },
       formItemProps: {
         rules: [{ required: true, message: '编码为必填项' }],

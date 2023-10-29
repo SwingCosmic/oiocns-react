@@ -1,11 +1,10 @@
+import { schema } from '@/ts/base';
+import { Enumerable } from '@/ts/base/common/linq';
 import { ProList } from '@ant-design/pro-components';
 import React from 'react';
-import { defineElement } from '../../defineElement';
 import { ExistTypeMeta } from '../../../core/ElementMeta';
-import { schema } from '@/ts/base';
+import { defineElement } from '../../defineElement';
 import { data, label } from './type';
-import { Button, Space } from 'antd';
-import { Enumerable } from '@/ts/base/common/linq';
 
 export default defineElement({
   render(props, ctx) {
@@ -55,12 +54,8 @@ export default defineElement({
             },
           },
           actions: {
-            render: (_) => {
-              return (
-                <Space>
-                  <Button>删除</Button>
-                </Space>
-              );
+            render: (_, entity) => {
+              return props.action?.({ data: entity });
             },
           },
         }}
@@ -107,6 +102,11 @@ export default defineElement({
         label: '内容',
         single: false,
         params: { data, label },
+      },
+      action: {
+        label: '操作',
+        single: false,
+        params: { data },
       },
     },
     label: '列表卡片',

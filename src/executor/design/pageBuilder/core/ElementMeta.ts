@@ -105,7 +105,7 @@ export interface ElementMeta {
   /** 组件描述 */
   description?: string;
   /** 根排布 */
-  layoutType?: string;
+  layoutType?: 'scroll' | 'full';
 }
 
 /**
