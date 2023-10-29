@@ -3,14 +3,19 @@ import { Card, Space } from 'antd';
 import React from 'react';
 import { ExistTypeMeta } from '../../../core/ElementMeta';
 import { defineElement } from '../../defineElement';
-import { data, label, valueType } from './type';
+import { Length, data, label, valueType } from './type';
 
 export default defineElement({
   render(props) {
     return (
       <Card
         hoverable
-        cover={props.image?.({ data: props.data, label: '图片', valueType: 'Photo' })}
+        cover={props.image?.({
+          data: props.data,
+          label: '图片',
+          valueType: 'Photo',
+          height: 200,
+        })}
         actions={[
           <div key={'fourth'}>
             {props.first?.({ data: props.data, label: '字段-4' })}
@@ -49,7 +54,7 @@ export default defineElement({
       image: {
         label: '图片',
         single: true,
-        params: { data, label, valueType },
+        params: { data, label, valueType, height: Length },
         default: 'Field',
       },
       first: {

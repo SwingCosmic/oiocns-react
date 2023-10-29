@@ -17,6 +17,11 @@ export const label: ParameterInfo = {
 };
 
 export const valueType: ParameterInfo = {
-  label: '类型',
+  label: '展示类型',
   type: { type: 'type' } as ExistTypeMeta<DisplayType>,
+};
+
+export const Length: ParameterInfo = {
+  label: '长度',
+  type: { type: 'type' } as ExistTypeMeta<number | undefined>,
 };

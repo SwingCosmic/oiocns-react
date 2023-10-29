@@ -46,13 +46,16 @@ export const File: React.FC<IProps> = (props) => {
 
 export interface TextProps {
   value?: string;
+  width?: string | number;
   height?: string | number;
 }
 
 export const TipDesignText: React.FC<TextProps> = (props) => {
   return (
     <Tooltip title={props.value}>
-      <div style={{ height: props.height }} className={cls.designText}>
+      <div
+        style={{ height: props.height, width: props.width }}
+        className={cls.designText}>
         <div className={cls.textOverflow}>{props.value}</div>
       </div>
     </Tooltip>

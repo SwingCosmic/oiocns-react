@@ -4,13 +4,13 @@ import { ProList } from '@ant-design/pro-components';
 import React from 'react';
 import { ExistTypeMeta } from '../../../core/ElementMeta';
 import { defineElement } from '../../defineElement';
-import { data, label } from './type';
+import { Length, data, label, valueType } from './type';
 
 export default defineElement({
   render(props, ctx) {
     return (
       <ProList<schema.XStaging>
-        style={{ height: 600, overflow: 'auto' }}
+        style={{ height: '70vh', overflow: 'auto' }}
         dataSource={
           ctx.view.mode == 'design'
             ? Enumerable.Range(1, 20)
@@ -34,6 +34,9 @@ export default defineElement({
               return props.avatar?.({
                 data: entity.data,
                 label: '图片',
+                valueType: 'Avatar',
+                width: 120,
+                height: 120,
               });
             },
           },
@@ -50,6 +53,7 @@ export default defineElement({
               return props.subTitle?.({
                 data: entity.data,
                 label: '标签组',
+                valueType: 'Tags',
               });
             },
           },
@@ -84,7 +88,7 @@ export default defineElement({
       avatar: {
         label: '头像',
         single: true,
-        params: { data, label },
+        params: { data, label, valueType, width: Length, height: Length },
         default: 'Field',
       },
       description: {
@@ -95,13 +99,15 @@ export default defineElement({
       },
       subTitle: {
         label: '标签',
-        single: false,
-        params: { data, label },
+        single: true,
+        params: { data, label, valueType },
+        default: 'Field',
       },
       content: {
         label: '内容',
-        single: false,
+        single: true,
         params: { data, label },
+        default: 'Field',
       },
       action: {
         label: '操作',
