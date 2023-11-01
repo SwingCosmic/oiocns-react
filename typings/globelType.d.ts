@@ -52,7 +52,6 @@ interface MenuItemType {
   menus?: OperateMenuType[];
   children: MenuItemType[];
   parentMenu?: MenuItemType;
-  company?: ICompany;
   beforeLoad?: () => Promise<void>;
 }
 

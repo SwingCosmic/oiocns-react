@@ -37,7 +37,6 @@ const DetailTable: React.FC<IProps> = (props) => {
       fields={fields}
       height={500}
       dataIndex={'attribute'}
-      columnChooser={{ enabled: true }}
       selection={
         props.allowEdit
           ? {
@@ -162,14 +161,6 @@ const DetailTable: React.FC<IProps> = (props) => {
       }}
       dataSource={formData.after}
       beforeSource={formData.before}
-      hideColumns={[
-        'createTime',
-        'createUser',
-        'createUser',
-        'updateTime',
-        'chainId',
-        'code',
-      ]}
     />
   );
 };

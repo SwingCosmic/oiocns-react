@@ -8,7 +8,7 @@ import { Button, Divider, Space } from 'antd';
 import { IFile } from '@/ts/core';
 import orgCtrl, { Controller } from '@/ts/controller';
 
-export interface IFileDialogProps {
+interface IFileDialogProps {
   title?: string;
   accepts: string[];
   multiple?: boolean;
@@ -52,6 +52,7 @@ const OpenFileDialog: React.FC<IFileDialogProps> = (props) => {
       }>
       <MainLayout
         leftShow
+        previewFlag={'dialog'}
         selectMenu={selectMenu}
         onSelect={(data) => {
           setSelectMenu(data);
@@ -59,6 +60,8 @@ const OpenFileDialog: React.FC<IFileDialogProps> = (props) => {
         siderMenuData={rootMenu}>
         <Directory
           key={key}
+          dialog
+          previewFlag={'dialog'}
           accepts={props.accepts}
           selects={selectedFiles}
           current={selectMenu.item}
@@ -81,7 +84,6 @@ const OpenFileDialog: React.FC<IFileDialogProps> = (props) => {
               }
             }
           }}
-          mode={10}
         />
       </MainLayout>
     </FullScreenModal>

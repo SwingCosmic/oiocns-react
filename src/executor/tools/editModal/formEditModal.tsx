@@ -1,8 +1,8 @@
 import { Modal } from 'antd';
-import OioForm from '@/components/Common/FormDesign/OioFormNext';
 import React from 'react';
 import { kernel, model, schema } from '@/ts/base';
 import { IBelong } from '@/ts/core';
+import WorkFormViewer from '@/components/DataStandard/WorkForm/Viewer';
 
 interface IFormEditProps {
   form: schema.XForm;
@@ -29,18 +29,20 @@ const FormEditModal = ({
     cancelText: '关闭',
     onCancel: () => modal.destroy(),
     content: (
-      <OioForm
-        showTitle
-        form={form}
-        fields={fields}
-        belong={belong}
-        fieldsValue={initialValues || {}}
-        onValuesChange={(_, values) => {
-          Object.keys(values).forEach((k) => {
-            editData[k] = values[k];
-          });
-        }}
-      />
+      <div
+        style={{ maxHeight: '70vh', width: '100%', overflowY: 'scroll', minHeight: 600 }}>
+        <WorkFormViewer
+          form={form}
+          fields={fields}
+          data={initialValues || {}}
+          belong={belong}
+          onValuesChange={(values) => {
+            Object.keys(values).forEach((k) => {
+              editData[k] = values[k];
+            });
+          }}
+        />
+      </div>
     ),
     onOk: () => {
       if (create) {

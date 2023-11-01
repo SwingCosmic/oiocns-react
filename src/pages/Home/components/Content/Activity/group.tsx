@@ -1,54 +1,69 @@
 import React, { useState } from 'react';
-import Activity, { ActivityItem } from '@/components/Activity';
+import TargetActivity from '@/components/TargetActivity';
+import ActivityMessage from '@/components/TargetActivity/ActivityMessage';
 import cls from './index.module.less';
 import { IActivity } from '@/ts/core';
-import useWindowResize from '@/hooks/useWindowResize';
+import useWidthToggle from '@/hooks/useWidthToggle';
 import { Resizable } from 'devextreme-react';
 import useCtrlUpdate from '@/hooks/useCtrlUpdate';
 import useAsyncLoad from '@/hooks/useAsyncLoad';
 import { Spin } from 'antd';
 
 const GroupActivityItem: React.FC<{ activity: IActivity }> = ({ activity }) => {
-  const size = useWindowResize();
+  const toggle = useWidthToggle(1000);
   const [key] = useCtrlUpdate(activity);
-  const [loaded] = useAsyncLoad(() => activity.load(10));
+  const [loaded] = useAsyncLoad(() => activity.load(10), [activity]);
   const [current, setCurrent] = useState<IActivity>(activity);
+  const loadMenus = React.useCallback(() => {
+    if (!loaded || !toggle) return <></>;
+    return (
+      <Resizable handles={'right'}>
+        <div className={cls.groupList}>
+          {activity.activitys
+            .filter((item) => item.activityList.length > 0)
+            .map((item) => {
+              if (item.activityList.length > 0) {
+                const _name = item.id === current.id ? 'Selected' : 'Item';
+                return (
+                  <div
+                    className={cls[`groupList${_name}`]}
+                    key={item.key}
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      setCurrent(item);
+                    }}>
+                    <ActivityMessage
+                      item={item.activityList[0]}
+                      activity={item}
+                      hideResource
+                    />
+                  </div>
+                );
+              }
+            })}
+        </div>
+      </Resizable>
+    );
+  }, [loaded, current, activity, key, toggle]);
+
+  const loadContext = React.useCallback(() => {
+    if (!loaded) return <></>;
+    return (
+      <div style={{ height: '100%', width: '100%' }}>
+        <TargetActivity
+          height={'calc(100vh - 110px)'}
+          activity={current}
+          title={current.name + '动态'}></TargetActivity>
+      </div>
+    );
+  }, [loaded, current]);
+
   return (
     <div className={cls.content}>
       <Spin tip="加载中,请稍后..." size="large" spinning={!loaded} delay={100}>
         <div className={cls.groupCtx}>
-          {size.width > 1000 && loaded && (
-            <Resizable handles={'right'}>
-              <div key={key} className={cls.groupList}>
-                {activity.activitys
-                  .filter((activity) => activity.activityList.length > 0)
-                  .map((activity) => {
-                    if (activity.activityList.length > 0) {
-                      return (
-                        <div
-                          className={cls.groupListItem}
-                          key={activity.key}
-                          onClick={() => setCurrent(activity)}>
-                          <ActivityItem
-                            item={activity.activityList[0]}
-                            activity={activity}
-                            hideResource
-                          />
-                        </div>
-                      );
-                    }
-                  })}
-              </div>
-            </Resizable>
-          )}
-          <div style={{ height: '100%', width: '100%' }}>
-            {loaded && (
-              <Activity
-                height={'calc(100vh - 335px)'}
-                activity={current}
-                title={current.name + '动态'}></Activity>
-            )}
-          </div>
+          {loadMenus()}
+          {loadContext()}
         </div>
       </Spin>
     </div>

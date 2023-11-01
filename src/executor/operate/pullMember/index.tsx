@@ -8,7 +8,7 @@ import SelectMember from '@/components/Common/SelectMember';
 
 type IProps = {
   current: ITarget | IDirectory;
-  finished: (ok: boolean) => void;
+  finished: () => void;
 };
 
 /*
@@ -16,7 +16,7 @@ type IProps = {
 */
 const PullMember: React.FC<IProps> = ({ current, finished }) => {
   const [selectMember, setSelectMember] = useState<XTarget[]>([]); // 选中的要拉的人
-  const target = 'target' in current ? current.target : current;
+  const target = 'standard' in current ? current.target : current;
   if (
     target.id != target.belongId &&
     target.typeName != TargetType.Cohort &&
@@ -28,30 +28,30 @@ const PullMember: React.FC<IProps> = ({ current, finished }) => {
         members={target.space.members}
         exclude={target.members}
         finished={async (selected) => {
-          if (await target.pullMembers(selected)) {
-            finished(true);
+          if (selected.length > 0) {
+            await target.pullMembers(selected);
           }
+          finished();
         }}
       />
     );
   }
-
   return (
     <Modal
       title="邀请成员"
       width={900}
       destroyOnClose
       open={true}
-      onCancel={() => finished(false)}
+      onCancel={() => finished()}
       onOk={async () => {
-        if (await target.pullMembers(selectMember)) {
-          finished(true);
-        }
+        await target.pullMembers(selectMember);
+        finished();
       }}>
       <SearchTarget
+        autoSelect
         searchCallback={setSelectMember}
         searchType={
-          current.typeName === TargetType.Group ? TargetType.Company : TargetType.Person
+          target.typeName === TargetType.Group ? TargetType.Company : TargetType.Person
         }
       />
     </Modal>

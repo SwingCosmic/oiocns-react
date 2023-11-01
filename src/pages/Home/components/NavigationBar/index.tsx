@@ -10,6 +10,32 @@ import { NavigationItem } from '../..';
 import cls from './index.module.less';
 import { ViewerHost } from '@/executor/open/page/view/ViewerHost';
 import ViewerManager from '@/executor/open/page/view/ViewerManager';
+import { getResouces } from '@/config/location';
+const resource = getResouces();
+
+export const allPages: NavigationItem[] = [
+  {
+    key: 'dashboard',
+    label: '工作台',
+    type: 'inner',
+    backgroundImageUrl: `/img/${resource.location}/banner/workbench.png`,
+    component: React.lazy(() => import('../Content/WorkBench')),
+  },
+  {
+    key: 'activity',
+    label: '群动态',
+    type: 'inner',
+    backgroundImageUrl: `/img/${resource.location}/banner/groupactivity.png`,
+    component: React.lazy(() => import('../Content/Activity/cohort')),
+  },
+  {
+    key: 'circle',
+    label: '好友圈',
+    type: 'inner',
+    backgroundImageUrl: `/img/${resource.location}/banner/friendactivity.png`,
+    component: React.lazy(() => import('../Content/Activity/friends')),
+  },
+];
 
 const NavigationBar: React.FC<{
   list: NavigationItem[];

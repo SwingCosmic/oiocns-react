@@ -2,13 +2,13 @@ import { useEffect, useState } from 'react';
 import { Badge, Drawer, Layout, List, Space, Tabs, Tag } from 'antd';
 import orgCtrl from '@/ts/controller';
 import styles from './index.module.less';
-import { Link } from 'react-router-dom';
 import EntityIcon from '@/components/Common/GlobalComps/entityIcon';
 import OrgIcons from '@/components/Common/GlobalComps/orgIcons';
 import React from 'react';
 import { kernel, model, schema } from '@/ts/base';
 import { showChatTime } from '@/utils/tools';
 import { useFlagCmdEmitter } from '@/hooks/useCtrlUpdate';
+import { Link } from 'react-router-dom';
 
 const Navbar: React.FC = () => {
   const [workCount, setWorkCount] = useState(0);
@@ -19,7 +19,7 @@ const Navbar: React.FC = () => {
     let noReadCount = 0;
     for (const item of orgCtrl.chats) {
       if (item.isMyChat) {
-        noReadCount += item.chatdata.noReadCount;
+        noReadCount += item.badgeCount;
       }
     }
     setMsgCount(noReadCount);

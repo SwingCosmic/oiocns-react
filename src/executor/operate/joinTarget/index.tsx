@@ -55,6 +55,7 @@ const JoinTarget: React.FC<IProps> = ({ cmd, current, finished }) => {
       onCancel={finished}
       width={670}>
       <SearchTarget
+        autoSelect
         searchCallback={(persons: schema.XTarget[]) => {
           setSelectMembers(persons);
         }}

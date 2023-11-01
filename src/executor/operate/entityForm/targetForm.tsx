@@ -8,7 +8,7 @@ import { EntityColumns } from './entityColumns';
 
 interface Iprops {
   formType: string;
-  target: ITarget;
+  current: ITarget;
   finished: () => void;
 }
 /*
@@ -17,9 +17,9 @@ interface Iprops {
 const TargetForm = (props: Iprops) => {
   let title = '';
   let typeName = '';
-  let types: string[] = [props.target.typeName];
+  let types: string[] = [props.current.typeName];
   const readonly = props.formType === 'remark';
-  let initialValue: any = props.target.metadata;
+  let initialValue: any = props.current.metadata;
   switch (props.formType) {
     case 'newCohort':
       typeName = '群组';
@@ -54,25 +54,25 @@ const TargetForm = (props: Iprops) => {
     case 'newDepartment':
       typeName = '部门';
       title = '设立部门';
-      if ('departmentTypes' in props.target) {
-        types = props.target.departmentTypes as string[];
+      if ('departmentTypes' in props.current) {
+        types = props.current.departmentTypes as string[];
       }
-      if ('childrenTypes' in props.target) {
-        types = props.target.childrenTypes as string[];
+      if ('childrenTypes' in props.current) {
+        types = props.current.childrenTypes as string[];
       }
       initialValue = {};
       break;
     case 'update':
-      initialValue.teamCode = props.target.metadata.team?.code;
-      initialValue.teamName = props.target.metadata.team?.name;
-      typeName = props.target.typeName;
-      title = '更新' + props.target.name;
+      initialValue.teamCode = props.current.metadata.team?.code;
+      initialValue.teamName = props.current.metadata.team?.name;
+      typeName = props.current.typeName;
+      title = '更新' + props.current.name;
       break;
     case 'remark':
-      initialValue.teamCode = props.target.metadata.team?.code;
-      initialValue.teamName = props.target.metadata.team?.name;
-      typeName = props.target.typeName;
-      title = '查看' + props.target.name;
+      initialValue.teamCode = props.current.metadata.team?.code;
+      initialValue.teamName = props.current.metadata.team?.name;
+      typeName = props.current.typeName;
+      title = '查看' + props.current.name;
       break;
     default:
       return <></>;
@@ -91,7 +91,7 @@ const TargetForm = (props: Iprops) => {
             onChanged={(icon) => {
               form.setFieldValue('icon', icon);
             }}
-            directory={props.target.directory}
+            directory={props.current.directory}
           />
         );
       },
@@ -142,7 +142,7 @@ const TargetForm = (props: Iprops) => {
     },
   ];
   if (readonly) {
-    columns.push(...EntityColumns(props.target!.metadata));
+    columns.push(...EntityColumns(props.current.metadata));
   }
   columns.push({
     title: '简介',
@@ -173,11 +173,11 @@ const TargetForm = (props: Iprops) => {
       onFinish={async (values) => {
         switch (props.formType) {
           case 'update':
-            await props.target.update(values);
+            await props.current.update(values);
             break;
           default:
             if (props.formType.startsWith('new')) {
-              await props.target.createTarget(values);
+              await props.current.createTarget(values);
             }
             break;
         }

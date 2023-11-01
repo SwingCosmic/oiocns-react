@@ -5,7 +5,7 @@ import EntityIcon from '@/components/Common/GlobalComps/entityIcon';
 import { model } from '@/ts/base';
 import { XEntity } from '@/ts/base/schema';
 /** 创建选择字段菜单 */
-export const buildSpeciesFiledsTree = (fields: model.FieldModel[]): MenuItemType[] => {
+const buildSpeciesFiledsTree = (fields: model.FieldModel[]): MenuItemType[] => {
   const result: any[] = [];
   for (const filed of fields) {
     result.push({
@@ -27,7 +27,7 @@ export const buildSpeciesFiledsTree = (fields: model.FieldModel[]): MenuItemType
           size={18}
         />
       ),
-      children: buildSpeciesItemsTree(filed.lookups || []),
+      children: buildSpeciesItemsTree(filed.id, filed.lookups || []),
     });
   }
   return result;
@@ -35,6 +35,7 @@ export const buildSpeciesFiledsTree = (fields: model.FieldModel[]): MenuItemType
 
 /** 创建字典项字段菜单 */
 const buildSpeciesItemsTree = (
+  fieldId: string,
   lookups: model.FiledLookup[],
   parentId?: string,
 ): MenuItemType[] => {
@@ -42,7 +43,7 @@ const buildSpeciesItemsTree = (
   for (const item of lookups) {
     if (item.parentId === parentId) {
       result.push({
-        key: item.id,
+        key: `${fieldId}-${item.id}`,
         item: item,
         label: item.text,
         itemType: '分类项',
@@ -60,7 +61,7 @@ const buildSpeciesItemsTree = (
             size={18}
           />
         ),
-        children: buildSpeciesItemsTree(lookups, item.id),
+        children: buildSpeciesItemsTree(fieldId, lookups, item.id),
       });
     }
   }
@@ -69,7 +70,7 @@ const buildSpeciesItemsTree = (
 
 /** 加载表单分类菜单 */
 export const loadSpeciesItemMenu = (form: IForm): MenuItemType => {
-  const SpeciesFields = form.fields.filter((i) => i.valueType === '分类型');
+  const SpeciesFields = form.fields.filter((i) => i.options?.species);
   return {
     key: form.key,
     label: form.name,

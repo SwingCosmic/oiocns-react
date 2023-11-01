@@ -1,23 +1,21 @@
-import React, { useState } from 'react';
-import useStorage from '@/hooks/useStorage';
-import IconMode from './views/iconMode';
-import ListMode from './views/listMode';
-import TableMode from './views/tableMode';
+import React, { useEffect, useState } from 'react';
+import DirectoryViewer from './views';
 import useCtrlUpdate from '@/hooks/useCtrlUpdate';
-import SegmentContent from '@/components/Common/SegmentContent';
+import useTimeoutHanlder from '@/hooks/useTimeoutHanlder';
 import { IDirectory, IFile } from '@/ts/core';
 import { loadFileMenus } from '@/executor/fileOperate';
 import { command } from '@/ts/base';
 import orgCtrl from '@/ts/controller';
 import useAsyncLoad from '@/hooks/useAsyncLoad';
 import { Spin } from 'antd';
-import TagsBar from './tagsBar';
+import { cleanMenus } from '@/utils/tools';
 
 interface IProps {
-  mode: number;
+  dialog?: boolean;
   accepts?: string[];
   selects?: IFile[];
   excludeIds?: string[];
+  previewFlag: string;
   onFocused?: (file: IFile | undefined) => void;
   onSelected?: (files: IFile[]) => void;
   current: IDirectory | undefined | 'disk';
@@ -31,125 +29,104 @@ const Directory: React.FC<IProps> = (props) => {
     props.current === 'disk' ? orgCtrl.user.directory : props.current,
   );
   const [key] = useCtrlUpdate(dircetory);
-  const [currentTag, setCurrentTag] = useState('全部');
   const [loaded] = useAsyncLoad(() => dircetory.loadContent());
-  const [segmented, setSegmented] = useStorage('segmented', 'list');
   const [focusFile, setFocusFile] = useState<IFile>();
-  const contextMenu = (file?: IFile, clicked?: Function) => {
+  const [submitHanlder, clearHanlder] = useTimeoutHanlder();
+  useEffect(() => {
+    command.emitter('preview', props.previewFlag, focusFile);
+  }, [focusFile]);
+  const contextMenu = (file?: IFile) => {
     var entity = file || dircetory;
     if ('targets' in entity) {
       entity = entity.directory;
     }
     return {
-      items: loadFileMenus(entity, props.mode),
+      items: cleanMenus(loadFileMenus(entity)) || [],
       onClick: ({ key }: { key: string }) => {
-        command.emitter('executor', key, file || dircetory, dircetory.key);
-        clicked?.apply(this, []);
+        command.emitter('executor', key, entity, dircetory.key);
       },
     };
   };
 
-  const fileOpen = async (file: IFile | undefined, dblclick: boolean) => {
-    if (dblclick && file && props.mode < 10) {
+  const fileOpen = (file: IFile | undefined) => {
+    if (file && props.dialog !== true) {
       if (!file.groupTags.includes('已删除')) {
         command.emitter('executor', 'open', file);
       }
-    } else if (!dblclick) {
-      if (file?.id === focusFile?.id) {
-        setFocusFile(undefined);
-        props.onFocused?.apply(this, [undefined]);
-        if (props.selects && props.selects.length > 0 && file) {
-          props.onSelected?.apply(this, [props.selects.filter((i) => i.id !== file.id)]);
-        }
-        command.emitter('preview', 'open');
+    }
+  };
+
+  const selectHanlder = (file: IFile, selected: boolean) => {
+    if (props.selects && props.onSelected) {
+      if (selected) {
+        props.onSelected([...props.selects, file]);
       } else {
-        setFocusFile(file);
-        props.onFocused?.apply(this, [file]);
-        if (props.selects && file) {
-          if (file && props.selects.every((i) => i.id !== file.id)) {
-            props.onSelected?.apply(this, [[...props.selects, file]]);
-          }
-        }
-        command.emitter('preview', 'open', file);
+        props.onSelected(props.selects.filter((i) => i.key !== file.key));
       }
     }
   };
 
-  const getContent = (filter: boolean = true) => {
-    if (filter && currentTag == '已选中') {
-      return props.selects || [];
+  const fileFocused = (file: IFile | undefined) => {
+    if (file) {
+      if (focusFile && file.key === focusFile.key) {
+        return true;
+      }
+      return props.selects?.find((i) => i.key === file.key) !== undefined;
     }
+    return false;
+  };
+
+  const focusHanlder = (file: IFile | undefined) => {
+    const focused = fileFocused(file);
+    if (focused) {
+      setFocusFile(undefined);
+      props.onFocused?.apply(this, [undefined]);
+    } else {
+      setFocusFile(file);
+      props.onFocused?.apply(this, [file]);
+    }
+    if (file && props.onSelected) {
+      selectHanlder(file, !focused);
+    }
+  };
+
+  const clickHanlder = (file: IFile | undefined, dblclick: boolean) => {
+    if (dblclick) {
+      clearHanlder();
+      fileOpen(file);
+    } else {
+      submitHanlder(() => focusHanlder(file), 200);
+    }
+  };
+
+  const getContent = () => {
     const contents: IFile[] = [];
     if (props.current === 'disk') {
-      contents.push(orgCtrl.user, ...orgCtrl.user.companys);
+      contents.push(
+        orgCtrl.user.directory,
+        ...orgCtrl.user.companys.map((i) => i.directory),
+      );
     } else {
-      contents.push(...props.current!.content(props.mode));
+      contents.push(...props.current!.content());
     }
-    const tagFilter = (file: IFile) => {
-      let success = true;
-      if (props.excludeIds && props.excludeIds.length > 0) {
-        if (props.excludeIds.includes(file.id)) {
-          return false;
-        }
-      }
-      if (filter) {
-        if (currentTag !== '全部') {
-          success = file.groupTags.includes(currentTag);
-        } else {
-          success = !file.groupTags.includes('已删除');
-        }
-      }
-      if (success && props.accepts && props.accepts.length > 0) {
-        success = file.groupTags.some((i) => props.accepts!.includes(i));
-      }
-      return success;
-    };
-    return contents.filter(tagFilter);
+    return contents;
   };
 
   return (
-    <>
-      <TagsBar
-        select={currentTag}
-        initTags={['全部']}
-        selectFiles={props.selects || []}
-        entitys={getContent(false)}
-        onChanged={(t) => setCurrentTag(t)}></TagsBar>
-      <SegmentContent
+    <Spin spinning={!loaded} tip={'加载中...'}>
+      <DirectoryViewer
         key={key}
-        onSegmentChanged={setSegmented}
-        descriptions={`${getContent().length}个项目`}
-        content={
-          <Spin spinning={!loaded} delay={10} tip={'加载中...'}>
-            {segmented === 'table' ? (
-              <TableMode
-                selectFiles={props.selects || []}
-                focusFile={focusFile}
-                content={getContent()}
-                fileOpen={fileOpen}
-                contextMenu={contextMenu}
-              />
-            ) : segmented === 'icon' ? (
-              <IconMode
-                selectFiles={props.selects || []}
-                focusFile={focusFile}
-                content={getContent()}
-                fileOpen={fileOpen}
-                contextMenu={contextMenu}
-              />
-            ) : (
-              <ListMode
-                selectFiles={props.selects || []}
-                focusFile={focusFile}
-                content={getContent()}
-                fileOpen={fileOpen}
-                contextMenu={contextMenu}
-              />
-            )}
-          </Spin>
-        }
+        extraTags
+        initTags={['全部']}
+        accepts={props.accepts}
+        excludeIds={props.excludeIds}
+        selectFiles={props.selects || []}
+        focusFile={focusFile}
+        content={getContent()}
+        fileOpen={(entity, dblclick) => clickHanlder(entity as IFile, dblclick)}
+        contextMenu={(entity) => contextMenu(entity as IFile)}
       />
-    </>
+    </Spin>
   );
 };
 export default Directory;

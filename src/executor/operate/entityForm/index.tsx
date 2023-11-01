@@ -1,7 +1,7 @@
 import React from 'react';
 import { schema } from '@/ts/base';
 import orgCtrl from '@/ts/controller';
-import { IDirectory, IEntity, ITarget } from '@/ts/core';
+import { IEntity } from '@/ts/core';
 import WorkForm from './workForm';
 import DirectoryForm from './directoryForm';
 import ApplicationForm from './applicationForm';
@@ -32,17 +32,9 @@ const EntityForm: React.FC<IProps> = ({ cmd, entity, finished }) => {
     case 'newDir':
     case 'updateDir':
     case 'remarkDir': {
-      const directory = entity as IDirectory;
-      if (!directory.parent && cmd !== 'newDir') {
-        return (
-          <TargetForm
-            formType={cmd.replace('Dir', '')}
-            target={directory.target}
-            finished={reloadFinish}
-          />
-        );
-      }
-      return <DirectoryForm formType={cmd} current={directory} finished={reloadFinish} />;
+      return (
+        <DirectoryForm formType={cmd} current={entity as any} finished={reloadFinish} />
+      );
     }
     case 'newApp':
     case 'newModule':
@@ -102,11 +94,9 @@ const EntityForm: React.FC<IProps> = ({ cmd, entity, finished }) => {
         />
       );
     default: {
-      var target = entity as ITarget;
-      if (entity.typeName === '目录') {
-        target = (entity as IDirectory).target;
-      }
-      return <TargetForm formType={cmd} target={target} finished={reloadFinish} />;
+      return (
+        <TargetForm formType={cmd} current={entity as any} finished={reloadFinish} />
+      );
     }
   }
 };

@@ -1,24 +1,26 @@
 import React from 'react';
+import Content from './content';
 import MainLayout from '@/components/MainLayout';
-import Directory from '@/components/Directory';
-import useMenuUpdate from '@/hooks/useMenuUpdate';
 import * as config from './config/menuOperate';
-
-const TeamSetting: React.FC = () => {
+import useMenuUpdate from '@/hooks/useMenuUpdate';
+/** 文件浏览器 */
+const FileBrowser: React.FC = () => {
   const [key, rootMenu, selectMenu, setSelectMenu] = useMenuUpdate(
-    config.loadSettingMenu,
+    config.loadBrowserMenu,
   );
   if (!selectMenu || !rootMenu) return <></>;
   return (
     <MainLayout
+      rightShow
+      previewFlag={'setting'}
       selectMenu={selectMenu}
-      onSelect={(data) => {
+      onSelect={async (data) => {
         setSelectMenu(data);
       }}
       siderMenuData={rootMenu}>
-      <Directory key={key} current={selectMenu.item} mode={2} />
+      <Content key={key} current={selectMenu.item} />
     </MainLayout>
   );
 };
 
-export default TeamSetting;
+export default FileBrowser;

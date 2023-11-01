@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
-import { IFile } from '@/ts/core';
-import { Dropdown, List, MenuProps, Tag } from 'antd';
+import { IDEntity } from '@/ts/core';
+import { Badge, Dropdown, List, MenuProps, Tag } from 'antd';
 import { showChatTime } from '@/utils/tools';
 import css from './less/list.module.less';
 import EntityIcon from '@/components/Common/GlobalComps/entityIcon';
@@ -12,15 +12,15 @@ const ListMode = ({
   contextMenu,
   selectFiles,
 }: {
-  content: IFile[];
-  selectFiles: IFile[];
-  focusFile: IFile | undefined;
-  fileOpen: (file: IFile | undefined, dblclick: boolean) => Promise<void>;
-  contextMenu: (file?: IFile) => MenuProps;
+  content: IDEntity[];
+  selectFiles: IDEntity[];
+  focusFile: IDEntity | undefined;
+  fileOpen: (file: IDEntity | undefined, dblclick: boolean) => void;
+  contextMenu: (file?: IDEntity) => MenuProps;
 }) => {
-  const [cxtItem, setCxtItem] = useState<IFile>();
-  const getItemClassName = (item: IFile) => {
-    if (focusFile?.id === item.id || selectFiles.some((i) => i.id === item.id)) {
+  const [cxtItem, setCxtItem] = useState<IDEntity>();
+  const getItemClassName = (item: IDEntity) => {
+    if (focusFile?.key === item.key || selectFiles.some((i) => i.key === item.key)) {
       return css.list_item_select;
     }
     return css.list_item;
@@ -37,28 +37,40 @@ const ListMode = ({
             return (
               <div className={getItemClassName(item)}>
                 <List.Item
-                  onClick={async () => {
-                    await fileOpen(item, false);
+                  onClick={() => {
+                    fileOpen(item, false);
                   }}
-                  onDoubleClick={async () => {
-                    await fileOpen(item, true);
+                  onDoubleClick={() => {
+                    fileOpen(item, true);
                   }}
                   onContextMenu={() => setCxtItem(item)}
                   actions={[
-                    <div key={item.id} title={item.metadata.updateTime}>
-                      {showChatTime(item.metadata.updateTime)}
+                    <div key={item.id} title={item.updateTime}>
+                      {showChatTime(item.updateTime)}
                     </div>,
                   ]}>
                   <List.Item.Meta
                     title={
                       <>
                         <div className={css.item_title}>{item.name}</div>
-                        <Tag color="green" title={'文件类型'}>
-                          {item.typeName}
-                        </Tag>
+                        {item.groupTags
+                          .filter((i) => i.length > 0)
+                          .map((label) => {
+                            return (
+                              <Tag
+                                key={label}
+                                color={label === '置顶' ? 'red' : 'success'}>
+                                {label}
+                              </Tag>
+                            );
+                          })}
                       </>
                     }
-                    avatar={<EntityIcon entity={item.metadata} size={42} />}
+                    avatar={
+                      <Badge count={item.badgeCount} size="small">
+                        <EntityIcon entity={item.metadata} size={40} />
+                      </Badge>
+                    }
                     description={item.remark || item.code}
                   />
                 </List.Item>
@@ -67,7 +79,7 @@ const ListMode = ({
           }}
         />
         <div
-          style={{ height: `calc(100% - ${content.length * 75}px)` }}
+          style={{ height: `calc(100% - ${content.length * 78}px)` }}
           className={css.blank_area}
           onContextMenu={() => setCxtItem(undefined)}></div>
       </div>

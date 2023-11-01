@@ -9,12 +9,13 @@ import {
   IStorage,
   ISysFileInfo,
   ITarget,
-  TargetType,
+  IWork,
 } from '@/ts/core';
 import orgCtrl from '@/ts/controller';
 import QrCode from 'qrcode.react';
 import { command, model, schema } from '@/ts/base';
-import { List, Modal, Upload, message } from 'antd';
+import { List, Modal, Upload } from 'antd';
+import message from '@/utils/message';
 import { uploadTemplate } from './tools/uploadTemplate';
 import TypeIcon from '@/components/Common/GlobalComps/typeIcon';
 import EntityIcon from '@/components/Common/GlobalComps/entityIcon';
@@ -24,8 +25,10 @@ export const executeCmd = (cmd: string, entity: any) => {
   switch (cmd) {
     case 'qrcode':
       return entityQrCode(entity);
+    case 'reload':
+      return directoryRefresh(entity, true);
     case 'refresh':
-      return directoryRefresh(entity);
+      return directoryRefresh(entity, false);
     case 'openChat':
       return openChat(entity);
     case 'download':
@@ -55,6 +58,8 @@ export const executeCmd = (cmd: string, entity: any) => {
       });
     case 'open':
       return openDirectory(entity);
+    case 'workForm':
+      return openWork(entity);
     case 'standard':
       return uploadTemplate(entity);
     case 'online':
@@ -62,33 +67,51 @@ export const executeCmd = (cmd: string, entity: any) => {
       return onlineChanged(cmd, entity);
     case 'activate':
       return activateStorage(entity);
+    case 'hslSplit':
+      return videoHslSplit(entity);
   }
   return false;
 };
 
 /** 刷新目录 */
-const directoryRefresh = (dir: IDirectory | IApplication) => {
-  dir.loadContent(true).then(() => {
+const directoryRefresh = (dir: IDirectory | IApplication, reload: boolean) => {
+  dir.loadContent(reload).then(() => {
     orgCtrl.changCallback();
   });
 };
 
 /** 激活存储 */
 const activateStorage = (store: IStorage) => {
-  if ('activateStorage' in store) {
-    store.activateStorage();
-  }
+  store.activateStorage();
+};
+
+/** 视频切片 */
+const videoHslSplit = (file: ISysFileInfo) => {
+  const modal = Modal.confirm({
+    title: '切片前确认',
+    content: `视频截屏需要较长的时间,默认等待时间为2s,
+              如果提示超时并非失败,请等待片刻后尝试刷新。`,
+    okText: '确认切片',
+    cancelText: '取消',
+    onOk: async () => {
+      await file.hslSplit();
+      modal.destroy();
+    },
+    onCancel: () => {
+      modal.destroy();
+    },
+  });
+};
+
+/** 进入办事 */
+const openWork = (entity: IWork) => {
+  orgCtrl.currentKey = entity.key;
+  orgCtrl.changCallback();
 };
 
 /** 进入目录 */
-const openDirectory = (entity: IEntity<schema.XEntity> | IFile | ITarget) => {
-  if ('identitys' in entity && entity.typeName != TargetType.Station) {
-    if (entity.typeName === TargetType.Storage) {
-      return false;
-    }
-    entity = entity.directory;
-  }
-  if ('isContainer' in entity && entity.isContainer) {
+const openDirectory = (entity: IFile | schema.XEntity) => {
+  if (entity && 'isContainer' in entity && entity.isContainer) {
     orgCtrl.currentKey = entity.key;
     orgCtrl.changCallback();
     return;
@@ -105,7 +128,7 @@ const setCopyFiles = (cmd: string, file: IFile) => {
     }
   }
   orgCtrl.user.copyFiles.set(key, file);
-  message.info(`${file.name}已放入剪切板`, 0.5);
+  message.info(`${file.name}已放入剪切板`);
 };
 
 /** 剪贴板操作 */
@@ -274,23 +297,9 @@ const onlineChanged = (cmd: string, info: model.OnlineInfo) => {
     orgCtrl.user.findEntityAsync(info.userId).then((target) => {
       if (target) {
         if (cmd === 'online') {
-          message.success({
-            duration: 1,
-            content: (
-              <div style={{ display: 'contents' }}>
-                {target.name} [{target.code}] 从{info.remoteAddr}上线啦
-              </div>
-            ),
-          });
+          message.info(`${target.name} [${target.code}] 从${info.remoteAddr}上线啦`);
         } else {
-          message.error({
-            duration: 1,
-            content: (
-              <div style={{ display: 'contents' }}>
-                {target.name} [{target.code}] 从{info.remoteAddr}下线啦
-              </div>
-            ),
-          });
+          message.error(`${target.name} [${target.code}] 从${info.remoteAddr}下线啦`);
         }
       }
     });

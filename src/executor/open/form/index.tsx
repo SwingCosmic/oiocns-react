@@ -5,6 +5,7 @@ import * as config from './config';
 import EntityIcon from '@/components/Common/GlobalComps/entityIcon';
 import MainLayout from '@/components/MainLayout';
 import useMenuUpdate from '@/hooks/useMenuUpdate';
+import WorkForm from '@/components/DataStandard/WorkForm';
 import GenerateThingTable from '@/executor/tools/generate/thingTable';
 import CustomStore from 'devextreme/data/custom_store';
 import { kernel } from '@/ts/base';
@@ -24,7 +25,7 @@ const FormView: React.FC<IProps> = ({ form, finished }) => {
   const [select, setSelcet] = useState();
   const [loaded] = useAsyncLoad(() => form.loadContent());
   const FormBrower: React.FC = () => {
-    const [key, rootMenu, selectMenu, setSelectMenu] = useMenuUpdate(
+    const [, rootMenu, selectMenu, setSelectMenu] = useMenuUpdate(
       () => config.loadSpeciesItemMenu(form),
       new Controller(form.key),
     );
@@ -37,7 +38,7 @@ const FormView: React.FC<IProps> = ({ form, finished }) => {
       }
       return (
         <GenerateThingTable
-          key={key}
+          key={form.key}
           height={'100%'}
           fields={form.fields}
           onRowDblClick={(e: any) => setSelcet(e.data)}
@@ -61,7 +62,6 @@ const FormView: React.FC<IProps> = ({ form, finished }) => {
             })
           }
           remoteOperations={true}
-          columnChooser={{ enabled: true }}
           toolbar={{
             visible: true,
             items: [
@@ -100,20 +100,13 @@ const FormView: React.FC<IProps> = ({ form, finished }) => {
               console.log(key, data);
             },
           }}
-          hideColumns={[
-            'createTime',
-            'createUser',
-            'createUser',
-            'updateTime',
-            'chainId',
-            'code',
-          ]}
         />
       );
     };
     return (
       <MainLayout
         notExitIcon
+        leftShow
         rightShow={false}
         selectMenu={selectMenu}
         onSelect={(data) => {
@@ -136,7 +129,11 @@ const FormView: React.FC<IProps> = ({ form, finished }) => {
       destroyOnClose
       onCancel={() => finished()}>
       {loaded ? (
-        <FormBrower />
+        form.canDesign ? (
+          <FormBrower />
+        ) : (
+          <WorkForm form={form} />
+        )
       ) : (
         <Spin tip={'配置信息加载中...'}>
           <div style={{ width: '100%', height: '100%' }}></div>

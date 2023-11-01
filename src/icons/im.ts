@@ -41,6 +41,7 @@ import { ImList } from '@react-icons/all-files/im/ImList';
 import { ImFilesEmpty } from '@react-icons/all-files/im/ImFilesEmpty';
 import { ImSearch } from '@react-icons/all-files/im/ImSearch';
 import { ImArrowLeft2 } from '@react-icons/all-files/im/ImArrowLeft2';
+import { ImArrowRight2 } from '@react-icons/all-files/im/ImArrowRight2';
 import { ImVolumeHigh } from '@react-icons/all-files/im/ImVolumeHigh';
 import { ImVolumeLow } from '@react-icons/all-files/im/ImVolumeLow';
 import { ImVolumeMedium } from '@react-icons/all-files/im/ImVolumeMedium';
@@ -62,11 +63,15 @@ import { ImCompass } from '@react-icons/all-files/im/ImCompass';
 import { ImPowerCord } from '@react-icons/all-files/im/ImPowerCord';
 import { ImDrive } from '@react-icons/all-files/im/ImDrive';
 import { ImSafari } from '@react-icons/all-files/im/ImSafari';
+import { ImClipboard } from '@react-icons/all-files/im/ImClipboard';
 import { ImEqualizer } from '@react-icons/all-files/im/ImEqualizer';
+import { ImStack } from '@react-icons/all-files/im/ImStack';
+import { ImLifebuoy } from '@react-icons/all-files/im/ImLifebuoy';
 
 export {
   ImAddressBook,
   ImArrowLeft2,
+  ImArrowRight2,
   ImBell,
   ImBin,
   ImBook,
@@ -74,6 +79,7 @@ export {
   ImBriefcase,
   ImBubbles2,
   ImCheckmark,
+  ImClipboard,
   ImCog,
   ImCoinPound,
   ImCompass,
@@ -97,6 +103,7 @@ export {
   ImKey,
   ImKey2,
   ImLibrary,
+  ImLifebuoy,
   ImList,
   ImMic,
   ImOffice,
@@ -114,6 +121,7 @@ export {
   ImSmile,
   ImSpinner4,
   ImSpinner9,
+  ImStack,
   ImTicket,
   ImTree,
   ImTrophy,

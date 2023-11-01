@@ -4,35 +4,33 @@ import React, { useEffect, useState } from 'react';
 import { ImSearch } from '@/icons/im';
 import { MenuItemType } from 'typings/globelType';
 import style from './index.module.less';
+import { cleanMenus } from '@/utils/tools';
 
 interface CustomMenuType {
   collapsed: boolean;
   selectMenu: MenuItemType;
   item: MenuItemType;
-  className?: string;
   onSelect?: (item: MenuItemType) => void;
   onMenuClick?: (item: MenuItemType, menuKey: string) => void;
 }
 const CustomMenu = (props: CustomMenuType) => {
-  const [filter, setFilter] = useState<string>('');
-  const [selectedKeys, setSelectedKeys] = useState<string[]>([props.selectMenu.key]);
-  const [openKeys, setOpenKeys] = useState<string[]>([]);
-  const [visibleMenu, setVisibleMenu] = useState<boolean>();
-  const [data, setData] = useState<MenuProps['items']>([]);
-  useEffect(() => {
-    reloadData(loadOpenKeys(props.item?.children, props.selectMenu.key));
-  }, [props]);
-
-  useEffect(() => {
-    reloadData(openKeys);
-  }, [visibleMenu, filter]);
-
-  const reloadData = (keys: string[]) => {
-    setData(loadMenus(loopFilterTree(props.item.children), keys));
-    setOpenKeys(keys);
-    setSelectedKeys([props.selectMenu.key]);
+  if (props.item === undefined) return <></>;
+  /** 转换数据,解析成原生菜单数据 */
+  const loadMenus: any = (items: MenuItemType[], expKeys: string[]) => {
+    const result = [];
+    if (Array.isArray(items)) {
+      for (const item of items) {
+        result.push({
+          key: item.key,
+          title: item.label,
+          label: renderLabel(item),
+          children: loadMenus(item.children, expKeys),
+          icon: item.expIcon && expKeys.includes(item.key) ? item.expIcon : item.icon,
+        });
+      }
+    }
+    return result;
   };
-
   const loopFilterTree = (data: MenuItemType[]) => {
     const result: any[] = [];
     for (const item of data) {
@@ -50,23 +48,6 @@ const CustomMenu = (props: CustomMenuType) => {
       }
       if (exsit) {
         result.push(newItem);
-      }
-    }
-    return result;
-  };
-
-  /** 转换数据,解析成原生菜单数据 */
-  const loadMenus: any = (items: MenuItemType[], expKeys: string[]) => {
-    const result = [];
-    if (Array.isArray(items)) {
-      for (const item of items) {
-        result.push({
-          key: item.key,
-          title: item.label,
-          label: renderLabel(item),
-          children: loadMenus(item.children, expKeys),
-          icon: item.expIcon && expKeys.includes(item.key) ? item.expIcon : item.icon,
-        });
       }
     }
     return result;
@@ -117,7 +98,7 @@ const CustomMenu = (props: CustomMenuType) => {
             {props.selectMenu.key === item.key && (
               <Dropdown
                 menu={{
-                  items: item.menus,
+                  items: cleanMenus(item.menus),
                   onClick: ({ key }) => {
                     setVisibleMenu(false);
                     props.onMenuClick?.apply(this, [item, key]);
@@ -141,7 +122,26 @@ const CustomMenu = (props: CustomMenuType) => {
       </span>
     );
   };
+  const [filter, setFilter] = useState<string>('');
+  const [selectedKeys, setSelectedKeys] = useState<string[]>([props.selectMenu.key]);
+  const [openKeys, setOpenKeys] = useState<string[]>([]);
+  const [visibleMenu, setVisibleMenu] = useState<boolean>();
+  const [data, setData] = useState<MenuProps['items']>(
+    loadMenus(props.item.children, []),
+  );
+  useEffect(() => {
+    reloadData(loadOpenKeys(props.item.children, props.selectMenu.key));
+  }, [props]);
 
+  useEffect(() => {
+    reloadData(openKeys);
+  }, [visibleMenu, filter]);
+
+  const reloadData = (keys: string[]) => {
+    setData(loadMenus(loopFilterTree(props.item.children), keys));
+    setOpenKeys(keys);
+    setSelectedKeys([props.selectMenu.key]);
+  };
   return (
     <>
       <span style={{ display: 'flex', justifyContent: 'center' }}>
@@ -160,7 +160,7 @@ const CustomMenu = (props: CustomMenuType) => {
       </span>
 
       <Menu
-        className={`${style.customMenu} ${props.className ?? ''}`}
+        className={style.customMenu}
         mode="inline"
         inlineIndent={10}
         items={data}
