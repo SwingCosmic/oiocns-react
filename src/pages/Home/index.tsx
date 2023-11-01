@@ -1,6 +1,6 @@
 import cls from './index.module.less';
 import React, { useState } from 'react';
-import NavigationBar from './components/NavigationBar';
+import NavigationBar, { allPages } from './components/NavigationBar';
 export interface NavigationItem {
   key: string;
   label: string;
@@ -8,31 +8,9 @@ export interface NavigationItem {
   type: string;
   component: any;
 }
-const navigationList: NavigationItem[] = [
-  {
-    key: 'app',
-    label: '工作台',
-    type: 'inner',
-    backgroundImageUrl: '/img/banner/digital-asset-bg.png',
-    component: React.lazy(() => import('./components/Content/WorkBench')),
-  },
-  {
-    key: 'cohort',
-    label: '群动态',
-    type: 'inner',
-    backgroundImageUrl: '/img/banner/activity-bg.png',
-    component: React.lazy(() => import('./components/Content/Activity/cohort')),
-  },
-  {
-    key: 'friends',
-    label: '好友圈',
-    type: 'inner',
-    backgroundImageUrl: '/img/banner/circle-bg.jpeg',
-    component: React.lazy(() => import('./components/Content/Activity/friends')),
-  },
-];
+
 const Home: React.FC = () => {
-  const [current, setCurrent] = useState(navigationList[0]);
+  const [current, setCurrent] = useState(allPages[0]);
 
   return (
     <div
@@ -42,7 +20,7 @@ const Home: React.FC = () => {
       {current.type == 'inner' && React.createElement(current.component)}
       {current.type == 'page' && current.component}
       <NavigationBar
-        list={navigationList}
+        list={allPages}
         onChange={(item) => {
           setCurrent(item);
         }}

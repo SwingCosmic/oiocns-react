@@ -71,6 +71,7 @@ const Design: React.FC<IProps> = (props) => {
       const [form, setForm] = useState(props.props.form);
       return [
         <File
+          key={'first'}
           accepts={['办事']}
           onOk={(files) => {
             const meta = files[0].metadata;
@@ -94,6 +95,7 @@ const Design: React.FC<IProps> = (props) => {
           </Button>
         </File>,
         <File
+          key={'second'}
           accepts={['事项配置', '实体配置']}
           onOk={(files) => {
             const meta = files[0].metadata;
@@ -226,9 +228,8 @@ const View: React.FC<Omit<IProps, 'data'>> = (props) => {
           <Button
             type="primary"
             onClick={async () => {
-              const data = await apply.ruleService.handleSubmit(formData);
-              if (data.success) {
-                apply.createApply(apply.belong.id, info.content, data.values).then(() => {
+              if (apply.validation(formData)) {
+                apply.createApply(apply.belong.id, info.content, formData).then(() => {
                   message.success('发起成功！');
                   const filter = stagings.filter((item) => keys.includes(item.id));
                   orgCtrl.box.removeStaging(filter).then(() => {
@@ -256,6 +257,7 @@ const View: React.FC<Omit<IProps, 'data'>> = (props) => {
           const [loading, setLoading] = useState(false);
           return [
             <Button
+              key={'first'}
               loading={loading}
               onClick={async () => {
                 try {

@@ -126,12 +126,11 @@ export class Directory extends StandardFileInfo<schema.XDirectory> implements ID
         cnt.push(...this.files);
         cnt.push(...this.standard.forms);
         cnt.push(...this.standard.applications);
-        cnt.push(...this.standard.transfers);
-        cnt.push(...this.standard.templates);
         if (this.target.hasRelationAuth()) {
           cnt.push(...this.standard.propertys);
           cnt.push(...this.standard.specieses);
           cnt.push(...this.standard.transfers);
+          cnt.push(...this.standard.templates);
         }
         if (!this.parent) {
           for (const item of this.target.content()) {

@@ -1,5 +1,5 @@
 import OpenFileDialog from '@/components/OpenFileDialog';
-import LabelsModal from '@/executor/design/labelsModal';
+import FromModal from '@/executor/design/formModal';
 import { schema } from '@/ts/base';
 import { generateUuid } from '@/ts/base/common';
 import { IFile, ITransfer } from '@/ts/core';
@@ -81,7 +81,7 @@ export const Center: React.FC<IProps> = ({ current }) => {
                     const form = current.forms[args.formId];
                     if (form) {
                       setCenter(
-                        <LabelsModal
+                        <FromModal
                           key={generateUuid()}
                           current={form}
                           finished={setEmpty}
