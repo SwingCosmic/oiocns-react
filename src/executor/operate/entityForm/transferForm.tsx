@@ -45,7 +45,7 @@ const TransferForm: React.FC<IProps> = ({ formType, current, finished }) => {
     <SchemaForm<Transfer>
       formRef={formRef}
       open
-      title="迁移配置定义"
+      title="配置定义"
       width={640}
       columns={columns}
       initialValues={initialValue}
