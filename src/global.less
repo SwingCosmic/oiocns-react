@@ -1,5 +1,15 @@
 @import '~antd/dist/antd.less';
-@import '@/assets/styles/reset.less';
+
+body {
+  font-family: 'Han Sans SC', Arial, Helvetica, 'Helvetica Neue', sans-serif;
+}
+
+ul,
+li {
+  padding: 0;
+  margin: 0;
+  list-style: none;
+}
 
 // 此处存放全局使用样式
 #root {
@@ -221,4 +231,11 @@ h3 {
 .dx-datagrid-rowsview .dx-selection.dx-row:not(.dx-row-focused):hover > td,
 .dx-datagrid-rowsview .dx-selection.dx-row:not(.dx-row-focused):hover > tr > td {
   background-color: @active-background;
+}
+.dx-datagrid-headers .dx-datagrid-table .dx-row > td {
+  border-bottom: 1px solid #ebeef5;
+}
+
+.dx-button {
+  border-color: @border-color;
 }
