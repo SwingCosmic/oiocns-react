@@ -20,7 +20,7 @@ import configVisualizerPlugin from './visualizer';
 export function createVitePlugins(viteEnv: string, isBuild: boolean) {
   const vitePlugins: (PluginOption | PluginOption[])[] = [
     // have to
-    react({}),
+    react(),
   ];
 
   // @vitejs/plugin-legacy
