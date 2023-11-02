@@ -43,6 +43,12 @@ export class PageTemplate
     }
     return false;
   }
+  override receive(operate: string, data: schema.XStandard): boolean {
+    this.coll.removeCache((i) => i.id != data.id);
+    super.receive(operate, data);
+    this.coll.cache.push(this._metadata);
+    return true;
+  }
   async loadSpecies(speciesIds: string[]): Promise<ISpecies[]> {
     const already = this.species.map((item) => item.id);
     const filter = speciesIds.filter((speciesId) => !already.includes(speciesId));
