@@ -643,7 +643,7 @@ export type XStaging = {
 
 // 页面模板
 export interface XPageTemplate extends XStandard {
-  // 是否发布
+  // 是否发布至首页
   public: boolean;
   // 模板类型
   kind?: string;

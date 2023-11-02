@@ -326,6 +326,7 @@ export class Directory extends StandardFileInfo<schema.XDirectory> implements ID
     }
     await this.standard.loadApplications();
     await this.standard.loadDirectorys();
+    await this.standard.loadTemplates();
   }
   /** 对目录下所有资源进行操作 */
   private async operateDirectoryResource(

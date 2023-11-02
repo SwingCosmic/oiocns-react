@@ -5,12 +5,10 @@ import { deepClone } from '@/ts/base/common';
 import { Enumerable } from '@/ts/base/common/linq';
 import { XStaging } from '@/ts/base/schema';
 import orgCtrl from '@/ts/controller';
-import { IForm, IWork, IWorkApply } from '@/ts/core';
-import { CloseCircleOutlined } from '@ant-design/icons';
+import { IWork, IWorkApply } from '@/ts/core';
 import { ProList, ProListProps } from '@ant-design/pro-components';
-import { Button, Input, Modal, Space, message } from 'antd';
-import React, { Key, ReactNode, useEffect, useState } from 'react';
-import { ExistTypeMeta } from '../../../core/ElementMeta';
+import { Button, Input, Modal, Space, Table, message } from 'antd';
+import React, { Key, ReactNode, useEffect, useRef, useState } from 'react';
 import { useStagings } from '../../../core/hooks/useChange';
 import { File, SEntity } from '../../../design/config/FileProp';
 import { Context } from '../../../render/PageContext';
@@ -64,63 +62,6 @@ const Design: React.FC<IProps> = (props) => {
       command.unsubscribe(id);
     };
   }, []);
-  let toolBarRender = props.toolBarRender;
-  if (!toolBarRender) {
-    toolBarRender = () => {
-      const [work, setWork] = useState(props.props.work);
-      const [form, setForm] = useState(props.props.form);
-      return [
-        <File
-          key={'first'}
-          accepts={['办事']}
-          onOk={(files) => {
-            const meta = files[0].metadata;
-            props.props.work = {
-              id: meta.id,
-              name: meta.name,
-            };
-            setWork({ ...props.props.work });
-          }}>
-          <Button
-            icon={
-              <CloseCircleOutlined
-                onClick={(e) => {
-                  e.stopPropagation();
-                  props.props.work = undefined;
-                  setWork(undefined);
-                }}
-              />
-            }>
-            {work ? work.name : '绑定办事'}
-          </Button>
-        </File>,
-        <File
-          key={'second'}
-          accepts={['事项配置', '实体配置']}
-          onOk={(files) => {
-            const meta = files[0].metadata;
-            props.props.form = {
-              id: meta.id,
-              name: meta.name,
-            };
-            setForm({ ...props.props.form });
-          }}>
-          <Button
-            icon={
-              <CloseCircleOutlined
-                onClick={(e) => {
-                  e.stopPropagation();
-                  props.props.form = undefined;
-                  setForm(undefined);
-                }}
-              />
-            }>
-            {form ? form.name : '绑定表单'}
-          </Button>
-        </File>,
-      ];
-    };
-  }
   return (
     <Modal
       open={open}
@@ -133,7 +74,7 @@ const Design: React.FC<IProps> = (props) => {
       <ProList<schema.XStaging>
         style={{ height: '70vh', overflow: 'auto' }}
         dataSource={props.data}
-        toolBarRender={toolBarRender}
+        toolBarRender={props.toolBarRender}
         rowKey={props.rowKey}
         headerTitle={props.headerTitle}
         rowSelection={props.rowSelection}
@@ -188,6 +129,7 @@ const Design: React.FC<IProps> = (props) => {
 const View: React.FC<Omit<IProps, 'data'>> = (props) => {
   const stagings = useStagings(orgCtrl.box, props.ctx.view.pageInfo.relations);
   const [keys, setKeys] = useState<Key[]>([]);
+  const selected = useRef<Key[]>([]);
   const [center, setCenter] = useState(<></>);
   const openWorkForm = (apply: IWorkApply) => {
     const info: { content: string } = { content: '' };
@@ -254,70 +196,80 @@ const View: React.FC<Omit<IProps, 'data'>> = (props) => {
         data={stagings}
         rowKey={'id'}
         toolBarRender={() => {
-          const [loading, setLoading] = useState(false);
           return [
-            <Button
+            <File
               key={'first'}
-              loading={loading}
-              onClick={async () => {
-                try {
-                  setLoading(true);
-                  let finalWork: IWork | undefined = undefined;
-                  let finalForm: IForm | undefined = undefined;
-                  const work = props.work;
-                  const form = props.form;
-                  if (work && form) {
-                    outer: for (const app of await orgCtrl.loadApplications()) {
-                      const works = await app.loadWorks();
-                      for (const w of works) {
-                        if (w.id == work.id) {
-                          finalWork = w;
-                          await w.loadWorkNode();
-                          let filter = w.detailForms.filter((i) => i.id == form.id);
-                          finalForm = filter.length > 0 ? filter[0] : undefined;
-                          break outer;
+              accepts={['办事']}
+              onOk={async (files) => {
+                if (keys.length == 0) {
+                  message.error('选中至少一条发起申领！');
+                  return;
+                }
+                const work = files[0] as IWork;
+                await work.loadWorkNode();
+                setCenter(
+                  <Modal
+                    open
+                    title={'选择输入表单'}
+                    width={800}
+                    destroyOnClose
+                    onOk={async () => {
+                      if (selected.current.length > 0) {
+                        const form = work.detailForms.find(
+                          (i) => i.id == selected.current[0],
+                        );
+                        if (form) {
+                          const instance = {
+                            data: {
+                              [form.id]: [
+                                {
+                                  before: [],
+                                  after: stagings
+                                    .filter((item) => keys.includes(item.id))
+                                    .map((item) => {
+                                      const data = deepClone(item.data);
+                                      for (const field of form!.fields) {
+                                        data[field.id] = data[field.code];
+                                        delete data[field.code];
+                                      }
+                                      return data;
+                                    }),
+                                },
+                              ],
+                            },
+                          } as any as model.InstanceDataModel;
+                          const apply = await work.createApply(undefined, instance);
+                          if (apply) {
+                            openWorkForm(apply);
+                          }
                         }
                       }
-                    }
-                  }
-                  if (finalWork && finalForm) {
-                    const selected = stagings
-                      .filter((item) => keys.includes(item.id))
-                      .map((item) => {
-                        const data = deepClone(item.data);
-                        for (const field of finalForm!.fields) {
-                          data[field.id] = data[field.code];
-                          delete data[field.code];
-                        }
-                        return data;
-                      });
-                    if (selected.length == 0) {
-                      message.error('选中至少一条发起申领！');
-                      return;
-                    }
-                    const instance = {
-                      data: {
-                        [finalForm.id]: [
-                          {
-                            before: [],
-                            after: selected,
-                          },
-                        ],
-                      },
-                    } as any as model.InstanceDataModel;
-                    const apply = await finalWork.createApply(undefined, instance);
-                    if (apply) {
-                      openWorkForm(apply);
-                    }
-                  } else {
-                    message.error('未绑定办事和表单，无法发起！');
-                  }
-                } finally {
-                  setLoading(false);
-                }
+                    }}>
+                    <Table
+                      rowKey={'id'}
+                      dataSource={work.detailForms}
+                      rowSelection={{
+                        type: 'radio',
+                        onChange: (keys) => {
+                          selected.current = keys;
+                        },
+                      }}
+                      columns={[
+                        {
+                          title: '表单编码',
+                          dataIndex: 'code',
+                        },
+                        {
+                          title: '表单名称',
+                          dataIndex: 'name',
+                        },
+                      ]}
+                    />
+                  </Modal>,
+                );
               }}>
-              发起申领
-            </Button>,
+              <Button>发起申领</Button>
+            </File>,
           ];
         }}
         headerTitle={
@@ -362,18 +314,7 @@ export default defineElement({
   },
   displayName: 'ListItem',
   meta: {
-    props: {
-      work: {
-        type: 'type',
-        label: '绑定办事',
-        typeName: 'workFile',
-      } as ExistTypeMeta<SEntity | undefined>,
-      form: {
-        type: 'type',
-        label: '绑定表单',
-        typeName: 'formFile',
-      } as ExistTypeMeta<SEntity | undefined>,
-    },
+    props: {},
     slots: {
       title: {
         label: '标题',

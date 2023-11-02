@@ -34,8 +34,6 @@ export class StandardFiles {
   speciesesLoaded: boolean = false;
   /** 属性加载完成标志 */
   propertysLoaded: boolean = false;
-  /** 模板加载完成标志 */
-  templatesLoaded: boolean = false;
   constructor(_directory: IDirectory) {
     this.directory = _directory;
     if (this.directory.parent === undefined) {
@@ -130,14 +128,11 @@ export class StandardFiles {
     }
     return this.directorys;
   }
-  async loadTemplates(reload: boolean = false): Promise<IPageTemplate[]> {
-    if (this.templatesLoaded === false || reload) {
-      this.templatesLoaded = true;
-      const data = await this.resource.templateColl.load({
-        options: { match: { directoryId: this.id } },
-      });
-      this.templates = data.map((i) => new PageTemplate(i, this.directory));
-    }
+  async loadTemplates(_: boolean = false): Promise<IPageTemplate[]> {
+    let templates = this.resource.templateColl.cache.filter(
+      (i) => i.directoryId === this.directory.id,
+    );
+    this.templates = templates.map((i) => new PageTemplate(i, this.directory));
     return this.templates;
   }
   async createForm(data: schema.XForm): Promise<schema.XForm | undefined> {

@@ -77,7 +77,7 @@ const getMeta = (kind: string) => {
 
 const PageTemplateForm: React.FC<IProps> = ({ formType, current, finished }) => {
   const [center, setCenter] = useState(<></>);
-  let initialValue: any = {};
+  let initialValue: any = { public: false };
   switch (formType) {
     case 'updatePageTemplate':
       initialValue = current.metadata;
@@ -116,10 +116,9 @@ const PageTemplateForm: React.FC<IProps> = ({ formType, current, finished }) => 
       },
     },
     {
-      title: '是否发布',
+      title: '是否发布至首页',
       dataIndex: 'public',
       valueType: 'switch',
-      initialValue: initialValue.public ?? false,
       colProps: { span: 12 },
       formItemProps: {
         rules: [{ required: true, message: '编码为必填项' }],
