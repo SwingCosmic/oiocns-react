@@ -285,7 +285,7 @@ export class XCollection<T extends schema.Xbase> {
       copyId,
     );
     if (res.success) {
-      return res.data?.MatchedCount > 0;
+      return res.data > 0;
     }
     return false;
   }
@@ -317,7 +317,7 @@ export class XCollection<T extends schema.Xbase> {
       copyId,
     );
     if (res.success) {
-      return res.data?.MatchedCount > 0;
+      return res.data > 0;
     }
     return false;
   }

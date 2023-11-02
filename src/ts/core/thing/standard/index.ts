@@ -167,7 +167,7 @@ export class StandardFiles {
       return result;
     }
   }
-  async createTransfer(data: model.Transfer): Promise<ITransfer | undefined> {
+  async createTransfer(data: model.Transfer): Promise<model.Transfer | undefined> {
     const result = await this.resource.transferColl.insert({
       ...data,
       envs: [],
@@ -176,10 +176,8 @@ export class StandardFiles {
       directoryId: this.id,
     });
     if (result) {
-      const link = new Transfer(result, this.directory);
-      this.transfers.push(link);
       await this.resource.transferColl.notity({ data: result, operate: 'insert' });
-      return link;
+      return result;
     }
   }
   async createApplication(
@@ -197,13 +195,13 @@ export class StandardFiles {
   async createTemplate(
     data: schema.XPageTemplate,
   ): Promise<schema.XPageTemplate | undefined> {
-    const res = await this.resource.templateColl.insert({
+    const result = await this.resource.templateColl.insert({
       ...data,
       directoryId: this.id,
     });
-    if (res) {
-      await this.resource.templateColl.notity({ data: [res], operate: 'insert' });
-      return res;
+    if (result) {
+      await this.resource.templateColl.notity({ data: result, operate: 'insert' });
+      return result;
     }
   }
   async operateStandradFile(
@@ -274,6 +272,9 @@ const subscribeNotity = (directory: IDirectory) => {
   });
   directory.resource.applicationColl.subscribe([directory.key], (data) => {
     subscribeCallback<schema.XApplication>(directory, '应用', data);
+  });
+  directory.resource.templateColl.subscribe([directory.key], (data) => {
+    subscribeCallback<schema.XPageTemplate>(directory, '模板', data);
   });
 };
 
@@ -363,6 +364,19 @@ function standardFilesChanged(
         data,
         () => new Transfer(data, directory),
       );
+      break;
+    case '模板':
+      directory.standard.templates = ArrayChanged(
+        directory.standard.templates,
+        operate,
+        data,
+        () => new PageTemplate(data, directory),
+      );
+      if (operate === 'insert') {
+        directory.resource.templateColl.cache.push(data);
+      } else {
+        directory.resource.templateColl.removeCache((i) => i.id != data.id);
+      }
       break;
     case '目录':
       directory.standard.directorys = ArrayChanged(
