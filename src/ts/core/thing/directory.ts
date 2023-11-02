@@ -126,12 +126,10 @@ export class Directory extends StandardFileInfo<schema.XDirectory> implements ID
         cnt.push(...this.files);
         cnt.push(...this.standard.forms);
         cnt.push(...this.standard.applications);
-        if (this.target.hasRelationAuth()) {
-          cnt.push(...this.standard.propertys);
-          cnt.push(...this.standard.specieses);
-          cnt.push(...this.standard.transfers);
-          cnt.push(...this.standard.templates);
-        }
+        cnt.push(...this.standard.propertys);
+        cnt.push(...this.standard.specieses);
+        cnt.push(...this.standard.transfers);
+        cnt.push(...this.standard.templates);
         if (!this.parent) {
           for (const item of this.target.content()) {
             const target = item as ITarget | IDirectory | IStorage;
@@ -257,18 +255,6 @@ export class Directory extends StandardFileInfo<schema.XDirectory> implements ID
       const file = new SysFileInfo(data, this);
       this.files.push(file);
       return file;
-    }
-  }
-  async createApplication(
-    data: schema.XApplication,
-  ): Promise<schema.XApplication | undefined> {
-    const res = await this.resource.applicationColl.insert({
-      ...data,
-      directoryId: this.id,
-    });
-    if (res) {
-      await this.resource.applicationColl.notity({ data: [res], operate: 'insert' });
-      return res;
     }
   }
   async loadAllApplication(): Promise<IApplication[]> {
