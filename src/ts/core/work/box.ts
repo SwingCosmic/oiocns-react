@@ -96,8 +96,13 @@ export class BoxProvider implements IBoxProvider {
     const groups = new List(stagings).GroupBy((item) => item.relations);
     for (const key in groups) {
       const keyWords = key.split(':');
+      if (keyWords.length <= 1) {
+        continue;
+      }
       const res = await kernel.loadThing(keyWords[0], keyWords[1].split('-'), {
-        match: { id: { _in_: groups[key].map((item) => item.data.id) } },
+        options: {
+          match: { id: { _in_: groups[key].map((item) => item.data.id) } },
+        },
       });
       if (res && res.data) {
         for (const staging of groups[key]) {

@@ -142,7 +142,7 @@ const View: React.FC<IProps> = (props) => {
         let current = getValue(props.data, props.property);
         if (current || current === 0) {
           if (props.hasPrefix || props.property.valueType == '数值型') {
-            value = props.property.name + '：' + current;
+            value = props.property.name + '：' + current + (props.property.unit ?? '');
           } else {
             value = current;
           }
