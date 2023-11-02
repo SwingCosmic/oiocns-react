@@ -95,7 +95,8 @@ export class BoxProvider implements IBoxProvider {
   private async _loadThings(stagings: schema.XStaging[]) {
     const groups = new List(stagings).GroupBy((item) => item.relations);
     for (const key in groups) {
-      const res = await kernel.loadThing(this.provider.user!.belongId, key.split('-'), {
+      const keyWords = key.split(':');
+      const res = await kernel.loadThing(keyWords[0], keyWords[1].split('-'), {
         match: { id: { _in_: groups[key].map((item) => item.data.id) } },
       });
       if (res && res.data) {

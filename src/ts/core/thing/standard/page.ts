@@ -29,7 +29,11 @@ export class PageTemplate
     return 'pages';
   }
   get relations() {
-    return [this.directory.target.spaceId, this.directory.target.id].join('-');
+    return (
+      this.belongId +
+      ':' +
+      [this.directory.target.spaceId, this.directory.target.id].join('-')
+    );
   }
   async copy(destination: IDirectory): Promise<boolean> {
     if (this.allowCopy(destination)) {

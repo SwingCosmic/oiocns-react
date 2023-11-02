@@ -229,8 +229,10 @@ const View: React.FC<Omit<IProps, 'data'>> = (props) => {
                                     .map((item) => {
                                       const data = deepClone(item.data);
                                       for (const field of form!.fields) {
-                                        data[field.id] = data[field.code];
-                                        delete data[field.code];
+                                        if (data[field.code]) {
+                                          data[field.id] = data[field.code];
+                                          delete data[field.code];
+                                        }
                                       }
                                       return data;
                                     }),

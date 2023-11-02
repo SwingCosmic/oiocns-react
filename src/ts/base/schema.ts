@@ -637,7 +637,7 @@ export type XStaging = {
   typeName: string;
   // 数据
   data: XThing;
-  // 关系举证（-连接）
+  // 归属+关系举证
   relations: string;
 } & Xbase;
 
