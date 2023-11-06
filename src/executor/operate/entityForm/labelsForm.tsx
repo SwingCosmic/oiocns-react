@@ -93,6 +93,11 @@ const LabelsForm = (props: Iprops) => {
         rules: [{ required: true, message: '类型为必填项' }],
       },
     },
+    {
+      title: '是否允许打印',
+      dataIndex: 'allowPrint',
+      valueType: 'switch',
+    },
   ];
   if (readonly) {
     columns.push(...EntityColumns(props.current!.metadata));

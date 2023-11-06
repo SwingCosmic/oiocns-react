@@ -2,14 +2,16 @@ import { schema } from '@/ts/base';
 import { shareOpenLink } from '@/utils/tools';
 import { DeleteOutlined } from '@ant-design/icons';
 import { Button, Image, Space, Tag } from 'antd';
-import React, { ReactNode } from 'react';
+import React, { ReactNode, useEffect, useState } from 'react';
 import { ExistTypeMeta } from '../../../core/ElementMeta';
 import { File, SProperty, TipDesignText, TipText } from '../../../design/config/FileProp';
 import { Context } from '../../../render/PageContext';
 import { defineElement } from '../../defineElement';
 import Asset from '/img/innovate.png';
+import QrCode from 'qrcode.react';
+import orgCtrl from '@/ts/controller';
 
-export type DisplayType = 'Photo' | 'Avatar' | 'Text' | 'Tags';
+export type DisplayType = 'Photo' | 'Avatar' | 'Text' | 'Tags' | 'QrCode' | 'Belong';
 
 interface IProps {
   id: string;
@@ -17,6 +19,7 @@ interface IProps {
   width?: number;
   height?: number;
   hasPrefix?: boolean;
+  noTip?: boolean;
   props: any;
   label: string;
   valueType: DisplayType;
@@ -35,6 +38,14 @@ const Design: React.FC<IProps> = (props) => {
     };
   };
   switch (props.valueType) {
+    case 'Belong':
+      return (
+        <TipDesignText
+          width={props.width}
+          height={props.height}
+          value={props.property?.name ?? props.label}
+        />
+      );
     case 'Tags':
       return (
         <File
@@ -119,6 +130,30 @@ const View: React.FC<IProps> = (props) => {
         />
       );
     }
+    case 'QrCode': {
+      return (
+        <QrCode
+          level="H"
+          size={props.width}
+          fgColor={'#204040'}
+          value={`${location.origin}/${props.data?.id}`}
+        />
+      );
+    }
+    case 'Belong': {
+      const [belongName, setBelongName] = useState<string>('归属');
+      useEffect(() => {
+        const belongId = props.data?.belongId;
+        if (belongId) {
+          orgCtrl.user.findEntityAsync(belongId).then((res) => {
+            if (res?.name) {
+              setBelongName(res.name);
+            }
+          });
+        }
+      });
+      return <TipText value={belongName} />;
+    }
     case 'Tags': {
       const tags: ReactNode[] = [];
       if (props.data) {
@@ -137,16 +172,19 @@ const View: React.FC<IProps> = (props) => {
       return <Space direction={'horizontal'}>{tags}</Space>;
     }
     default: {
-      let value = '[暂无数据]';
+      let value = props.noTip ? '' : '[暂无数据]';
       if (props.data && props.property) {
         let current = getValue(props.data, props.property);
         if (current || current === 0) {
-          if (props.hasPrefix || props.property.valueType == '数值型') {
-            value = props.property.name + '：' + current + (props.property.unit ?? '');
+          if (props.property.valueType == '数值型') {
+            value = current + (props.property.unit ?? '');
           } else {
             value = current;
           }
         }
+      }
+      if (props.property && props.hasPrefix) {
+        value = props.property.name + '：' + value;
       }
       return <TipText value={value} />;
     }
@@ -170,16 +208,20 @@ export default defineElement({
         label: '名称',
       },
       width: {
-        type: 'type',
+        type: 'number',
         label: '宽度',
-      } as ExistTypeMeta<number | undefined>,
+      },
       height: {
-        type: 'type',
+        type: 'number',
         label: '高度',
-      } as ExistTypeMeta<number | undefined>,
+      },
       hasPrefix: {
         type: 'type',
         label: '是否有前缀',
+      } as ExistTypeMeta<boolean | undefined>,
+      noTip: {
+        type: 'type',
+        label: '是否有[暂无数据]字样',
       } as ExistTypeMeta<boolean | undefined>,
       valueType: {
         type: 'type',

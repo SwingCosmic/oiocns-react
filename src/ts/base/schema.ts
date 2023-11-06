@@ -175,6 +175,8 @@ export type XForm = {
   bindNodes: XWorkNode[] | undefined;
   // 表单的目录
   directory: XDirectory | undefined;
+  // 是否允许打印
+  allowPrint: boolean;
 } & XStandard;
 
 // 度量特性配置参数

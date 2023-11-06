@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useRef, useState } from 'react';
 import FullScreenModal from '@/components/Common/fullScreen';
 import { IForm } from '@/ts/core';
 import * as config from './config';
@@ -8,12 +8,16 @@ import useMenuUpdate from '@/hooks/useMenuUpdate';
 import WorkForm from '@/components/DataStandard/WorkForm';
 import GenerateThingTable from '@/executor/tools/generate/thingTable';
 import CustomStore from 'devextreme/data/custom_store';
-import { kernel } from '@/ts/base';
+import { kernel, schema } from '@/ts/base';
 import { ImCopy, ImShuffle, ImTicket } from '@/icons/im';
 import { Controller } from '@/ts/controller';
 import { Spin, message } from 'antd';
 import ThingView from './detail';
 import useAsyncLoad from '@/hooks/useAsyncLoad';
+import OpenFileDialog from '@/components/OpenFileDialog';
+import { ViewerHost } from '../page/view/ViewerHost';
+import ViewerManager from '../page/view/ViewerManager';
+import { IPageTemplate } from '@/ts/core/thing/standard/page';
 
 interface IProps {
   form: IForm;
@@ -24,7 +28,9 @@ interface IProps {
 const FormView: React.FC<IProps> = ({ form, finished }) => {
   const [select, setSelcet] = useState();
   const [loaded] = useAsyncLoad(() => form.loadContent());
+  const selection = useRef<schema.XThing[]>([]);
   const FormBrower: React.FC = () => {
+    const [center, setCenter] = useState(<></>);
     const [, rootMenu, selectMenu, setSelectMenu] = useMenuUpdate(
       () => config.loadSpeciesItemMenu(form),
       new Controller(form.key),
@@ -41,7 +47,21 @@ const FormView: React.FC<IProps> = ({ form, finished }) => {
           key={form.key}
           height={'100%'}
           fields={form.fields}
+          dataIndex="property"
           onRowDblClick={(e: any) => setSelcet(e.data)}
+          selection={
+            form.metadata.allowPrint
+              ? {
+                  mode: 'multiple',
+                  allowSelectAll: true,
+                  selectAllMode: 'page',
+                  showCheckBoxesMode: 'always',
+                }
+              : {}
+          }
+          onSelectionChanged={(e) => {
+            selection.current = e.selectedRowsData;
+          }}
           dataSource={
             new CustomStore({
               key: 'id',
@@ -65,6 +85,49 @@ const FormView: React.FC<IProps> = ({ form, finished }) => {
           toolbar={{
             visible: true,
             items: [
+              {
+                name: 'print',
+                location: 'after',
+                widget: 'dxButton',
+                options: {
+                  text: '打印',
+                  icon: 'add',
+                  onClick: () => {
+                    setCenter(
+                      <OpenFileDialog
+                        accepts={['页面模板']}
+                        rootKey={form.directory.target.directory.spaceKey}
+                        onOk={(files) => {
+                          if (files.length == 0) {
+                            setCenter(<></>);
+                            return;
+                          }
+                          const page = files[0] as IPageTemplate;
+                          setCenter(
+                            <FullScreenModal
+                              open
+                              centered
+                              destroyOnClose
+                              width={'80vw'}
+                              bodyHeight={'80vh'}
+                              title={'卡片模板'}
+                              onCancel={() => setCenter(<></>)}>
+                              <ViewerHost
+                                ctx={{
+                                  view: new ViewerManager(page),
+                                  data: { things: selection.current },
+                                }}
+                              />
+                            </FullScreenModal>,
+                          );
+                        }}
+                        onCancel={() => setCenter(<></>)}
+                      />,
+                    );
+                  },
+                },
+                visible: form.metadata.allowPrint ?? false,
+              },
               {
                 name: 'columnChooserButton',
                 location: 'after',
@@ -114,6 +177,7 @@ const FormView: React.FC<IProps> = ({ form, finished }) => {
         }}
         siderMenuData={rootMenu}>
         {loadContent()}
+        {center}
       </MainLayout>
     );
   };

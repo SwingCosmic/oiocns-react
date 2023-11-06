@@ -69,7 +69,7 @@ const GenerateThingTable = (props: IProps) => {
               }
             } else {
               if (data[c.code]) {
-                newData[c.id] = data[c.code];
+                newData[c.code] = data[c.code];
               }
             }
           });
