@@ -140,6 +140,15 @@ const View: React.FC<IProps> = (props) => {
     return <></>;
   }
   const parentMenu = selectMenu.parentMenu ?? rootMenu;
+  const sendSearch = (node: any) => {
+    if (node.item) {
+      if (node.item.id) {
+        props.ctx.view.emitter('species', 'checked', ['S' + node.item.id]);
+      } else if (node.item.code) {
+        props.ctx.view.emitter('species', 'checked', ['T' + node.item.code]);
+      }
+    }
+  };
   return (
     <Spin spinning={loading}>
       <Space style={{ width: 300, padding: 10 }} direction="vertical">
@@ -148,11 +157,7 @@ const View: React.FC<IProps> = (props) => {
           title={parentMenu.label}
           onClick={() => {
             setSelectMenu(parentMenu);
-            props.ctx.view.emitter(
-              'species',
-              'checked',
-              parentMenu.item?.code ? ['T' + parentMenu.item.code] : [],
-            );
+            sendSearch(parentMenu);
           }}>
           <span style={{ fontSize: 20, margin: '0 6px' }}>{parentMenu.icon}</span>
           <strong>{parentMenu.label}</strong>
@@ -163,9 +168,7 @@ const View: React.FC<IProps> = (props) => {
           item={selectMenu.parentMenu ?? rootMenu}
           onSelect={(node) => {
             setSelectMenu(node);
-            if (node.item.code) {
-              props.ctx.view.emitter('species', 'checked', ['T' + node.item.code]);
-            }
+            sendSearch(node);
           }}
         />
       </Space>
