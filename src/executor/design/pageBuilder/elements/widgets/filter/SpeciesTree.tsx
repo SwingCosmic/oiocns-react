@@ -1,7 +1,7 @@
 import CustomMenu from '@/components/CustomMenu';
 import CustomTree from '@/components/CustomTree';
 import useMenuUpdate from '@/hooks/useMenuUpdate';
-import { schema } from '@/ts/base';
+import { List, schema } from '@/ts/base';
 import { Controller } from '@/ts/controller';
 import { IProperty } from '@/ts/core';
 import { DeleteOutlined } from '@ant-design/icons';
@@ -86,33 +86,32 @@ const buildSpecies = (species: SpeciesEntity[]): SpeciesNode[] => {
         speciesItems.parentId = item.species.id;
       }
     });
-    const key = item.code + '-' + item.species.id;
+    const groups = new List(item.species.items).GroupBy((item) => item.parentId);
     return {
-      key: key,
+      key: item.code + '-' + item.species.id,
       label: item.name,
-      children: buildItems(item.species.items, key),
+      children: buildItems(item.code, item.species.id, groups),
       itemType: '分类',
       item: item,
     };
   });
 };
 
-const buildItems = (items: schema.XSpeciesItem[], parentKey: string) => {
-  const prop = parentKey.split('-')[0];
-  const result: SpeciesNode[] = [];
-  for (const item of items) {
-    if (prop + '-' + item.parentId == parentKey) {
-      const key = prop + '-' + item.id;
-      result.push({
-        key: key,
-        label: item.name,
-        children: buildItems(items, key),
-        itemType: '分类项',
-        item: item,
-      });
-    }
-  }
-  return result;
+const buildItems = (
+  code: string,
+  parentId: string,
+  groups: { [key: string]: schema.XSpeciesItem[] },
+): any => {
+  const children = groups[parentId] ?? [];
+  return children.map((item) => {
+    return {
+      key: code + item.id,
+      label: item.name,
+      children: buildItems(code, item.id, groups),
+      itemType: '分类项',
+      item: item,
+    };
+  });
 };
 
 const View: React.FC<IProps> = (props) => {

@@ -124,7 +124,7 @@ const getValue = async (props: IProps) => {
   switch (props.valueType) {
     case 'Photo':
     case 'Avatar':
-      {
+      if (value) {
         const parsedFile = JSON.parse(value);
         if (parsedFile.length > 0) {
           value = parsedFile[0].shareLink;
