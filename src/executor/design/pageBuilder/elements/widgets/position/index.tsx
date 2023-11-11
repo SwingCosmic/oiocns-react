@@ -167,7 +167,6 @@ const View: React.FC<IProps> = (props) => {
   switch (props.valueType) {
     case 'Photo':
     case 'Avatar':
-      console.log(value);
       return (
         <Image
           style={{ objectFit: 'cover', width: props.width, height: props.height }}
