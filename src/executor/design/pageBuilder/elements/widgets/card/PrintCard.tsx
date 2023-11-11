@@ -6,7 +6,7 @@ import html2canvas from 'html2canvas';
 import React, { useState } from 'react';
 import { defineElement } from '../../defineElement';
 import cls from './index.module.less';
-import { data, hasPrefix, label, length, noTip, valueType } from './type';
+import { data, hasPrefix, label, length, hasTip, valueType } from './type';
 import BusinessCard from '/img/businessCard.png';
 
 export default defineElement({
@@ -96,43 +96,43 @@ export default defineElement({
                         data: item,
                         label: '字段一',
                         hasPrefix: true,
-                        noTip: true,
+                        hasTip: false,
                       })}
                       {props.second?.({
                         data: item,
                         label: '字段二',
                         hasPrefix: true,
-                        noTip: true,
+                        hasTip: false,
                       })}
                       {props.third?.({
                         data: item,
                         label: '字段三',
                         hasPrefix: true,
-                        noTip: true,
+                        hasTip: false,
                       })}
                       {props.fourth?.({
                         data: item,
                         label: '字段四',
                         hasPrefix: true,
-                        noTip: true,
+                        hasTip: false,
                       })}
                       {props.fifth?.({
                         data: item,
                         label: '字段五',
                         hasPrefix: true,
-                        noTip: true,
+                        hasTip: false,
                       })}
                       {props.sixth?.({
                         data: item,
                         label: '字段六',
                         hasPrefix: true,
-                        noTip: true,
+                        hasTip: false,
                       })}
                       {props.seventh?.({
                         data: item,
                         label: '字段七',
                         hasPrefix: true,
-                        noTip: true,
+                        hasTip: false,
                       })}
                     </div>
                   </div>
@@ -199,43 +199,43 @@ export default defineElement({
       first: {
         label: '字段一',
         single: true,
-        params: { data, label, hasPrefix, noTip },
+        params: { data, label, hasPrefix, hasTip },
         default: 'Field',
       },
       second: {
         label: '字段二',
         single: true,
-        params: { data, label, hasPrefix, noTip },
+        params: { data, label, hasPrefix, hasTip },
         default: 'Field',
       },
       third: {
         label: '字段三',
         single: true,
-        params: { data, label, hasPrefix, noTip },
+        params: { data, label, hasPrefix, hasTip },
         default: 'Field',
       },
       fourth: {
         label: '字段四',
         single: true,
-        params: { data, label, hasPrefix, noTip },
+        params: { data, label, hasPrefix, hasTip },
         default: 'Field',
       },
       fifth: {
         label: '字段五',
         single: true,
-        params: { data, label, hasPrefix, noTip },
+        params: { data, label, hasPrefix, hasTip },
         default: 'Field',
       },
       sixth: {
         label: '字段六',
         single: true,
-        params: { data, label, hasPrefix, noTip },
+        params: { data, label, hasPrefix, hasTip },
         default: 'Field',
       },
       seventh: {
         label: '字段七',
         single: true,
-        params: { data, label, hasPrefix, noTip },
+        params: { data, label, hasPrefix, hasTip },
         default: 'Field',
       },
     },
