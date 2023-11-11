@@ -3,7 +3,7 @@ import { Card, Space } from 'antd';
 import React from 'react';
 import { ExistTypeMeta } from '../../../core/ElementMeta';
 import { defineElement } from '../../defineElement';
-import { length, data, label, valueType } from './type';
+import { length, data, label, valueType, hasPrefix } from './type';
 
 export default defineElement({
   render(props) {
@@ -18,19 +18,21 @@ export default defineElement({
         })}
         actions={[
           <div key={'fourth'}>
-            {props.fourth?.({ data: props.data, label: '字段-4' })}
+            {props.fourth?.({ data: props.data, label: '字段-4', hasPrefix: true })}
           </div>,
-          <div key={'fifth'}>{props.fifth?.({ data: props.data, label: '字段-5' })}</div>,
+          <div key={'fifth'}>
+            {props.fifth?.({ data: props.data, label: '字段-5', hasPrefix: true })}
+          </div>,
         ]}>
         <Card.Meta
           title={props.first?.({ data: props.data, label: '字段-1' })}
           description={
             <Space style={{ width: '100%' }} direction="vertical">
               <div key={'second'}>
-                {props.second?.({ data: props.data, label: '字段-2' })}
+                {props.second?.({ data: props.data, label: '字段-2', hasPrefix: true })}
               </div>
               <div key={'third'}>
-                {props.third?.({ data: props.data, label: '字段-3' })}
+                {props.third?.({ data: props.data, label: '字段-3', hasPrefix: true })}
               </div>
             </Space>
           }
@@ -64,25 +66,25 @@ export default defineElement({
       second: {
         label: '位置-2',
         single: true,
-        params: { data, label },
+        params: { data, label, hasPrefix },
         default: 'Field',
       },
       third: {
         label: '位置-3',
         single: true,
-        params: { data, label },
+        params: { data, label, hasPrefix },
         default: 'Field',
       },
       fourth: {
         label: '位置-4',
         single: true,
-        params: { data, label },
+        params: { data, label, hasPrefix },
         default: 'Field',
       },
       fifth: {
         label: '位置-5',
         single: true,
-        params: { data, label },
+        params: { data, label, hasPrefix },
         default: 'Field',
       },
     },
