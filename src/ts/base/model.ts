@@ -1127,7 +1127,7 @@ export type NStatus = 'Stop' | 'Running' | 'Error' | 'Completed';
 export type NEvent = 'Start' | 'Throw' | 'Complete';
 
 // 节点类型
-export type NodeType = '表单' | '表格' | '请求' | '子图' | '映射' | '存储';
+export type NodeType = '表单' | '表格' | '请求' | '数据库' | '子图' | '映射' | '存储';
 
 // 脚本位置
 export type Pos = 'pre' | 'post';
@@ -1237,4 +1237,4 @@ export type DiskInfoType = {
   fsTotalSize: number;
   // 查询时间
   getTime: string;
-}
+};
