@@ -111,7 +111,7 @@ export class Excel implements t.IExcel {
   constructor(sheets?: t.ISheetHandler<t.model.Sheet<any>>[], handler?: t.DataHandler) {
     this.handlers = [];
     this.dataHandler = handler;
-    this.context = {};
+    this.context = { directories: {}, species: {}, properties: {} };
     sheets?.forEach((item) => this.appendHandler(item));
   }
 
@@ -147,28 +147,6 @@ export class Excel implements t.IExcel {
     } catch (error: any) {
       console.log(error);
       this.dataHandler?.onError?.('数据处理异常');
-    }
-  }
-
-  searchSpecies(code?: string): t.SpeciesData | undefined {
-    if (code) {
-      for (const dirKey of Object.keys(this.context)) {
-        const dir = this.context[dirKey];
-        if (dir.species[code]) {
-          return dir.species[code];
-        }
-      }
-    }
-  }
-
-  searchProps(code?: string | undefined): t.Property | undefined {
-    if (code) {
-      for (const dirKey of Object.keys(this.context)) {
-        const dir = this.context[dirKey];
-        if (dir.props[code]) {
-          return dir.props[code];
-        }
-      }
     }
   }
 }

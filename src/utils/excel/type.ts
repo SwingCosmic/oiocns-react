@@ -2,11 +2,15 @@ import { schema, model } from '@/ts/base';
 export * as XLSX from 'xlsx';
 
 /**
- * 上下文
+ * 业务模板上下文
  */
 export type Context = {
   // 目录编码
-  [key: string]: DirData;
+  directories: { [key: string]: DirData };
+  // 字典/分类
+  species: { [key: string]: SpeciesData };
+  // 属性
+  properties: { [key: string]: Property };
 };
 
 /**
@@ -15,10 +19,6 @@ export type Context = {
 export type DirData = {
   // 元数据
   meta: Directory;
-  // 目录下的字典/分类
-  species: { [key: string]: SpeciesData };
-  // 目录下的属性
-  props: { [key: string]: Property };
   // 目录下的表单
   forms: { [key: string]: FormData };
 };
@@ -120,10 +120,6 @@ export interface IExcel {
   getHandler(name: string): ISheetHandler<model.Sheet<any>> | undefined;
   // 开始处理
   handling(): Promise<void>;
-  // 搜索分类
-  searchSpecies(code?: string): SpeciesData | undefined;
-  // 搜索属性
-  searchProps(code?: string): Property | undefined;
 }
 
 // 基本模型

@@ -67,16 +67,16 @@ export class DirectoryHandler extends i.SheetHandler<DirectorySheet> {
   ): Promise<void> {
     const nTree = new i.Tree<t.DirData>(
       this.sheet.data.map((item) => {
-        return { meta: item, species: {}, props: {}, forms: {} };
+        return { meta: item, forms: {} };
       }),
       (n) => n.meta.code,
       (n) => n.meta.directoryCode,
     );
     const oTree = new i.Tree(
-      await this.dirTree(this.sheet.dir, onItemCompleted, true),
+      await this.dirTree(excel, this.sheet.dir, onItemCompleted, true),
       (n) => n.meta.id.replace('_', ''),
       (n) => n.meta.directoryId,
-      { meta: this.sheet.dir.metadata, species: {}, props: {}, forms: {} },
+      { meta: this.sheet.dir.metadata, forms: {} },
     );
     await this.recursion(
       excel,
@@ -102,16 +102,14 @@ export class DirectoryHandler extends i.SheetHandler<DirectorySheet> {
       let second = source.children.find(find);
       if (second) {
         Object.assign(second.data.meta, first.data.meta);
-        first.data.species = second.data.species;
         first.data.forms = second.data.forms;
-        first.data.props = second.data.props;
         Object.assign(first.data.meta, await this.sheet.coll.replace(second.data.meta));
       } else {
         first.data.meta.directoryId = parentId;
         Object.assign(first.data.meta, await this.sheet.coll.insert(first.data.meta));
         source.children.push(first);
       }
-      excel.context[first.data.meta.code] = first.data;
+      excel.context.directories[first.data.meta.code] = first.data;
       onItemCompleted();
     }
     for (const t of target.children) {
@@ -126,6 +124,7 @@ export class DirectoryHandler extends i.SheetHandler<DirectorySheet> {
    * 组装原先存在的树
    */
   async dirTree(
+    excel: t.IExcel,
     parent: t.IDirectory,
     onItemCompleted: (count?: number) => void,
     isRoot = false,
@@ -135,8 +134,6 @@ export class DirectoryHandler extends i.SheetHandler<DirectorySheet> {
       await dir.standard.loadStandardFiles();
       const dirData: t.DirData = {
         meta: { ...dir.metadata, directoryCode: isRoot ? undefined : parent.code },
-        species: {},
-        props: {},
         forms: {},
       };
       for (const species of dir.standard.specieses) {
@@ -153,11 +150,11 @@ export class DirectoryHandler extends i.SheetHandler<DirectorySheet> {
             };
           }
         }
-        dirData.species[species.code] = speciesData;
+        excel.context.species[species.code] = speciesData;
       }
       for (const property of dir.standard.propertys) {
         if (property.metadata.code) {
-          dirData.props[property.metadata.code] = {
+          excel.context.properties[property.metadata.code] = {
             ...property.metadata,
             directoryCode: dir.code,
           };
@@ -180,7 +177,7 @@ export class DirectoryHandler extends i.SheetHandler<DirectorySheet> {
       }
       onItemCompleted(50);
       children.push(dirData);
-      children.push(...(await this.dirTree(dir, onItemCompleted)));
+      children.push(...(await this.dirTree(excel, dir, onItemCompleted)));
     }
     return children;
   }
