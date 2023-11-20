@@ -1,12 +1,11 @@
-import React, { useState } from 'react';
+import React from 'react';
 import { renderRoutes } from 'react-router-config';
 import { getResouces } from '@/config/location';
 import type { IRouteConfig } from 'typings/globelType';
 
 import cls from './index.module.less';
 import { Carousel } from 'antd';
-
-const PassportLayout: React.FC<{ route: IRouteConfig }> = ({ route }) => {
+const passportLayout: React.FC<{ route: IRouteConfig }> = ({ route }) => {
   const resources = getResouces();
   return (
     <div className={cls.container}>
@@ -69,42 +68,4 @@ const PassportLayout: React.FC<{ route: IRouteConfig }> = ({ route }) => {
     </div>
   );
 };
-
-const Main: React.FC<{ route: IRouteConfig }> = ({ route }) => {
-  const [main, setMain] = useState(
-    <div>
-      <div style={{ width: '100%', height: '100%' }}>
-        <img
-          style={{ width: '100%', height: '100%' }}
-          src="/img/passport/orginOne/main.png"
-        />
-      </div>
-      <div
-        style={{
-          position: 'fixed',
-          top: '60%',
-          left: '50%',
-          transform: 'translate(-50%)',
-        }}
-        onClick={() => {
-          setMain(<PassportLayout route={route} />);
-        }}>
-        <img src="/img/button.png" />
-        <div
-          style={{
-            fontSize: 20,
-            color: 'white',
-            position: 'absolute',
-            top: '50%',
-            left: '50%',
-            transform: 'translate(-50%, -50%)',
-          }}>
-          进入系统
-        </div>
-      </div>
-    </div>,
-  );
-  return <>{main}</>;
-};
-
-export default Main;
+export default passportLayout;
