@@ -3,8 +3,8 @@ import { IDirectory } from '@/ts/core';
 import { formatDate } from '@/utils';
 import * as el from '@/utils/excel';
 import { ProTable } from '@ant-design/pro-components';
-import { Button, Modal, Space, Spin, Tabs, Upload, message } from 'antd';
-import React, { useState } from 'react';
+import { Button, Modal, Progress, Space, Spin, Tabs, Upload, message } from 'antd';
+import React, { useEffect, useState } from 'react';
 
 /** 上传业务导入模板 */
 export const uploadBusiness = (dir: IDirectory) => {
@@ -21,6 +21,7 @@ export const upload = (
   dir: IDirectory,
   sheets: el.ISheetHandler<any>[],
 ) => {
+  dir = dir.target.directory;
   const excel = new el.Excel(sheets);
   const modal = Modal.info({
     icon: <></>,
@@ -31,6 +32,7 @@ export const upload = (
     content: (
       <Center
         templateName={templateName}
+        dir={dir}
         excel={excel}
         finished={(file) => {
           modal.destroy();
@@ -50,19 +52,26 @@ export const upload = (
 
 interface IProps {
   templateName: string;
+  dir: el.IDirectory;
   excel: el.IExcel;
   finished: (file: Blob) => void;
 }
 
-const Center: React.FC<IProps> = ({ templateName, excel, finished }) => {
-  const [loading, setLoading] = useState(false);
+const Center: React.FC<IProps> = ({ templateName, dir, excel, finished }) => {
+  const [progress, setProgress] = useState(0);
+  const [loading, setLoading] = useState(true);
+  const [text, setText] = useState('正在初始化数据中...');
+  useEffect(() => {
+    excel.context.initialize(dir, setProgress).then(() => setLoading(false));
+  }, []);
   return (
     <Space direction="vertical">
       <div style={{ marginTop: 20 }}>
         <Button onClick={async () => el.generateXlsx(excel, templateName)}>
           导入模板下载
         </Button>
-        {loading && <span style={{ marginLeft: 20 }}>正在加载数据中，请稍后...</span>}
+        {loading && <Progress percent={progress} showInfo={false} />}
+        {loading && <span>{text}</span>}
       </div>
       <Spin spinning={loading}>
         <Upload
@@ -71,8 +80,11 @@ const Center: React.FC<IProps> = ({ templateName, excel, finished }) => {
           accept="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
           style={{ width: 550, height: 300, marginTop: 20 }}
           customRequest={async (options) => {
+            setText('正在加载数据中，请稍后...');
             setLoading(true);
+            setProgress(0);
             await el.readXlsx(options.file as Blob, excel);
+            setProgress(100);
             setLoading(false);
             finished(options.file as Blob);
           }}>
@@ -138,21 +150,13 @@ const generate = async (dir: IDirectory, name: string, excel: el.IExcel) => {
     createTime: new Date(),
   };
   dir.taskList.push(task);
-  const counting = (dir: IDirectory) => {
-    let count = 1;
-    for (let child of dir.children) {
-      count += counting(child);
-    }
-    return count;
-  };
   excel.dataHandler = {
     initialize: (totalRows) => {
       task.size = totalRows;
-      task.size += counting(dir) * 50;
       dir.taskEmitter.changCallback();
     },
-    onItemCompleted: (count?: number) => {
-      task.finished += count ?? 1;
+    onItemCompleted: () => {
+      task.finished += 1;
       dir.taskEmitter.changCallback();
     },
     onCompleted: () => {

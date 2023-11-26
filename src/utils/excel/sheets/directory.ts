@@ -73,7 +73,7 @@ export class DirectoryHandler extends i.SheetHandler<DirectorySheet> {
       (n) => n.meta.directoryCode,
     );
     const oTree = new i.Tree(
-      await this.dirTree(excel, this.sheet.dir, onItemCompleted, true),
+      Object.entries(excel.context.directories).map((item) => item[1]),
       (n) => n.meta.id.replace('_', ''),
       (n) => n.meta.directoryId,
       { meta: this.sheet.dir.metadata, forms: {} },
@@ -119,66 +119,5 @@ export class DirectoryHandler extends i.SheetHandler<DirectorySheet> {
         }
       }
     }
-  }
-  /**
-   * 组装原先存在的树
-   */
-  async dirTree(
-    excel: t.IExcel,
-    parent: t.IDirectory,
-    onItemCompleted: (count?: number) => void,
-    isRoot = false,
-  ): Promise<t.DirData[]> {
-    const children: t.DirData[] = [];
-    for (const dir of parent.children) {
-      await dir.standard.loadStandardFiles();
-      const dirData: t.DirData = {
-        meta: { ...dir.metadata, directoryCode: isRoot ? undefined : parent.code },
-        forms: {},
-      };
-      for (const species of dir.standard.specieses) {
-        const speciesData: t.SpeciesData = {
-          meta: { ...species.metadata, directoryCode: dir.code },
-          items: {},
-        };
-        for (const item of await species.loadItems()) {
-          if (item.info) {
-            speciesData.items[item.info] = {
-              ...item,
-              speciesCode: species.code,
-              parentInfo: item.parent?.info,
-            };
-          }
-        }
-        excel.context.species[species.code] = speciesData;
-      }
-      for (const property of dir.standard.propertys) {
-        if (property.metadata.code) {
-          excel.context.properties[property.metadata.code] = {
-            ...property.metadata,
-            directoryCode: dir.code,
-          };
-        }
-      }
-      for (const form of dir.standard.forms) {
-        const formData: t.FormData = {
-          meta: { ...form.metadata, directoryCode: dir.code },
-          attrs: {},
-        };
-        await form.loadContent();
-        for (const attr of form.attributes) {
-          formData.attrs[attr.code] = {
-            ...attr,
-            propCode: attr.property!.info,
-            formCode: form.code,
-          };
-        }
-        dirData.forms[form.code] = formData;
-      }
-      onItemCompleted(50);
-      children.push(dirData);
-      children.push(...(await this.dirTree(excel, dir, onItemCompleted)));
-    }
-    return children;
   }
 }

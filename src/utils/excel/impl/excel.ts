@@ -1,4 +1,5 @@
 import * as t from '../type';
+import { DirContext } from './context';
 
 /**
  * 生成一份 Excel 文件
@@ -111,7 +112,7 @@ export class Excel implements t.IExcel {
   constructor(sheets?: t.ISheetHandler<t.model.Sheet<any>>[], handler?: t.DataHandler) {
     this.handlers = [];
     this.dataHandler = handler;
-    this.context = { directories: {}, species: {}, properties: {} };
+    this.context = new DirContext();
     sheets?.forEach((item) => this.appendHandler(item));
   }
 
@@ -138,9 +139,7 @@ export class Excel implements t.IExcel {
       this.dataHandler?.initialize?.(totalRows);
 
       for (const handler of this.handlers) {
-        await handler.operating(this, (count?: number) =>
-          this.dataHandler?.onItemCompleted?.(count),
-        );
+        await handler.operating(this, () => this.dataHandler?.onItemCompleted?.());
         handler.completed?.(this);
       }
       this.dataHandler?.onCompleted?.();
