@@ -2,7 +2,6 @@ import { Layout, Menu, message } from 'antd';
 import React, { ReactNode, useContext, useState } from 'react';
 import { DesignContext, PageContext } from '../render/PageContext';
 import FullScreenModal from '@/components/Common/fullScreen';
-import { AiOutlineApartment } from '@/icons/ai';
 import { CheckOutlined, FileOutlined, RightCircleOutlined } from '@ant-design/icons';
 import { json } from '@codemirror/lang-json';
 import CodeMirror from '@uiw/react-codemirror';
@@ -11,6 +10,7 @@ import ViewerManager from '../../../open/page/view/ViewerManager';
 import TreeManager from './TreeManager';
 import ElementProps from './config/ElementProps';
 import css from './designer.module.less';
+import { AiOutlineApartment } from 'react-icons/ai';
 
 export interface DesignerProps {
   ctx: DesignContext;
@@ -126,9 +126,6 @@ export function DesignerHost({ ctx }: DesignerProps) {
         </div>
         <div className="o-page-host" style={{ flex: 'auto' }}>
           <RootRender element={ctx.view.rootElement} />
-        </div>
-        <div className="is-full-height">
-          <ElementProps />
         </div>
       </div>
       {center}

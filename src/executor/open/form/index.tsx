@@ -9,7 +9,6 @@ import WorkForm from '@/components/DataStandard/WorkForm';
 import GenerateThingTable from '@/executor/tools/generate/thingTable';
 import CustomStore from 'devextreme/data/custom_store';
 import { kernel, schema } from '@/ts/base';
-import { ImCopy, ImShuffle, ImTicket } from '@/icons/im';
 import { Controller } from '@/ts/controller';
 import { Spin, message } from 'antd';
 import ThingView from './detail';
@@ -18,6 +17,7 @@ import OpenFileDialog from '@/components/OpenFileDialog';
 import { ViewerHost } from '../page/view/ViewerHost';
 import ViewerManager from '../page/view/ViewerManager';
 import { IPageTemplate } from '@/ts/core/thing/standard/page';
+import { ImCopy, ImShuffle, ImTicket } from 'react-icons/im';
 
 interface IProps {
   form: IForm;
@@ -168,7 +168,6 @@ const FormView: React.FC<IProps> = ({ form, finished }) => {
     };
     return (
       <MainLayout
-        notExitIcon
         leftShow
         rightShow={false}
         selectMenu={selectMenu}
