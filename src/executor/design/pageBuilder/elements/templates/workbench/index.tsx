@@ -1,59 +1,137 @@
 import React from 'react';
-import { defineElement } from '../../defineElement';
 import { Layout } from 'react-grid-layout';
 import { ExistTypeMeta } from '../../../core/ElementMeta';
-import { Grid } from '../../layout/Grid';
+import { defineElement } from '../../defineElement';
+import { GridDesign, GridView } from '../../layout/Grid';
 
 export default defineElement({
-  render(props) {
-    console.log(props);
+  render(props, ctx) {
+    if (ctx.view.mode == 'view') {
+      return (
+        <div className="workbench-content">
+          <div style={{ width: '100%' }}>{props.banner?.({})}</div>
+          <GridView rowHeight={props.rowHeight} layouts={props.layouts}>
+            <div key="appInfo">{props.app?.({})}</div>
+            <div key="calendar">{props.calendar?.({})}</div>
+            <div key="chat">{props.chat?.({})}</div>
+            <div key="operate">{props.operate?.({})}</div>
+            <div key="store">{props.store?.({})}</div>
+            <div key="work">{props.work?.({})}</div>
+          </GridView>
+        </div>
+      );
+    }
     return (
       <div className="workbench-content">
-        <Grid
-          cols={props.cols}
-          rowHeight={props.rowHeight}
-          layout={props.layout}
-          onChange={(layout) => {
-            props.props['layout'] = layout;
-          }}>
+        <div style={{ width: '100%' }}>{props.banner?.({})}</div>
+        <GridDesign rowHeight={props.rowHeight} layouts={props.layouts}>
           <div key="appInfo">{props.app?.({})}</div>
           <div key="calendar">{props.calendar?.({})}</div>
           <div key="chat">{props.chat?.({})}</div>
           <div key="operate">{props.operate?.({})}</div>
           <div key="store">{props.store?.({})}</div>
           <div key="work">{props.work?.({})}</div>
-        </Grid>
+        </GridDesign>
       </div>
     );
   },
   displayName: 'WorkBench',
   meta: {
     props: {
-      cols: {
-        type: 'number',
-        default: 12,
-      },
       rowHeight: {
         type: 'number',
-        default: 8,
+        default: 4,
       },
-      layout: {
-        type: 'array',
-        elementType: {
-          type: 'type',
-          typeName: '布局节点',
-        } as ExistTypeMeta<Layout>,
-        default: [
-          { i: 'operate', x: 0, y: 0, w: 12, h: 10 },
-          { i: 'chat', x: 0, y: 10, w: 6, h: 10 },
-          { i: 'work', x: 6, y: 20, w: 6, h: 10 },
-          { i: 'store', x: 0, y: 30, w: 12, h: 10 },
-          { i: 'appInfo', x: 0, y: 40, w: 12, h: 10 },
-          { i: 'calendar', x: 0, y: 50, w: 12, h: 10 },
-        ],
+      layouts: {
+        type: 'object',
+        properties: {
+          lg: {
+            type: 'array',
+            elementType: {
+              type: 'type',
+              typeName: '布局节点',
+            } as ExistTypeMeta<Layout>,
+          },
+          md: {
+            type: 'array',
+            elementType: {
+              type: 'type',
+              typeName: '布局节点',
+            } as ExistTypeMeta<Layout>,
+          },
+          sm: {
+            type: 'array',
+            elementType: {
+              type: 'type',
+              typeName: '布局节点',
+            } as ExistTypeMeta<Layout>,
+          },
+          xs: {
+            type: 'array',
+            elementType: {
+              type: 'type',
+              typeName: '布局节点',
+            } as ExistTypeMeta<Layout>,
+          },
+          xxs: {
+            type: 'array',
+            elementType: {
+              type: 'type',
+              typeName: '布局节点',
+            } as ExistTypeMeta<Layout>,
+          },
+        },
+        default: {
+          lg: [
+            { w: 12, h: 15, x: 0, y: 44, i: 'appInfo', moved: false, static: false },
+            { w: 12, h: 62, x: 0, y: 57, i: 'calendar', moved: false, static: false },
+            { w: 6, h: 14, x: 0, y: 14, i: 'chat', moved: false, static: false },
+            { w: 12, h: 14, x: 0, y: 0, i: 'operate', moved: false, static: false },
+            { w: 12, h: 16, x: 0, y: 28, i: 'store', moved: false, static: false },
+            { w: 6, h: 14, x: 6, y: 14, i: 'work', moved: false, static: false },
+          ],
+          md: [
+            { w: 10, h: 24, x: 0, y: 52, i: 'appInfo', moved: false, static: false },
+            { w: 10, h: 62, x: 0, y: 76, i: 'calendar', moved: false, static: false },
+            { w: 5, h: 22, x: 0, y: 14, i: 'chat', moved: false, static: false },
+            { w: 10, h: 14, x: 0, y: 0, i: 'operate', moved: false, static: false },
+            { w: 10, h: 16, x: 0, y: 36, i: 'store', moved: false, static: false },
+            { w: 5, h: 22, x: 5, y: 14, i: 'work', moved: false, static: false },
+          ],
+          sm: [
+            { w: 6, h: 22, x: 0, y: 52, i: 'appInfo', moved: false, static: false },
+            { w: 6, h: 62, x: 0, y: 74, i: 'calendar', moved: false, static: false },
+            { w: 3, h: 22, x: 0, y: 14, i: 'chat', moved: false, static: false },
+            { w: 6, h: 14, x: 0, y: 0, i: 'operate', moved: false, static: false },
+            { w: 6, h: 16, x: 0, y: 36, i: 'store', moved: false, static: false },
+            { w: 3, h: 22, x: 3, y: 14, i: 'work', moved: false, static: false },
+          ],
+          xs: [
+            { w: 4, h: 22, x: 0, y: 79, i: 'appInfo', moved: false, static: false },
+            { w: 4, h: 62, x: 0, y: 101, i: 'calendar', moved: false, static: false },
+            { w: 2, h: 38, x: 0, y: 14, i: 'chat', moved: false, static: false },
+            { w: 4, h: 14, x: 0, y: 0, i: 'operate', moved: false, static: false },
+            { w: 4, h: 27, x: 0, y: 52, i: 'store', moved: false, static: false },
+            { w: 2, h: 37, x: 2, y: 14, i: 'work', moved: false, static: false },
+          ],
+          xxs: [
+            { w: 2, h: 22, x: 0, y: 94, i: 'appInfo', moved: false, static: false },
+            { w: 2, h: 62, x: 0, y: 116, i: 'calendar', moved: false, static: false },
+            { w: 1, h: 38, x: 0, y: 19, i: 'chat', moved: false, static: false },
+            { w: 2, h: 19, x: 0, y: 0, i: 'operate', moved: false, static: false },
+            { w: 2, h: 37, x: 0, y: 57, i: 'store', moved: false, static: false },
+            { w: 1, h: 38, x: 1, y: 19, i: 'work', moved: false, static: false },
+          ],
+        },
       },
     },
     slots: {
+      banner: {
+        label: '横幅插槽',
+        single: true,
+        params: {},
+        default: 'HeadBanner',
+      },
       app: {
         label: '应用',
         single: true,
@@ -92,7 +170,7 @@ export default defineElement({
       },
     },
     type: 'Template',
-    layoutType: 'full',
+    layoutType: 'scroll',
     description: '用于自定义工作台',
     label: '工作台',
   },

@@ -45,9 +45,12 @@ export function DesignerHost({ ctx }: DesignerProps) {
   const [active, setActive] = useState<string>();
   const [status, setStatus] = useState(false);
   const [center, setCenter] = useState(<></>);
-  ctx.view.subscribe((type, cmd) => {
+  const [showProps, setShowProps] = useState(ctx.view.showProps);
+  ctx.view.subscribe((type, cmd, args) => {
     if (type == 'elements' && cmd == 'change') {
       setStatus(!status);
+    } else if (type == 'current' && cmd == 'showProps') {
+      setShowProps(args);
     }
   });
 
@@ -80,7 +83,6 @@ export function DesignerHost({ ctx }: DesignerProps) {
 
   const Configuration: { [key: string]: ReactNode } = {
     tree: <TreeManager />,
-    element: <ElementProps />,
     data: <Coder />,
   };
 
@@ -127,6 +129,11 @@ export function DesignerHost({ ctx }: DesignerProps) {
         <div className="o-page-host" style={{ flex: 'auto' }}>
           <RootRender element={ctx.view.rootElement} />
         </div>
+        {showProps && (
+          <div className="is-full-height">
+            <ElementProps />
+          </div>
+        )}
       </div>
       {center}
     </PageContext.Provider>

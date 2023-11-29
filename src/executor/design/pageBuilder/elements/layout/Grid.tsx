@@ -1,85 +1,112 @@
-import React, { ReactNode } from 'react';
-import { WithCommonProps, defineElement } from '../defineElement';
-import { Layout, Responsive, WidthProvider } from 'react-grid-layout';
-import { Slot } from '../../render/Slot';
+import React, { useRef } from 'react';
+import { Layout, Responsive, ResponsiveProps, WidthProvider } from 'react-grid-layout';
 import { ExistTypeMeta } from '../../core/ElementMeta';
+import { Slot } from '../../render/Slot';
+import { defineElement } from '../defineElement';
+import './index.less';
 
 const ResponsiveLayout = WidthProvider(Responsive);
 
-interface GridProps extends IProps {
-  onChange: (layout: Layout[]) => void;
-  children: ReactNode;
-}
+export const GridView: React.FC<ResponsiveProps> = (props) => {
+  return <GridDesign {...props} isDraggable={false} isResizable={false} />;
+};
 
-export const Grid: React.FC<GridProps> = (props) => {
-  console.log(props);
+export const GridDesign: React.FC<ResponsiveProps> = (props) => {
+  const breakPoint = useRef<string>();
+  const onLayoutChange = (newLayout: Layout[], layouts: { [p: string]: Layout[] }) => {
+    if (breakPoint.current) {
+      layouts[breakPoint.current] = newLayout;
+    }
+    props.onLayoutChange?.(newLayout, layouts);
+  };
   return (
     <ResponsiveLayout
-      style={{ width: '100%' }}
+      className="grid-layout"
+      cols={props.cols}
       rowHeight={props.rowHeight}
-      layouts={{
-        lg: props.layout,
-        md: props.layout,
-        sm: props.layout,
-        xs: props.layout,
-        xxs: props.layout,
-      }}
-      allowOverlap={false}
-      preventCollision
-      breakpoints={{ lg: 1200, md: 996, sm: 768, xs: 480, xxs: 0 }}
-      onLayoutChange={(layout) => props.onChange(layout)}
-      cols={{
-        lg: props.cols,
-        md: (props.cols * 10) / 12,
-        sm: (props.cols * 6) / 12,
-        xs: (props.cols * 4) / 12,
-        xxs: (props.cols * 2) / 12,
-      }}>
+      layouts={props.layouts}
+      isDraggable={props.isDraggable}
+      isResizable={props.isResizable}
+      onBreakpointChange={(newBreak) => (breakPoint.current = newBreak)}
+      onLayoutChange={onLayoutChange}>
       {props.children}
     </ResponsiveLayout>
   );
 };
 
-interface IProps {
-  layout: Layout[];
-  cols: number;
-  rowHeight: number;
-}
-
-export const Design: React.FC<WithCommonProps<IProps>> = (props) => {
-  return (
-    <Grid {...props} onChange={(layout: Layout[]) => (props.props['layout'] = layout)}>
-      {props.children.map((c) => (
-        <div key={c.id}>
-          <Slot key={c.id} child={c} />
-        </div>
-      ))}
-    </Grid>
-  );
-};
-
 export default defineElement({
-  render(props) {
-    return <Design {...props}></Design>;
+  render(props, ctx) {
+    const children = props.children.map((c) => (
+      <div key={c.id}>
+        <Slot key={c.id} child={c} />
+      </div>
+    ));
+    if (ctx.view.mode == 'view') {
+      return (
+        <GridView rowHeight={props.rowHeight} layouts={props.layouts}>
+          {children}
+        </GridView>
+      );
+    }
+    return (
+      <GridDesign rowHeight={props.rowHeight} layouts={props.layouts}>
+        {children}
+      </GridDesign>
+    );
   },
   displayName: 'Grid',
   meta: {
     props: {
-      cols: {
-        type: 'number',
-        default: 12,
-      },
       rowHeight: {
         type: 'number',
         default: 10,
       },
-      layout: {
-        type: 'array',
-        elementType: {
-          type: 'type',
-          typeName: '布局节点',
-        } as ExistTypeMeta<Layout>,
-        default: [],
+      layouts: {
+        type: 'object',
+        properties: {
+          lg: {
+            type: 'array',
+            elementType: {
+              type: 'type',
+              typeName: '布局节点',
+            } as ExistTypeMeta<Layout>,
+          },
+          md: {
+            type: 'array',
+            elementType: {
+              type: 'type',
+              typeName: '布局节点',
+            } as ExistTypeMeta<Layout>,
+          },
+          sm: {
+            type: 'array',
+            elementType: {
+              type: 'type',
+              typeName: '布局节点',
+            } as ExistTypeMeta<Layout>,
+          },
+          xs: {
+            type: 'array',
+            elementType: {
+              type: 'type',
+              typeName: '布局节点',
+            } as ExistTypeMeta<Layout>,
+          },
+          xxs: {
+            type: 'array',
+            elementType: {
+              type: 'type',
+              typeName: '布局节点',
+            } as ExistTypeMeta<Layout>,
+          },
+        },
+        default: {
+          lg: [],
+          md: [],
+          sm: [],
+          xs: [],
+          xxs: [],
+        },
       },
     },
     label: '栅格布局',
