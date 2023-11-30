@@ -366,10 +366,10 @@ const WorkBench: React.FC = () => {
   return (
     <div className="workbench-content">
       <RenderOperate />
-      <Space>
+      <div className="cardGroup">
         <RenderChat />
         <RenderWork />
-      </Space>
+      </div>
       <RenderStore />
       <RenderAppInfo />
       <CalendarItem />
