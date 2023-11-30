@@ -147,7 +147,6 @@ const Nodes: React.FC<IProps> = ({ current }) => {
         <Node name="表单" />
         <Node name="表格" />
         <Node name="请求" />
-        <Node name="数据库" />
       </Space>
       <Space
         className={`${cls.operateNode} ${cls.border} ${

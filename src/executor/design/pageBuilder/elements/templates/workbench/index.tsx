@@ -26,7 +26,6 @@ export default defineElement({
           <div key="operate">{props.operate?.({})}</div>
           <div key="store">{props.store?.({})}</div>
           <div key="work">{props.work?.({})}</div>
-          <div key="works">{props.works?.({})}</div>
         </Grid>
       </div>
     );
@@ -163,12 +162,6 @@ export default defineElement({
         single: true,
         params: {},
         default: 'Work',
-      },
-      works: {
-        label: '常用办事',
-        single: true,
-        params: {},
-        default: 'Works',
       },
     },
     type: 'Template',
