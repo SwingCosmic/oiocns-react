@@ -81,6 +81,9 @@ export class Work extends FileInfo<schema.XWorkDefine> implements IWork {
   get forms(): IForm[] {
     return [...this.primaryForms, ...this.detailForms];
   }
+  get groupTags(): string[] {
+    return [...super.groupTags, ...(this.cache.tags ?? [])];
+  }
   async delete(_notity: boolean = false): Promise<boolean> {
     if (this.application) {
       const res = await kernel.deleteWorkDefine({
