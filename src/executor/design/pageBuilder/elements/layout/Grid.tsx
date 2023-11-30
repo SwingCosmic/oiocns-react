@@ -7,11 +7,7 @@ import './index.less';
 
 const ResponsiveLayout = WidthProvider(Responsive);
 
-export const GridView: React.FC<ResponsiveProps> = (props) => {
-  return <GridDesign {...props} isDraggable={false} isResizable={false} />;
-};
-
-export const GridDesign: React.FC<ResponsiveProps> = (props) => {
+export const Grid: React.FC<ResponsiveProps> = (props) => {
   const breakPoint = useRef<string>();
   const onLayoutChange = (newLayout: Layout[], layouts: { [p: string]: Layout[] }) => {
     if (breakPoint.current) {
@@ -36,22 +32,19 @@ export const GridDesign: React.FC<ResponsiveProps> = (props) => {
 
 export default defineElement({
   render(props, ctx) {
-    const children = props.children.map((c) => (
-      <div key={c.id}>
-        <Slot key={c.id} child={c} />
-      </div>
-    ));
-    if (ctx.view.mode == 'view') {
-      return (
-        <GridView rowHeight={props.rowHeight} layouts={props.layouts}>
-          {children}
-        </GridView>
-      );
-    }
+    const mode = ctx.view.mode;
     return (
-      <GridDesign rowHeight={props.rowHeight} layouts={props.layouts}>
-        {children}
-      </GridDesign>
+      <Grid
+        rowHeight={props.rowHeight}
+        layouts={props.layouts}
+        isDraggable={mode == 'design'}
+        isResizable={mode == 'design'}>
+        {props.children.map((c) => (
+          <div key={c.id}>
+            <Slot key={c.id} child={c} />
+          </div>
+        ))}
+      </Grid>
     );
   },
   displayName: 'Grid',

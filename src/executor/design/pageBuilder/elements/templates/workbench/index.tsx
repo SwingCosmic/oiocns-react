@@ -2,36 +2,32 @@ import React from 'react';
 import { Layout } from 'react-grid-layout';
 import { ExistTypeMeta } from '../../../core/ElementMeta';
 import { defineElement } from '../../defineElement';
-import { GridDesign, GridView } from '../../layout/Grid';
+import { Grid } from '../../layout/Grid';
 
 export default defineElement({
   render(props, ctx) {
-    if (ctx.view.mode == 'view') {
-      return (
-        <div className="workbench-content">
-          <div style={{ width: '100%' }}>{props.banner?.({})}</div>
-          <GridView rowHeight={props.rowHeight} layouts={props.layouts}>
-            <div key="appInfo">{props.app?.({})}</div>
-            <div key="calendar">{props.calendar?.({})}</div>
-            <div key="chat">{props.chat?.({})}</div>
-            <div key="operate">{props.operate?.({})}</div>
-            <div key="store">{props.store?.({})}</div>
-            <div key="work">{props.work?.({})}</div>
-          </GridView>
-        </div>
-      );
-    }
+    const mode = ctx.view.mode;
     return (
       <div className="workbench-content">
         <div style={{ width: '100%' }}>{props.banner?.({})}</div>
-        <GridDesign rowHeight={props.rowHeight} layouts={props.layouts}>
+        <Grid
+          rowHeight={props.rowHeight}
+          layouts={props.layouts}
+          isDraggable={mode == 'design'}
+          isResizable={mode == 'design'}
+          onLayoutChange={(_, allLayouts) => {
+            if (mode == 'design') {
+              props.props['layouts'] = allLayouts;
+            }
+          }}>
           <div key="appInfo">{props.app?.({})}</div>
           <div key="calendar">{props.calendar?.({})}</div>
           <div key="chat">{props.chat?.({})}</div>
           <div key="operate">{props.operate?.({})}</div>
           <div key="store">{props.store?.({})}</div>
           <div key="work">{props.work?.({})}</div>
-        </GridDesign>
+          <div key="works">{props.works?.({})}</div>
+        </Grid>
       </div>
     );
   },
@@ -167,6 +163,12 @@ export default defineElement({
         single: true,
         params: {},
         default: 'Work',
+      },
+      works: {
+        label: '常用办事',
+        single: true,
+        params: {},
+        default: 'Works',
       },
     },
     type: 'Template',
