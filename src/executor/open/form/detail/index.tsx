@@ -1,10 +1,10 @@
 import { Card, Tabs } from 'antd';
 import React from 'react';
+import { ImUndo2 } from 'react-icons/im';
 import ThingArchive from './archive';
 import { IForm } from '@/ts/core';
 import { schema } from '@/ts/base';
 import WorkFormViewer from '@/components/DataStandard/WorkForm/Viewer';
-import { ImUndo2 } from 'react-icons/im';
 
 interface IProps {
   form: IForm;
