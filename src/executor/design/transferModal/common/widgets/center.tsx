@@ -8,6 +8,7 @@ import { message } from 'antd';
 import axios from 'axios';
 import React, { useEffect, useState } from 'react';
 import {
+  DataModal,
   InputModal,
   MappingModal,
   RequestModal,
@@ -93,6 +94,9 @@ export const Center: React.FC<IProps> = ({ current }) => {
                   }
                   break;
               }
+              break;
+            case 'dataListener':
+              setCenter(<DataModal finished={setEmpty} />);
               break;
           }
           break;
