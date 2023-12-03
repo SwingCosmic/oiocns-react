@@ -1,5 +1,6 @@
-import { Modal } from 'antd';
+import { Modal, Tabs } from 'antd';
 import React from 'react';
+import { DataTabs } from './tabs';
 
 interface IProps {
   finished: () => void;
@@ -15,7 +16,7 @@ const DataModal: React.FC<IProps> = ({ finished }) => {
       destroyOnClose={true}
       cancelText={'关闭'}
       width={1200}>
-      <></>
+      <DataTabs />
     </Modal>
   );
 };
