@@ -1,6 +1,6 @@
 import React from 'react';
 import { schema } from '@/ts/base';
-import { IEntity, IWork } from '@/ts/core';
+import { IEntity } from '@/ts/core';
 import SpeciesModal from './speciesModal';
 import WorkModal from './workModal';
 import FillWorkModal from './fillWorkModal';
@@ -24,9 +24,6 @@ const OperateModal: React.FC<IProps> = ({ cmd, entity, finished }) => {
     case '办事':
       if (cmd == 'fillWork') {
         return <FillWorkModal finished={finished} current={entity as any} />;
-      }
-      if ((entity as IWork).metadata.allowClaim) {
-        return <WorkModal finished={finished} current={entity as any} />;
       }
       return <WorkModal finished={finished} current={entity as any} />;
     case '字典':
