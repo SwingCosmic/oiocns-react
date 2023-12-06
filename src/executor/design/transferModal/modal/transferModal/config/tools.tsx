@@ -35,9 +35,6 @@ const Tools: React.FC<IProps> = ({ current }) => {
         onClick={() => current.command.emitter('tools', 'newEnvironment')}>
         新增环境
       </Button>
-      <Button onClick={() => current.command.emitter('tools', 'dataListener')}>
-        数据监听
-      </Button>
       <EnvSelector current={current} />
     </Space>
   );

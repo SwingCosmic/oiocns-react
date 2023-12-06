@@ -1,5 +1,4 @@
 export * from './common';
-export { DataModal } from './modal/dataModal';
 export { InputModal } from './modal/inputModal';
 export { MappingModal } from './modal/mappingModal';
 export { RequestModal } from './modal/requestModal';

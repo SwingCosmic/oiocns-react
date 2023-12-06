@@ -503,6 +503,8 @@ export type XWorkDefine = {
   allowEdit: boolean;
   // 允许选择
   allowSelect: boolean;
+  // 允许领用
+  allowClaim: boolean;
   // 办事定义节点
   nodes: XWorkNode[] | undefined;
   // 办事的实例
