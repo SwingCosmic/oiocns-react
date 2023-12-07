@@ -12,6 +12,7 @@ import LabelsForm from './labelsForm';
 import RenameForm from './renameForm';
 import TransferForm from './transferForm';
 import PageTemplateForm from './templateForm';
+import AcquireForm from './acquireForm';
 
 interface IProps {
   cmd: string;
@@ -48,6 +49,12 @@ const EntityForm: React.FC<IProps> = ({ cmd, entity, finished }) => {
     case 'updateWork':
     case 'remarkWork':
       return <WorkForm formType={cmd} current={entity as any} finished={reloadFinish} />;
+    case 'newAcquire':
+    case 'updateAcquire':
+    case 'remarkAcquire':
+      return (
+        <AcquireForm formType={cmd} current={entity as any} finished={reloadFinish} />
+      );
     case 'newSpecies':
     case 'updateSpecies':
     case 'remarkSpecies':

@@ -308,7 +308,11 @@ function subscribeCallback<T extends schema.XStandard>(
           directory.standard.standardFiles
             .find((i) => i.id === entity.id)
             ?.receive(operate, entity);
-          if (entity.typeName === '模块' || entity.typeName === '办事') {
+          if (
+            entity.typeName === '模块' ||
+            entity.typeName === '办事' ||
+            entity.typeName === '数据领用'
+          ) {
             directory.standard.applications.forEach((i) => i.receive(operate, entity));
           }
           break;

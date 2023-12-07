@@ -172,6 +172,12 @@ export const directoryOperates = {
     label: '新建模块',
     iconType: '模块',
   },
+  NewAcquire: {
+    sort: 6,
+    cmd: 'newAcquire',
+    label: '新建数据领用',
+    iconType: '办事',
+  },
   NewForm: {
     sort: 8,
     cmd: 'newForm',

@@ -3,6 +3,7 @@ import { PageAll, directoryOperates, fileOperates } from '../../public';
 import { IDirectory } from '../directory';
 import { IFile, IStandardFileInfo, StandardFileInfo } from '../fileinfo';
 import { IWork, Work } from '../../work';
+import { Acquire, IAcquire } from '../../work/acquire';
 
 /** 应用/模块接口类 */
 export interface IApplication extends IStandardFileInfo<schema.XApplication> {
@@ -12,14 +13,20 @@ export interface IApplication extends IStandardFileInfo<schema.XApplication> {
   children: IApplication[];
   /** 流程定义 */
   works: IWork[];
+  /** 数据领用 */
+  acquires: IAcquire[];
   /** 结构变更 */
   structCallback(): void;
   /** 根据id查找办事 */
   findWork(id: string): Promise<IWork | undefined>;
   /** 加载办事 */
   loadWorks(reload?: boolean): Promise<IWork[]>;
+  /** 加载数据领用 */
+  loadAcquires(reload?: boolean): Promise<IAcquire[]>;
   /** 新建办事 */
   createWork(data: model.WorkDefineModel): Promise<IWork | undefined>;
+  /** 新建数据领用 */
+  createAcquire(data: schema.XAcquire): Promise<IAcquire | undefined>;
   /** 新建模块 */
   createModule(data: schema.XApplication): Promise<schema.XApplication | undefined>;
 }
@@ -40,9 +47,11 @@ export class Application
     this.loadChildren(_applications);
   }
   works: IWork[] = [];
+  acquires: IAcquire[] = [];
   children: IApplication[] = [];
   parent: IApplication | undefined;
   private _worksLoaded: boolean = false;
+  private _acquiresLoaded: boolean = false;
   get locationKey(): string {
     return this.key;
   }
@@ -56,7 +65,7 @@ export class Application
     return this.parent ?? this.directory;
   }
   content(): IFile[] {
-    return [...this.children, ...this.works].sort((a, b) =>
+    return [...this.children, ...this.works, ...this.acquires].sort((a, b) =>
       a.metadata.updateTime < b.metadata.updateTime ? 1 : -1,
     );
   }
@@ -118,6 +127,16 @@ export class Application
     }
     return this.works;
   }
+  async loadAcquires(reload?: boolean | undefined): Promise<IAcquire[]> {
+    if (!this._acquiresLoaded || reload) {
+      this._acquiresLoaded = true;
+      const res = await this.directory.resource.acquireColl.load({
+        options: { match: { applicationId: this.id } },
+      });
+      this.acquires = res.map((a) => new Acquire(a, this));
+    }
+    return this.acquires;
+  }
   async createWork(data: model.WorkDefineModel): Promise<IWork | undefined> {
     data.applicationId = this.id;
     const res = await kernel.createWorkDefine(data);
@@ -126,6 +145,17 @@ export class Application
       work.notify('workInsert', work.metadata);
       this.works.push(work);
       return work;
+    }
+  }
+  async createAcquire(data: schema.XAcquire): Promise<IAcquire | undefined> {
+    data.typeName = '数据领用';
+    data.applicationId = this.id;
+    const result = await this.directory.resource.acquireColl.insert(data);
+    if (result) {
+      let acquire = new Acquire(result, this);
+      await acquire.notify('acquireInsert', result);
+      this.acquires.push(acquire);
+      return acquire;
     }
   }
   async createModule(
@@ -142,6 +172,7 @@ export class Application
   }
   async loadContent(reload: boolean = false): Promise<boolean> {
     await this.loadWorks(reload);
+    await this.loadAcquires(reload);
     return true;
   }
   override operates(): model.OperateModel[] {
@@ -150,7 +181,11 @@ export class Application
       ...super.operates(),
     ];
     if (this.directory.target.hasRelationAuth()) {
-      operates.push(directoryOperates.NewModule, directoryOperates.NewWork);
+      operates.push(
+        directoryOperates.NewModule,
+        directoryOperates.NewWork,
+        directoryOperates.NewAcquire,
+      );
       if (this.directory.target.user.copyFiles.size > 0) {
         operates.push(fileOperates.Parse);
       }
@@ -185,6 +220,8 @@ export class Application
     } else if (data.parentId === this.id) {
       if (operate.startsWith('work')) {
         this.workReceive(operate, data);
+      } else if (operate.startsWith('acquire')) {
+        this.acquireReceive(operate, data);
       } else {
         switch (operate) {
           case 'insert':
@@ -224,6 +261,23 @@ export class Application
         break;
       case 'workReplace':
         this.works.find((i) => i.id === data.id)?.receive(operate, data);
+        break;
+    }
+    return true;
+  }
+  acquireReceive(operate: string, data: any): boolean {
+    switch (operate) {
+      case 'acquireInsert':
+        if (this.acquires.every((i) => i.id != data.id)) {
+          let acquire = new Acquire(data as unknown as schema.XAcquire, this);
+          this.acquires.push(acquire);
+        }
+        break;
+      case 'acquireRemove':
+        this.acquires = this.acquires.filter((i) => i.id != data.id);
+        break;
+      case 'acquireReplace':
+        this.acquires.find((i) => i.id === data.id)?.receive(operate, data);
         break;
     }
     return true;
