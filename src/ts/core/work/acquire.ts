@@ -52,7 +52,7 @@ export class Acquire extends FileInfo<schema.XAcquire> implements IAcquire {
   }
 
   get groupTags(): string[] {
-    return [];
+    return [this.metadata.typeName, ...(this.cache?.tags || [])];
   }
 
   async loadContent(reload?: boolean): Promise<boolean> {
