@@ -1,4 +1,4 @@
-import { logger } from '@/ts/base/common';
+import { generateUuid, logger } from '@/ts/base/common';
 import { IWork } from '.';
 import { schema, model, kernel } from '../../base';
 import { TaskStatus, entityOperates } from '../public';
@@ -6,6 +6,7 @@ import { IBelong } from '../target/base/belong';
 import { UserProvider } from '../user';
 import { IWorkApply } from './apply';
 import { FileInfo, IFile } from '../thing/fileinfo';
+import { Acquire, IExecutor } from './executor';
 export type TaskTypeName = '待办' | '已办' | '抄送' | '发起的';
 
 export interface IWorkTask extends IFile {
@@ -23,6 +24,8 @@ export interface IWorkTask extends IFile {
   instanceData: model.InstanceDataModel | undefined;
   /** 加用户任务信息 */
   targets: schema.XTarget[];
+  /** 执行器 */
+  executors: IExecutor[];
   /** 是否为指定的任务类型 */
   isTaskType(type: TaskTypeName): boolean;
   /** 是否满足条件 */
@@ -54,6 +57,7 @@ export class WorkTask extends FileInfo<schema.XEntity> implements IWorkTask {
   taskdata: schema.XWorkTask;
   instance: schema.XWorkInstance | undefined;
   instanceData: model.InstanceDataModel | undefined;
+  executors: IExecutor[] = [];
   get groupTags(): string[] {
     return [this.belong.name, this.taskdata.taskType, this.taskdata.approveType];
   }
@@ -139,12 +143,24 @@ export class WorkTask extends FileInfo<schema.XEntity> implements IWorkTask {
       try {
         this.instance = data;
         this.instanceData = eval(`(${data.data})`);
+        this.loadExecutors();
         return this.instanceData !== undefined;
       } catch (ex) {
         logger.error(ex as Error);
       }
     }
     return false;
+  }
+  loadExecutors() {
+    this.executors = [];
+    let metadata = this.instanceData?.node.executors ?? [];
+    for (const item of metadata) {
+      switch (item.funcName) {
+        case '数据领用':
+          this.executors.push(new Acquire(item, this));
+          break;
+      }
+    }
   }
   async recallApply(): Promise<boolean> {
     if ((await this.loadInstance()) && this.instance) {
