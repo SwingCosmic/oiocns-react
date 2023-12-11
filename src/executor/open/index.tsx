@@ -14,7 +14,6 @@ import { IEntity, ISysFileInfo, TargetType } from '@/ts/core';
 import JoinApply from './task/joinApply';
 import { model, schema } from '@/ts/base';
 import TemplateView from './page';
-import Acquire from './acquire';
 const audioExt = ['.mp3', '.wav', '.ogg'];
 
 const officeExt = ['.md', '.pdf', '.xls', '.xlsx', '.doc', '.docx', '.ppt', '.pptx'];
@@ -83,13 +82,6 @@ const ExecutorOpen: React.FC<IOpenProps> = (props: IOpenProps) => {
               finished={props.finished}
             />
           </>
-        );
-      case '数据领用':
-        return (
-          <Acquire
-            acquire={props.entity as any}
-            finished={props.finished}
-          />
         );
       case '事项':
         return (

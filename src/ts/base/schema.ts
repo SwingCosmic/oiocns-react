@@ -513,14 +513,6 @@ export type XWorkDefine = {
   target: XTarget | undefined;
 } & XEntity;
 
-// 数据领用
-export type XAcquire = {
-  // 应用ID
-  applicationId: string;
-  // 领用表单
-  forms: { id: string; name: string }[];
-} & XEntity;
-
 //节点网关
 export type XWorkGateway = {
   // 网关节点Id

@@ -1,4 +1,4 @@
-import { generateUuid, logger } from '@/ts/base/common';
+import { logger } from '@/ts/base/common';
 import { IWork } from '.';
 import { schema, model, kernel } from '../../base';
 import { TaskStatus, entityOperates } from '../public';
