@@ -9,7 +9,6 @@ export const PageContext = createContext<Context>({
 
 export interface IPageContext<T extends HostMode> {
   view: HostManagerBase<T>;
-  data?: { [key: string]: any };
 }
 
 export interface DesignContext extends IPageContext<'design'> {

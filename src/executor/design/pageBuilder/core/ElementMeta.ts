@@ -1,4 +1,3 @@
-/* eslint-disable no-unused-vars */
 /* eslint-disable prettier/prettier */
 /* prettier-ignore */
 /** 不要格式化此文件，会对阅读源码造成严重影响 */
@@ -6,20 +5,13 @@
 export type PrimitiveType = "string" | "number" | "boolean" | "date";
 export type ComplexType = "enum" | "array" | "object" | "type";
 export type DataType = PrimitiveType | ComplexType;
-export type ElementType =
-  | 'Element'
-  | 'Container'
-  | 'Slot'
-  | 'ArraySlot'
-  | 'Template'
-  | 'Print';
+export type ElementType = "Element" | "Container" | 'Slot' | 'ArraySlot' | 'Template';
 export enum ElementTypeName {
   Element = '元素',
   Container = '容器',
   Slot = '插槽',
   ArraySlot = '数组插槽',
-  Template = '模板',
-  Print = '打印模板',
+  Template = '模板'
 }
 
 export interface TypeMetaBase<T extends DataType> {

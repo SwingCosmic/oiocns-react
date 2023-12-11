@@ -37,7 +37,7 @@ const Template: React.FC<ITemplate> = ({ value, onChange }) => {
         <Row style={{ padding: 10 }} justify={'center'} gutter={[20, 20]}>
           {Object.entries(staticContext.components)
             .map((item) => item[1])
-            .filter((item) => ['Template', 'Print'].includes(item.meta.type))
+            .filter((item) => item.meta.type == 'Template')
             .map((item, index) => {
               return (
                 <Col key={index} onClick={() => onChange(item.displayName)}>

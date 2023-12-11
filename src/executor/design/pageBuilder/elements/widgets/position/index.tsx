@@ -3,7 +3,6 @@ import orgCtrl from '@/ts/controller';
 import { shareOpenLink } from '@/utils/tools';
 import { DeleteOutlined } from '@ant-design/icons';
 import { Button, Image, Space, Tag } from 'antd';
-import QrCode from 'qrcode.react';
 import React, { useEffect, useState } from 'react';
 import { ExistTypeMeta } from '../../../core/ElementMeta';
 import { File, SProperty, TipDesignText, TipText } from '../../../design/config/FileProp';
@@ -11,7 +10,7 @@ import { Context } from '../../../render/PageContext';
 import { defineElement } from '../../defineElement';
 import Asset from '/img/innovate.png';
 
-export type DisplayType = 'Photo' | 'Avatar' | 'Text' | 'Tags' | 'QrCode' | 'Belong';
+export type DisplayType = 'Photo' | 'Avatar' | 'Text' | 'Tags';
 
 interface IProps {
   id: string;
@@ -38,14 +37,6 @@ const Design: React.FC<IProps> = (props) => {
     };
   };
   switch (props.valueType) {
-    case 'Belong':
-      return (
-        <TipDesignText
-          width={props.width}
-          height={props.height}
-          value={props.property?.name ?? props.label}
-        />
-      );
     case 'Tags':
       return (
         <File
@@ -133,9 +124,6 @@ const getValue = async (props: IProps) => {
         }
       }
       break;
-    case 'Belong':
-      value = getTargetValue(props.data?.belongId);
-      break;
     case 'Tags':
       {
         let value: string[] = [];
@@ -173,16 +161,6 @@ const View: React.FC<IProps> = (props) => {
           src={value ? shareOpenLink(value) : Asset}
         />
       );
-    case 'QrCode': {
-      return (
-        <QrCode
-          level="H"
-          size={props.width}
-          fgColor={'#204040'}
-          value={`${location.origin}/${props.data?.id}`}
-        />
-      );
-    }
     case 'Tags':
       return (
         <Space direction={'horizontal'}>
