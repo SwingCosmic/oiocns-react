@@ -3,12 +3,13 @@ import FullScreenModal from '@/components/Common/fullScreen';
 import { IForm } from '@/ts/core';
 import * as config from './config';
 import EntityIcon from '@/components/Common/GlobalComps/entityIcon';
-import MainLayout from '@/components/MainLayout';
+import MinLayout from '@/components/MainLayout/minLayout';
 import useMenuUpdate from '@/hooks/useMenuUpdate';
 import WorkForm from '@/components/DataStandard/WorkForm';
 import GenerateThingTable from '@/executor/tools/generate/thingTable';
 import CustomStore from 'devextreme/data/custom_store';
-import { kernel, schema } from '@/ts/base';
+import { kernel } from '@/ts/base';
+import { ImCopy, ImShuffle, ImTicket } from 'react-icons/im';
 import { Controller } from '@/ts/controller';
 import { Spin, message } from 'antd';
 import ThingView from './detail';
@@ -17,7 +18,6 @@ import OpenFileDialog from '@/components/OpenFileDialog';
 import { ViewerHost } from '../page/view/ViewerHost';
 import ViewerManager from '../page/view/ViewerManager';
 import { IPageTemplate } from '@/ts/core/thing/standard/page';
-import { ImCopy, ImShuffle, ImTicket } from 'react-icons/im';
 
 interface IProps {
   form: IForm;
@@ -49,6 +49,7 @@ const FormView: React.FC<IProps> = ({ form, finished }) => {
           fields={form.fields}
           dataIndex="property"
           onRowDblClick={(e: any) => setSelcet(e.data)}
+          filterValue={JSON.parse(form.metadata.searchRule ?? '[]')}
           selection={
             form.metadata.allowPrint
               ? {
@@ -143,7 +144,7 @@ const FormView: React.FC<IProps> = ({ form, finished }) => {
               {
                 key: 'createNFT',
                 label: '生成存证',
-                icon: <ImTicket fontSize={22} color={'#9498df'} />,
+                icon: <ImTicket fontSize={22} color={'#3838b9'} />,
                 onClick: () => {
                   message.success('存证成功!');
                 },
@@ -151,12 +152,12 @@ const FormView: React.FC<IProps> = ({ form, finished }) => {
               {
                 key: 'copyBoard',
                 label: '复制数据',
-                icon: <ImCopy fontSize={22} color={'#9498df'} />,
+                icon: <ImCopy fontSize={22} color={'#3838b9'} />,
               },
               {
                 key: 'startWork',
                 label: '发起办事',
-                icon: <ImShuffle fontSize={22} color={'#9498df'} />,
+                icon: <ImShuffle fontSize={22} color={'#3838b9'} />,
               },
             ],
             onMenuClick(key, data) {
@@ -167,17 +168,14 @@ const FormView: React.FC<IProps> = ({ form, finished }) => {
       );
     };
     return (
-      <MainLayout
-        leftShow
-        rightShow={false}
+      <MinLayout
         selectMenu={selectMenu}
         onSelect={(data) => {
           setSelectMenu(data);
         }}
         siderMenuData={rootMenu}>
         {loadContent()}
-        {center}
-      </MainLayout>
+      </MinLayout>
     );
   };
   return (

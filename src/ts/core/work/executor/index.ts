@@ -26,5 +26,3 @@ export abstract class Executor implements IExecutor {
   task: IWorkTask;
   abstract execute(data: FormData): Promise<FormData>;
 }
-
-export * from './acquire';

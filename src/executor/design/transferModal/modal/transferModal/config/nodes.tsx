@@ -130,7 +130,7 @@ const Nodes: React.FC<IProps> = ({ current }) => {
           }
         }}
         className={`${cls.node} ${cls.contextBorder}`}>
-        <EntityIcon typeName={name} showName />
+        <EntityIcon />
         {name}
       </Space>
     );

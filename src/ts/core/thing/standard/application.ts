@@ -150,11 +150,7 @@ export class Application
       ...super.operates(),
     ];
     if (this.directory.target.hasRelationAuth()) {
-      operates.push(
-        directoryOperates.NewModule,
-        directoryOperates.NewWork,
-        directoryOperates.NewAcquire,
-      );
+      operates.push(directoryOperates.NewModule, directoryOperates.NewWork);
       if (this.directory.target.user.copyFiles.size > 0) {
         operates.push(fileOperates.Parse);
       }

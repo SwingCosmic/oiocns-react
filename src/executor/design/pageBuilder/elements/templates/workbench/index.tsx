@@ -3,6 +3,7 @@ import { Layout } from 'react-grid-layout';
 import { ExistTypeMeta } from '../../../core/ElementMeta';
 import { defineElement } from '../../defineElement';
 import { Grid } from '../../layout/Grid';
+import Workbench from '/img/workbench.jpg';
 
 export default defineElement({
   render(props, ctx) {
@@ -166,6 +167,7 @@ export default defineElement({
     },
     type: 'Template',
     layoutType: 'scroll',
+    photo: Workbench,
     description: '用于自定义工作台',
     label: '工作台',
   },

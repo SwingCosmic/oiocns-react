@@ -171,6 +171,8 @@ export type XForm = {
   rule: string;
   // 表单查看数据规则
   searchRule: string;
+  // 操作规则（允许新增、允许选择、允许删除）
+  operateRule: string;
   // 配置参数
   options: XFormProps | undefined;
   // 表单的特性
@@ -495,14 +497,8 @@ export type XWorkDefine = {
   applicationId: string;
   // 共享用户ID
   shareId: string;
-  // 允许新增
-  allowAdd: boolean;
   // 允许补充办事
   hasGateway: boolean;
-  // 允许变更
-  allowEdit: boolean;
-  // 允许选择
-  allowSelect: boolean;
   // 办事定义节点
   nodes: XWorkNode[] | undefined;
   // 办事的实例

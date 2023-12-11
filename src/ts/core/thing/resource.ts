@@ -10,7 +10,6 @@ import {
   Xbase,
   XPageTemplate,
   XStaging,
-  XAcquire,
 } from '../../base/schema';
 import { BucketOpreates, ChatMessageType, Transfer } from '@/ts/base/model';
 import { kernel, model } from '@/ts/base';

@@ -4,7 +4,6 @@ import {
   IDirectory,
   IEntity,
   IFile,
-  IFileInfo,
   IMemeber,
   ISession,
   IStorage,
@@ -80,10 +79,6 @@ export const executeCmd = (cmd: string, entity: any) => {
       return sessionReadedToggle(entity);
     case 'applyFriend':
       return applyFriend(entity);
-    case 'frequentlyUsed':
-      return frequentlyUsed(entity);
-    case 'unFrequentlyUsed':
-      return unFrequentlyUsed(entity);
   }
   return false;
 };
@@ -385,17 +380,4 @@ const uploadFile = (dir: IDirectory, uploaded?: (file: IFile | undefined) => voi
       </Upload>
     ),
   });
-};
-
-/** 设为常用 */
-const frequentlyUsed = (entity: IFileInfo<schema.XEntity>) => {
-  entity.cache.tags = entity.cache.tags || [];
-  entity.cache.tags.push('常用');
-  entity.cacheUserData();
-};
-
-/** 取消设为常用 */
-const unFrequentlyUsed = (entity: IFileInfo<schema.XEntity>) => {
-  entity.cache.tags = entity.cache.tags?.filter((item) => item != '常用');
-  entity.cacheUserData();
 };

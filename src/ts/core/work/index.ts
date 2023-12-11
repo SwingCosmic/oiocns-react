@@ -45,15 +45,9 @@ export interface IWork extends IFileInfo<schema.XWorkDefine> {
 }
 
 export const fullDefineRule = (data: schema.XWorkDefine) => {
-  data.allowAdd = true;
-  data.allowEdit = true;
-  data.allowSelect = true;
   data.hasGateway = false;
   if (data.rule && data.rule.includes('{') && data.rule.includes('}')) {
     const rule = JSON.parse(data.rule);
-    data.allowAdd = rule.allowAdd;
-    data.allowEdit = rule.allowEdit;
-    data.allowSelect = rule.allowSelect;
     data.hasGateway = rule.hasGateway;
   }
   data.typeName = '办事';
@@ -80,9 +74,6 @@ export class Work extends FileInfo<schema.XWorkDefine> implements IWork {
   }
   get forms(): IForm[] {
     return [...this.primaryForms, ...this.detailForms];
-  }
-  get groupTags(): string[] {
-    return [...super.groupTags, ...(this.cache.tags ?? [])];
   }
   async delete(_notity: boolean = false): Promise<boolean> {
     if (this.application) {
@@ -233,9 +224,6 @@ export class Work extends FileInfo<schema.XWorkDefine> implements IWork {
         fields: {},
         primary: {},
         node: this.node,
-        allowAdd: this.metadata.allowAdd,
-        allowEdit: this.metadata.allowEdit,
-        allowSelect: this.metadata.allowSelect,
       };
       this.forms.forEach((form) => {
         data.fields[form.id] = form.fields;
@@ -275,13 +263,6 @@ export class Work extends FileInfo<schema.XWorkDefine> implements IWork {
     if (operates.includes(entityOperates.Delete)) {
       operates.push(entityOperates.HardDelete);
     }
-    const used = this.cache.tags?.find((item) => item == '常用');
-    operates.push({
-      sort: 5,
-      cmd: used ? 'unFrequentlyUsed' : 'frequentlyUsed',
-      label: used ? '取消常用' : '设为常用',
-      iconType: '办事',
-    });
     return operates
       .filter((i) => i != fileOperates.Copy)
       .filter((i) => i != fileOperates.Move)
