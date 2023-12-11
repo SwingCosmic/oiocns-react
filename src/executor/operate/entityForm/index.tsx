@@ -48,12 +48,6 @@ const EntityForm: React.FC<IProps> = ({ cmd, entity, finished }) => {
     case 'updateWork':
     case 'remarkWork':
       return <WorkForm formType={cmd} current={entity as any} finished={reloadFinish} />;
-    case 'newAcquire':
-    case 'updateAcquire':
-    case 'remarkAcquire':
-      return (
-        <AcquireForm formType={cmd} current={entity as any} finished={reloadFinish} />
-      );
     case 'newSpecies':
     case 'updateSpecies':
     case 'remarkSpecies':
