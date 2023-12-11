@@ -12,7 +12,6 @@ import LabelsForm from './labelsForm';
 import RenameForm from './renameForm';
 import TransferForm from './transferForm';
 import PageTemplateForm from './templateForm';
-import AcquireForm from './acquireForm';
 
 interface IProps {
   cmd: string;
