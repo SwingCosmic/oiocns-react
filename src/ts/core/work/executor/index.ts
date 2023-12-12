@@ -12,7 +12,7 @@ export interface IExecutor {
   // 当前任务
   task: IWorkTask;
   // 执行
-  execute(data: FormData): Promise<FormData>;
+  execute(data: FormData): Promise<boolean>;
 }
 
 export abstract class Executor implements IExecutor {
@@ -24,5 +24,5 @@ export abstract class Executor implements IExecutor {
   command: Command;
   metadata: model.Executor;
   task: IWorkTask;
-  abstract execute(data: FormData): Promise<FormData>;
+  abstract execute(data: FormData): Promise<boolean>;
 }

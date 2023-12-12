@@ -45,6 +45,11 @@ export interface IWorkTask extends IFile {
     comment?: string,
     fromData?: Map<string, model.FormEditData>,
   ): Promise<boolean>;
+  /** 批量执行执行器 */
+  batchExec(
+    type: 'before' | 'after',
+    form: Map<string, model.FormEditData>,
+  ): Promise<boolean>;
 }
 
 export class WorkTask extends FileInfo<schema.XEntity> implements IWorkTask {
@@ -144,7 +149,7 @@ export class WorkTask extends FileInfo<schema.XEntity> implements IWorkTask {
       try {
         this.instance = data;
         this.instanceData = eval(`(${data.data})`);
-        this.loadExecutors();
+        await this.loadExecutors();
         return this.instanceData !== undefined;
       } catch (ex) {
         logger.error(ex as Error);
@@ -152,9 +157,11 @@ export class WorkTask extends FileInfo<schema.XEntity> implements IWorkTask {
     }
     return false;
   }
-  loadExecutors() {
+  async loadExecutors() {
     this.executors = [];
-    let metadata = this.instanceData?.node.executors ?? [];
+    let metadata = this.instanceData?.node.executors ?? [
+      { funcName: '数据领用', id: 'acquire', time: 'before' },
+    ];
     for (const item of metadata) {
       switch (item.funcName) {
         case '数据领用':
@@ -243,5 +250,22 @@ export class WorkTask extends FileInfo<schema.XEntity> implements IWorkTask {
       }
     }
     return false;
+  }
+
+  async batchExec(
+    type: 'before' | 'after',
+    form: Map<string, model.FormEditData>,
+  ): Promise<boolean> {
+    try {
+      for (const item of this.executors) {
+        if (item.metadata.time === type) {
+          await item.execute(form);
+        }
+      }
+      return true;
+    } catch (ex) {
+      logger.error(ex as Error);
+      return false;
+    }
   }
 }
