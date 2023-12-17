@@ -796,10 +796,6 @@ export type Executor = {
   funcName: string;
 };
 
-export type ExecutorCache = {
-  [id: string]: any;
-};
-
 export type Branche = {
   conditions: Condition[] | undefined;
   children: WorkNodeModel | undefined;

@@ -45,11 +45,8 @@ export interface IWorkTask extends IFile {
     comment?: string,
     fromData?: Map<string, model.FormEditData>,
   ): Promise<boolean>;
-  /** 批量执行执行器 */
-  batchExec(
-    type: 'before' | 'after',
-    form: Map<string, model.FormEditData>,
-  ): Promise<boolean>;
+  /** 获取办事 */
+  findWorkById(wrokId: string): Promise<IWork | undefined>;
 }
 
 export class WorkTask extends FileInfo<schema.XEntity> implements IWorkTask {
@@ -159,13 +156,13 @@ export class WorkTask extends FileInfo<schema.XEntity> implements IWorkTask {
   }
   async loadExecutors() {
     this.executors = [];
-    let metadata = this.instanceData?.node.executors ?? [
-      { funcName: '数据领用', id: 'acquire', time: 'before' },
-    ];
+    let metadata = this.instanceData?.node.executors ?? [];
     for (const item of metadata) {
       switch (item.funcName) {
-        case '数据领用':
+        case '数据申领':
           this.executors.push(new Acquire(item, this));
+          break;
+        case '归属权变更':
           break;
       }
     }
@@ -191,7 +188,7 @@ export class WorkTask extends FileInfo<schema.XEntity> implements IWorkTask {
     }
   }
 
-  private async findWorkById(wrokId: string): Promise<IWork | undefined> {
+  async findWorkById(wrokId: string): Promise<IWork | undefined> {
     for (var target of this.user.targets) {
       for (var app of await target.directory.loadAllApplication()) {
         const work = await app.findWork(wrokId);
@@ -250,22 +247,5 @@ export class WorkTask extends FileInfo<schema.XEntity> implements IWorkTask {
       }
     }
     return false;
-  }
-
-  async batchExec(
-    type: 'before' | 'after',
-    form: Map<string, model.FormEditData>,
-  ): Promise<boolean> {
-    try {
-      for (const item of this.executors) {
-        if (item.metadata.time === type) {
-          await item.execute(form);
-        }
-      }
-      return true;
-    } catch (ex) {
-      logger.error(ex as Error);
-      return false;
-    }
   }
 }
