@@ -159,10 +159,10 @@ export class WorkTask extends FileInfo<schema.XEntity> implements IWorkTask {
     let metadata = this.instanceData?.node.executors ?? [];
     for (const item of metadata) {
       switch (item.funcName) {
-        case '数据领用':
+        case '数据申领':
           this.executors.push(new Acquire(item, this));
           break;
-        case '转变归属':
+        case '归属权变更':
           break;
       }
     }
