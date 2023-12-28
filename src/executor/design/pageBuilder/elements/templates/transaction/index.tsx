@@ -214,7 +214,7 @@ export default defineElement({
         </div>
         <div className={cls.shoppingBtn}>
           {props.badge?.({})}
-          {props.car?.({})}
+          {props.car?.({ work: props.work })}
         </div>
       </div>
     );
@@ -308,7 +308,15 @@ export default defineElement({
       car: {
         label: '购物车列表',
         single: true,
-        params: {},
+        params: {
+          work: {
+            label: '办事绑定',
+            type: {
+              type: 'type',
+              label: '办事绑定',
+            } as ExistTypeMeta<SEntity | undefined>,
+          },
+        },
         default: 'ListItem',
       },
     },
