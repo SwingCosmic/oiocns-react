@@ -241,6 +241,11 @@ export default defineElement({
         } as ExistTypeMeta<SEntity>,
         default: [],
       },
+      work: {
+        type: 'type',
+        label: '关联办事',
+        typeName: 'workFile',
+      } as ExistTypeMeta<SEntity | undefined>,
     },
     slots: {
       banner: {
