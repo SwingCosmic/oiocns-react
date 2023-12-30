@@ -1,5 +1,5 @@
-import React, { useEffect, useState } from 'react';
-import { IFile, ISession, TargetType } from '@/ts/core';
+import React, { useEffect, useRef, useState } from 'react';
+import { ICompany, IFile, ISession, TargetType, companyTypes } from '@/ts/core';
 import { command } from '@/ts/base';
 import Directory from '@/components/Directory';
 import DirectoryViewer from '@/components/Directory/views';
@@ -8,6 +8,8 @@ import { loadFileMenus } from '@/executor/fileOperate';
 import ChatBody from './chat';
 import PreviewLayout from '../layout';
 import { cleanMenus } from '@/utils/tools';
+import { Button, Card, DatePicker, Space, Tag } from 'antd';
+
 const SessionBody = ({
   session,
   relation,
@@ -66,6 +68,53 @@ const SessionBody = ({
     setActions(newActions);
   }, [session]);
 
+  const Setting: React.FC = () => {
+    if (companyTypes.includes(session.typeName as TargetType)) {
+      const company = session.target as ICompany;
+      const [initPeriod, setInitPeriod] = useState(company.initPeriod);
+      const month = useRef<string>();
+      useEffect(() => {
+        const id = command.subscribeByFlag('initPeriod', () => {
+          setInitPeriod(company.initPeriod);
+        });
+        return () => {
+          command.unsubscribeByFlag(id);
+        };
+      }, []);
+      const Center = () => {
+        if (initPeriod) {
+          return (
+            <Space>
+              <Tag color="green">已初始化</Tag>
+              <>{initPeriod}</>
+            </Space>
+          );
+        } else {
+          return (
+            <Space>
+              <Tag color={'red'}>未初始化</Tag>
+              <DatePicker
+                style={{ width: '100%' }}
+                picker="month"
+                onChange={(_, data) => (month.current = data)}
+              />
+              <Button
+                onClick={async () => {
+                  const data = month.current;
+                  if (await company.cacheObj.set('initPeriod', data)) {
+                    await company.cacheObj.notity('initPeriod', data, true, false);
+                  }
+                }}>
+                确认
+              </Button>
+            </Space>
+          );
+        }
+      };
+      return <Card title={'初始化账期'}>{<Center />}</Card>;
+    }
+  };
+
   const loadContext = () => {
     switch (bodyType) {
       case 'chat':
@@ -94,6 +143,8 @@ const SessionBody = ({
             }}
           />
         );
+      case 'setting':
+        return <Setting />;
       default:
         return <></>;
     }

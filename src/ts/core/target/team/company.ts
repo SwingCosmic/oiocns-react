@@ -1,4 +1,4 @@
-import { kernel, model, schema } from '@/ts/base';
+import { command, kernel, model, schema } from '@/ts/base';
 import { IBelong, Belong } from '../base/belong';
 import { IGroup, Group } from '../outTeam/group';
 import { IDepartment, Department } from '../innerTeam/department';
@@ -13,6 +13,7 @@ import { Storage } from '../outTeam/storage';
 import { Cohort } from '../outTeam/cohort';
 import { ISession } from '../../chat/session';
 import { IFile } from '../../thing/fileinfo';
+import { XObject } from '../../public/object';
 
 /** 单位类型接口 */
 export interface ICompany extends IBelong {
@@ -24,6 +25,10 @@ export interface ICompany extends IBelong {
   departments: IDepartment[];
   /** 支持的内设机构类型 */
   departmentTypes: string[];
+  /** 单位缓存对象 */
+  cacheObj: XObject<schema.Xbase>;
+  /** 初始化账期 */
+  initPeriod: string | undefined;
   /** 退出单位 */
   exit(): Promise<boolean>;
   /** 加载组织集群 */
@@ -49,11 +54,14 @@ export class Company extends Belong implements ICompany {
       TargetType.Research,
       TargetType.Laboratory,
     ];
+    this.cacheObj = new XObject(_metadata, 'target-cache', [], [this.key]);
   }
+  initPeriod: string | undefined;
   groups: IGroup[] = [];
   stations: IStation[] = [];
   departments: IDepartment[] = [];
   departmentTypes: string[] = [];
+  cacheObj: XObject<schema.Xbase>;
   private _groupLoaded: boolean = false;
   private _departmentLoaded: boolean = false;
   async loadGroups(reload: boolean = false): Promise<IGroup[]> {
@@ -228,6 +236,8 @@ export class Company extends Belong implements ICompany {
     return targets;
   }
   async deepLoad(reload: boolean = false): Promise<void> {
+    await this.cacheObj.all();
+    await this._loadPeriod();
     await Promise.all([
       await this.loadGroups(reload),
       await this.loadDepartments(reload),
@@ -353,5 +363,17 @@ export class Company extends Belong implements ICompany {
         break;
     }
     return '';
+  }
+  async _loadPeriod(): Promise<void> {
+    const data = await this.cacheObj.get<string>('initPeriod');
+    if (data) {
+      this.initPeriod = data;
+    }
+    this.cacheObj.subscribe('initPeriod', (res: string) => {
+      if (res) {
+        this.initPeriod = res;
+        command.emitterFlag('initPeriod', true);
+      }
+    });
   }
 }
