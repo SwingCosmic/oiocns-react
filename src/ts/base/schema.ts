@@ -1,3 +1,5 @@
+import { model } from '.';
+
 export type Xbase = {
   // 雪花ID
   id: string;
@@ -37,6 +39,8 @@ export type XEntity = {
   icon: string;
   // 类型
   typeName: string;
+  /** 快捷方式目标 */
+  sourceId?: string;
   // 创建类别标准的用户
   belong: XTarget | undefined;
 } & Xbase;
@@ -143,8 +147,6 @@ export type XAttributeProps = {
   fixed?: boolean;
   // 是否展示至摘要
   showToRemark?: boolean;
-  // 初始化设置特殊默认值
-  initSpecialValue?: string;
 };
 
 //权限定义
@@ -186,7 +188,7 @@ export type XDirectory = {
 //表单定义
 export type XForm = {
   // 表单布局
-  rule: XFormRule1[];
+  rule: model.Rule[];
   // 表单查看数据规则
   searchRule: string;
   // 操作规则（允许新增、允许选择、允许删除）
@@ -707,11 +709,4 @@ export interface XPageTemplate extends XStandard {
   open: boolean;
   // 模板类型
   kind?: string;
-}
-
-// 账期集合
-export interface XPeriod extends Xbase {
-  // 当前账期
-  current: string;
-  // 是否已折旧
 }
