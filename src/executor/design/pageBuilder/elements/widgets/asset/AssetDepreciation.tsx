@@ -2,14 +2,14 @@ import React, { useEffect, useState } from "react";
 import { defineElement } from "../../defineElement";
 import { ExistTypeMeta } from "../../../core/ElementMeta";
 import { SEntity } from "../../../design/config/FileProp";
-import { IForm } from "@/ts/core";
+import { ICompany, IForm } from "@/ts/core";
 import { useEffectOnce } from "react-use";
 import GenerateThingTable from "@/executor/tools/generate/thingTable";
 import CustomStore from "devextreme/data/custom_store";
 import { XThing } from "@/ts/base/schema";
 import { kernel } from "@/ts/base";
 import "./index.less";
-import { Spin, Tag } from "antd";
+import { Result, Spin, Tag } from "antd";
 import { formatDate } from "@/utils";
 import { DatePicker } from "@/components/Common/StringDatePickers/DatePicker";
 
@@ -35,6 +35,7 @@ export default defineElement({
     
     const [loading, setLoading] = useState(false);
     const [ready, setReady] = useState(false);
+    const [errMsg, setErrMsg] = useState('');
 
     const [form, setForm] = useState<IForm>(null!);
     const [detailForm, setDetailForm] = useState<IForm>(null!);
@@ -43,6 +44,10 @@ export default defineElement({
     const [detailData, setDetailData] = useState<XThing[]>([]);
     const [depreciationState, setDepreciationState] = useState<DepreciationState>('none');
 
+    function getCompany() {
+      return ctx.view.pageInfo.directory.target.space as ICompany;
+    }
+
     async function init() {
       if (!props.form?.id) {
         return;
@@ -50,6 +55,15 @@ export default defineElement({
       if (!props.detailForm?.id) {
         return;
       }
+
+      const company = getCompany();
+      let period = company.currentPeriod || company.initPeriod!
+      setCreditTime(() => period);
+      if (!period) {
+        setErrMsg('当前单位未初始化账期');
+        return;
+      }
+
       const formData = await ctx.view.pageInfo.loadForm(props.form.id);
       setForm(formData);
 
@@ -126,6 +140,14 @@ export default defineElement({
     useEffect(() => { 
       loadData(); 
     }, [creditTime, ready]);
+
+    if (errMsg) {
+      return (
+        <div className="asset-page-element">
+          <Result status="error" title={errMsg} style={{ height: '100%' }}/>
+        </div>
+      );
+    }
     
     return (
       <div className="asset-page-element">
@@ -137,12 +159,15 @@ export default defineElement({
                 {stateMap[depreciationState].label}
               </Tag>
               <div className="flex-auto"></div>
-              <div>月份范围</div>
+              <div>业务月份</div>
               <DatePicker
                 picker="month"
                 value={creditTime}
                 onChange={setCreditTime}
                 format="YYYY-MM"
+                disabledDate={(date) => {
+                  return date.toDate().getTime() < new Date(getCompany().initPeriod!).getTime()
+                }}
               />
             </div>
             <div className="asset-page-element__content" style={{background: 'white'}}>
