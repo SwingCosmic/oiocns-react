@@ -707,6 +707,8 @@ export type FieldModel = {
 export type FiledLookup = {
   /** 唯一标识(项标识) */
   id: string;
+  /** 代码 */
+  code: string;
   /** 描述(项名称) */
   text: string;
   /** 值(项代码) */
@@ -1129,7 +1131,7 @@ export interface Column {
   // 类型
   valueType: string;
   // 映射
-  lookups?: { id: string; text: string; value: string }[];
+  lookups?: FiledLookup[];
 }
 
 // 映射

@@ -1,3 +1,4 @@
+import { formatZhDate } from '@/utils/tools';
 import * as t from '../type';
 import { DirContext } from './context';
 
@@ -72,7 +73,7 @@ export const collecting = (
       let ansData: any[] = [];
       let data = t.XLSX.utils.sheet_to_json(reads[key]);
       data.forEach((item: any) => {
-        let ansItem: any = {};
+        let ansItem: any = { labels: [] };
         sheet.columns.forEach((column) => {
           let value = item[column.title];
           if (value || value === 0) {
@@ -81,19 +82,28 @@ export const collecting = (
               case '分类型':
                 if (column.lookups) {
                   for (const item of column.lookups) {
-                    if (item.text == value) {
+                    if (item.code == value) {
                       ansItem[column.dataIndex] = item.value;
-                      ansItem[item.value] = item.text;
+                      ansItem.labels.push(item.value);
                       break;
                     }
                   }
                 }
+                break;
+              case '日期型':
+                ansItem[column.dataIndex] = formatZhDate(value, 'yyyy年MM月dd');
+                break;
+              case '时间型':
+                ansItem[column.dataIndex] = formatZhDate(value, 'yyyy/MM/dd HH:mm:ss');
+                break;
+              case '用户型':
                 break;
               case '数值型':
                 ansItem[column.dataIndex] = Number(value);
                 break;
               default:
                 ansItem[column.dataIndex] = String(value);
+                break;
             }
           }
         });

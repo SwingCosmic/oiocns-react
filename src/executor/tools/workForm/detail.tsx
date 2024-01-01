@@ -2,9 +2,12 @@ import { model, schema } from '../../../ts/base';
 import { IBelong } from '@/ts/core';
 import { useEffect, useState } from 'react';
 import React from 'react';
-import { Tabs } from 'antd';
+import { Modal, Tabs } from 'antd';
 import { EditModal } from '../editModal';
 import GenerateThingTable from '../generate/thingTable';
+import { Uploader, generating } from '../uploadTemplate';
+import * as el from '@/utils/excel';
+
 interface IProps {
   allowEdit: boolean;
   belong: IBelong;
@@ -65,6 +68,42 @@ const DetailTable: React.FC<IProps> = (props) => {
                     formData.after.push(values);
                     setFormData({ ...formData });
                   },
+                });
+              },
+            },
+            visible: props.allowEdit && operateRule['allowAdd'],
+          },
+          {
+            name: 'import',
+            location: 'after',
+            widget: 'dxButton',
+            options: {
+              text: '导入',
+              icon: 'add',
+              onClick: async () => {
+                const excel = new el.Excel(el.getAnythingSheets(form, fields));
+                const modal = Modal.info({
+                  icon: <></>,
+                  okText: '关闭',
+                  width: 610,
+                  title: form.name + '导入',
+                  maskClosable: true,
+                  content: (
+                    <Uploader
+                      templateName={form.name}
+                      excel={excel}
+                      finished={() => {
+                        modal.destroy();
+                        generating(
+                          props.belong,
+                          form.name,
+                          excel.handlers[0].sheet.data,
+                          formData,
+                          () => setFormData({ ...formData }),
+                        );
+                      }}
+                    />
+                  ),
                 });
               },
             },

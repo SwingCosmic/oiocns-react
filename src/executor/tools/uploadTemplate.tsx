@@ -1,22 +1,23 @@
-import { command, model } from '@/ts/base';
-import { IDirectory } from '@/ts/core';
+import { command, kernel, model } from '@/ts/base';
+import { sleep } from '@/ts/base/common';
+import { IBelong, IDirectory } from '@/ts/core';
 import { formatDate } from '@/utils';
 import * as el from '@/utils/excel';
 import { ProTable } from '@ant-design/pro-components';
 import { Button, Modal, Progress, Space, Spin, Tabs, Upload, message } from 'antd';
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 
 /** 上传业务导入模板 */
 export const uploadBusiness = (dir: IDirectory) => {
-  upload('业务模板', dir, el.getBusinessSheets(dir.target.directory));
+  initialize('业务模板', dir, el.getBusinessSheets(dir.target.directory));
 };
 
 /** 上传标准导入模板 */
 export const uploadStandard = (dir: IDirectory) => {
-  upload('标准模板', dir, el.getStandardSheets(dir.target.directory));
+  initialize('标准模板', dir, el.getStandardSheets(dir.target.directory));
 };
 
-export const upload = (
+export const initialize = (
   templateName: string,
   dir: IDirectory,
   sheets: el.ISheetHandler<any>[],
@@ -30,11 +31,52 @@ export const upload = (
     title: '导入' + templateName,
     maskClosable: true,
     content: (
-      <Center
-        templateName={templateName}
+      <Progressing
         dir={dir}
         excel={excel}
-        finished={(file) => {
+        finished={() => {
+          modal.destroy();
+          openUploader(templateName, dir, excel);
+        }}
+      />
+    ),
+  });
+};
+
+interface ProgressingProps {
+  dir: IDirectory;
+  excel: el.IExcel;
+  finished: () => void;
+}
+
+export const Progressing = ({ dir, excel, finished }: ProgressingProps) => {
+  const [progress, setProgress] = useState(0);
+  useEffect(() => {
+    excel.context.initialize(dir, setProgress).then(async () => {
+      await sleep(500);
+      finished();
+    });
+  }, []);
+  return (
+    <div style={{ marginTop: 20 }}>
+      <Progress percent={progress} showInfo={false} />
+      <span>正在初始化数据中...</span>
+    </div>
+  );
+};
+
+export function openUploader(templateName: string, dir: IDirectory, excel: el.IExcel) {
+  const modal = Modal.info({
+    icon: <></>,
+    okText: '关闭',
+    width: 610,
+    title: '导入模板',
+    maskClosable: true,
+    content: (
+      <Uploader
+        templateName={templateName}
+        excel={excel}
+        finished={(file: File) => {
           modal.destroy();
           showData(
             excel,
@@ -48,30 +90,22 @@ export const upload = (
       />
     ),
   });
-};
+}
 
 interface IProps {
   templateName: string;
-  dir: el.IDirectory;
   excel: el.IExcel;
-  finished: (file: Blob) => void;
+  finished: (file: File) => void;
 }
 
-const Center: React.FC<IProps> = ({ templateName, dir, excel, finished }) => {
-  const [progress, setProgress] = useState(0);
-  const [loading, setLoading] = useState(true);
-  const [text, setText] = useState('正在初始化数据中...');
-  useEffect(() => {
-    excel.context.initialize(dir, setProgress).then(() => setLoading(false));
-  }, []);
+export const Uploader: React.FC<IProps> = ({ templateName, excel, finished }) => {
+  const [loading, setLoading] = useState(false);
   return (
     <Space direction="vertical">
       <div style={{ marginTop: 20 }}>
         <Button onClick={async () => el.generateXlsx(excel, templateName)}>
           {templateName}下载
         </Button>
-        {loading && <Progress percent={progress} showInfo={false} />}
-        {loading && <span>{text}</span>}
       </div>
       <Spin spinning={loading}>
         <Upload
@@ -80,13 +114,10 @@ const Center: React.FC<IProps> = ({ templateName, dir, excel, finished }) => {
           accept="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
           style={{ width: 550, height: 300, marginTop: 20 }}
           customRequest={async (options) => {
-            setText('正在加载数据中，请稍后...');
             setLoading(true);
-            setProgress(0);
             await el.readXlsx(options.file as Blob, excel);
-            setProgress(100);
             setLoading(false);
-            finished(options.file as Blob);
+            finished(options.file as File);
           }}>
           <div style={{ color: 'limegreen', fontSize: 22 }}>点击或拖拽至此处上传</div>
         </Upload>
@@ -227,5 +258,52 @@ const showErrors = (errors: el.Error[]) => {
         ]}
       />
     ),
+  });
+};
+
+export const generating = (
+  belong: IBelong,
+  formName: string,
+  data: el.schema.XThing[],
+  formData: model.FormEditData,
+  finished: () => void,
+) => {
+  const Progressing = () => {
+    const counting = useRef(0);
+    const [progress, setProgress] = useState(0);
+    useEffect(() => {
+      createThings(data, () => {
+        counting.current += 1;
+        setProgress((counting.current * 100) / data.length);
+      }).then(() => {
+        modal.destroy();
+        finished();
+      });
+    }, []);
+    return (
+      <div style={{ marginTop: 20 }}>
+        <Progress percent={progress} showInfo={false} />
+        <span>正在生成数据中...</span>
+      </div>
+    );
+  };
+  const createThings = async (data: el.schema.XThing[], onAdd: () => void) => {
+    for (const item of data) {
+      const thing = await kernel.createThing(belong.id, [belong.id], formName);
+      if (thing.success) {
+        const merge = { ...item, ...thing.data };
+        formData.before.push(merge);
+        formData.after.push(merge);
+      }
+      onAdd();
+    }
+  };
+  const modal = Modal.info({
+    icon: <></>,
+    okText: '关闭',
+    width: 610,
+    title: '导入数据中',
+    maskClosable: true,
+    content: <Progressing />,
   });
 };

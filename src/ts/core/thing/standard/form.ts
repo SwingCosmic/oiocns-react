@@ -86,6 +86,7 @@ export class Form extends StandardFileInfo<schema.XForm> implements IForm {
               .map((i) => {
                 return {
                   id: i.id,
+                  code: i.info,
                   text: i.name,
                   value: `S${i.id}`,
                   icon: i.icon,

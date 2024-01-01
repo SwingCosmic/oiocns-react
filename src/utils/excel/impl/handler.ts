@@ -3,7 +3,7 @@ import * as t from '../type';
 /**
  * 读取 Excel Sheet 配置默认实现
  */
-export abstract class SheetHandler<S extends t.model.Sheet<any>>
+export abstract class SheetHandler<S extends t.model.Sheet<any> = any>
   implements t.ISheetHandler<S>
 {
   sheet: S;
