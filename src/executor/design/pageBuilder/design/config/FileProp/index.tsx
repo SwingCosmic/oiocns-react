@@ -145,3 +145,27 @@ export const Form: React.FC<IExistTypeProps<SEntity>> = (props) => {
     />
   );
 };
+
+export const Species: React.FC<IExistTypeProps<SEntity>> = (props) => {
+  return (
+    <BaseFile
+      {...props}
+      accepts={['分类']}
+      showName={props.value?.name ?? '绑定分类'}
+      onOk={(fs) => props.onChange(pick(fs[0].metadata, 'id', 'name'))}
+    />
+  );
+};
+
+export const Property: React.FC<IExistTypeProps<SEntity> & {
+  propType?: string;
+}> = (props) => {
+  return (
+    <BaseFile
+      {...props}
+      accepts={props.propType ? [props.propType] : ['属性']}
+      showName={props.value?.name ?? '绑定属性'}
+      onOk={(fs) => props.onChange(pick(fs[0].metadata, 'id', 'name'))}
+    />
+  );
+};

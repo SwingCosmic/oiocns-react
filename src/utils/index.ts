@@ -165,6 +165,54 @@ function formatTimeAgo(ms: any) {
 }
 
 /**
+ * 数字格式化
+ * @param number 要格式化的数字或者字符串形式的数字
+ * @param decimalPlaces 保留小数位，默认2，传入`null`不处理
+ * @param showThousandSeparator 是否显示千分位分隔符
+ * @param asPercentage 是否作为百分比输出（乘以100并增加百分号）
+ * @returns 格式化的数字
+ */
+export function formatNumber(
+  number: string | number | null | undefined, 
+  decimalPlaces: number | null = 2, 
+  showThousandSeparator = false, 
+  asPercentage = false
+) {
+  if (number === null || number === undefined || number === '') {
+    return '';
+  }
+
+  number = Number(number);
+  if (isNaN(number)) {
+    return 'NaN';
+  }
+
+  if (asPercentage) {
+    number *= 100;
+  }
+
+  let formatted = String(number);
+
+  if (typeof decimalPlaces === "number") {
+    formatted = (Math.round(number * 10 ** decimalPlaces) / 10 ** decimalPlaces).toFixed(decimalPlaces);    
+  }
+
+  if (showThousandSeparator) {
+    if (formatted.includes('.')) {
+      formatted = formatted.replace(/\B(?=(\d{3})+(?=\.))/g, ',');
+    } else {
+      formatted = formatted.replace(/\B(?=(\d{3})+(?!\d))/g, ',');
+    }
+  }
+
+  if (asPercentage) {
+    formatted += '%';
+  }
+
+  return formatted;
+}
+
+/**
  * 检查是否是emoji表情
  * @param {*} value 正则校验变量
  * @return {boolean} 正则校验结果 true: 是emoji表情 false: 不是emoji表情
