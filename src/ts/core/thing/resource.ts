@@ -61,6 +61,8 @@ export class DataResource {
   stagingColl: XCollection<XStaging>;
   /** 实体集合 */
   thingColl: XCollection<XThing>;
+  // /** 账期集合 */
+  // periods: XCollection<>;
   /** 资源对应的用户信息 */
   get targetMetadata() {
     return this.target;

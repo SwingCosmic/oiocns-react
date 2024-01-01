@@ -706,3 +706,10 @@ export interface XPageTemplate extends XStandard {
   // 模板类型
   kind?: string;
 }
+
+// 账期集合
+export interface XPeriod extends Xbase {
+  // 当前账期
+  current: string;
+  // 是否已折旧
+}

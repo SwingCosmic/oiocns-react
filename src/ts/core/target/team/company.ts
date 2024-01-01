@@ -29,6 +29,8 @@ export interface ICompany extends IBelong {
   cacheObj: XObject<schema.Xbase>;
   /** 初始化账期 */
   initPeriod: string | undefined;
+  /** 当前账期 */
+  currentPeriod: string | undefined;
   /** 退出单位 */
   exit(): Promise<boolean>;
   /** 加载组织集群 */
@@ -56,12 +58,13 @@ export class Company extends Belong implements ICompany {
     ];
     this.cacheObj = new XObject(_metadata, 'target-cache', [], [this.key]);
   }
-  initPeriod: string | undefined;
   groups: IGroup[] = [];
   stations: IStation[] = [];
   departments: IDepartment[] = [];
   departmentTypes: string[] = [];
   cacheObj: XObject<schema.Xbase>;
+  initPeriod: string | undefined;
+  currentPeriod: string | undefined;
   private _groupLoaded: boolean = false;
   private _departmentLoaded: boolean = false;
   async loadGroups(reload: boolean = false): Promise<IGroup[]> {
