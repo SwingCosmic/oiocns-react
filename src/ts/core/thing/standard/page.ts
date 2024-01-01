@@ -2,6 +2,7 @@ import { Command, schema } from '@/ts/base';
 import { IDirectory } from '../directory';
 import { IStandardFileInfo, StandardFileInfo } from '../fileinfo';
 import { ISpecies, Species } from './species';
+import { Form, IForm } from './form';
 
 export interface IPageTemplate extends IStandardFileInfo<schema.XPageTemplate> {
   /** 触发器 */
@@ -12,6 +13,7 @@ export interface IPageTemplate extends IStandardFileInfo<schema.XPageTemplate> {
   relations: string;
   /** 加载分类 */
   loadSpecies: (speciesIds: string[]) => Promise<ISpecies[]>;
+  loadForm: (formId: string) => Promise<IForm>;
 }
 
 export class PageTemplate
@@ -72,5 +74,15 @@ export class PageTemplate
       }
     });
     return result;
+  }
+
+  async loadForm(formId: string) {
+    const res = await this.directory.resource.formColl.find([formId]);
+    if (res.length > 0) {
+      const form = new Form(res[0], this.directory);
+      await form.loadContent();
+      return form;
+    }
+    return null!
   }
 }
