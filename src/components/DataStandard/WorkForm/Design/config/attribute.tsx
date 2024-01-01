@@ -14,6 +14,13 @@ interface IAttributeProps {
   notifyEmitter: Emitter;
 }
 
+const initSpecialValues = [
+  {
+    type: 'currentPeriod',
+    name: '当前账期'
+  }
+];
+
 const AttributeConfig: React.FC<IAttributeProps> = ({
   current,
   notifyEmitter,
@@ -176,6 +183,17 @@ const AttributeConfig: React.FC<IAttributeProps> = ({
               editorOptions={{
                 type: 'date',
                 displayFormat: dateFormat,
+              }}
+            />,
+            <SimpleItem
+              dataField="options.initSpecialValue"
+              editorType="dxSelectBox"
+              label={{ text: '初始化赋值' }}
+              editorOptions={{
+                valueExpr: 'type',
+                displayExpr: 'name',
+                dataSource: initSpecialValues,
+                showClearButton: true,
               }}
             />,
           );

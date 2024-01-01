@@ -143,6 +143,8 @@ export type XAttributeProps = {
   fixed?: boolean;
   // 是否展示至摘要
   showToRemark?: boolean;
+  // 初始化设置特殊默认值
+  initSpecialValue?: string;
 };
 
 //权限定义

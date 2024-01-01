@@ -12,7 +12,7 @@ import { DateBox, NumberBox, SelectBox, TextArea, TextBox } from 'devextreme-rea
 import React, { useEffect, useState } from 'react';
 import { ValueChangedEvent } from 'devextreme/ui/text_box';
 import { formatDate } from '@/utils';
-import { IBelong, TargetType } from '@/ts/core';
+import { IBelong, ICompany, TargetType } from '@/ts/core';
 
 interface IFormItemProps {
   data: any;
@@ -58,6 +58,18 @@ const FormItem: React.FC<IFormItemProps> = (props) => {
     },
     width: getItemWidth(props.numStr),
   };
+
+  if (props.field.options?.initSpecialValue) {
+    switch (props.field.options.initSpecialValue) {
+      case 'currentPeriod':
+        const company = props.belong.directory.target as ICompany;
+        mixOptions.defaultValue = company.currentPeriod;
+        break;
+      default:
+        console.warn(`未知初始化默认值类型 ${props.field.options.initSpecialValue}`);
+        break;
+    }
+  }
 
   Object.keys(props.rule).forEach((type) => {
     mixOptions[type] = props.rule[type];
