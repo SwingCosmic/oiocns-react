@@ -240,7 +240,7 @@ export class Company extends Belong implements ICompany {
   }
   async deepLoad(reload: boolean = false): Promise<void> {
     await this.cacheObj.all();
-    await this._loadPeriod();
+    await this._initPeriod();
     await Promise.all([
       await this.loadGroups(reload),
       await this.loadDepartments(reload),
@@ -367,15 +367,19 @@ export class Company extends Belong implements ICompany {
     }
     return '';
   }
-  async _loadPeriod(): Promise<void> {
-    const data = await this.cacheObj.get<string>('initPeriod');
+  async _initPeriod(): Promise<void> {
+    await this._loadPeriod('initPeriod');
+    await this._loadPeriod('currentPeriod');
+  }
+  async _loadPeriod(path: 'initPeriod' | 'currentPeriod'): Promise<void> {
+    const data = await this.cacheObj.get<string>(path);
     if (data) {
-      this.initPeriod = data;
+      this[path] = data;
     }
-    this.cacheObj.subscribe('initPeriod', (res: string) => {
+    this.cacheObj.subscribe(path, (res: string) => {
       if (res) {
-        this.initPeriod = res;
-        command.emitterFlag('initPeriod', true);
+        this[path] = res;
+        command.emitterFlag(path, true);
       }
     });
   }

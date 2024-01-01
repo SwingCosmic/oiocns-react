@@ -72,21 +72,35 @@ const SessionBody = ({
     if (companyTypes.includes(session.typeName as TargetType)) {
       const company = session.target as ICompany;
       const [initPeriod, setInitPeriod] = useState(company.initPeriod);
+      const [currentPeriod, setCurrentPeriod] = useState(company.currentPeriod);
       const month = useRef<string>();
       useEffect(() => {
-        const id = command.subscribeByFlag('initPeriod', () => {
+        const initId = command.subscribeByFlag('initPeriod', () => {
           setInitPeriod(company.initPeriod);
         });
+        const currentId = command.subscribeByFlag('currentPeriod', () => {
+          setCurrentPeriod(company.currentPeriod);
+        });
         return () => {
-          command.unsubscribeByFlag(id);
+          command.unsubscribeByFlag(initId);
+          command.unsubscribeByFlag(currentId);
         };
       }, []);
+      const setPeriod = async (
+        period: 'initPeriod' | 'currentPeriod',
+        data: string | undefined,
+      ) => {
+        if (await company.cacheObj.set(period, data)) {
+          await company.cacheObj.notity(period, data, true, false);
+        }
+      };
       const Center = () => {
         if (initPeriod) {
           return (
             <Space>
               <Tag color="green">已初始化</Tag>
-              <>{initPeriod}</>
+              <Card>{'初始结账日期：' + (initPeriod ?? '')}</Card>
+              <Card>{'当前业务时间：' + (currentPeriod ?? '')}</Card>
             </Space>
           );
         } else {
@@ -101,9 +115,8 @@ const SessionBody = ({
               <Button
                 onClick={async () => {
                   const data = month.current;
-                  if (await company.cacheObj.set('initPeriod', data)) {
-                    await company.cacheObj.notity('initPeriod', data, true, false);
-                  }
+                  await setPeriod('initPeriod', data);
+                  await setPeriod('currentPeriod', data);
                 }}>
                 确认
               </Button>
