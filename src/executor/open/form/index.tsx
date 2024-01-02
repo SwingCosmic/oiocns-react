@@ -15,6 +15,9 @@ import { Spin, message } from 'antd';
 import ThingView from './detail';
 import useAsyncLoad from '@/hooks/useAsyncLoad';
 import { Theme } from '@/config/theme';
+import { Workbook } from 'exceljs';
+import { exportDataGrid as toExcel } from 'devextreme/excel_exporter';
+import saveAs from 'file-saver';
 
 interface IProps {
   form: IForm;
@@ -69,9 +72,30 @@ const FormView: React.FC<IProps> = ({ form, finished }) => {
             })
           }
           remoteOperations={true}
+          onExporting={(e) => {
+            if (e.format === 'xlsx') {
+              const workbook = new Workbook();
+              const worksheet = workbook.addWorksheet(form.name);
+              toExcel({
+                worksheet: worksheet,
+                component: e.component,
+              }).then(function () {
+                workbook.xlsx.writeBuffer().then(function (buffer) {
+                  saveAs(
+                    new Blob([buffer], { type: 'application/octet-stream' }),
+                    form.name + '.xlsx',
+                  );
+                });
+              });
+            }
+          }}
           toolbar={{
             visible: true,
             items: [
+              {
+                name: 'exportButton',
+                location: 'after',
+              },
               {
                 name: 'columnChooserButton',
                 location: 'after',

@@ -3,7 +3,7 @@ import { model, schema } from '@/ts/base';
 import { Dropdown } from 'antd';
 import { AiOutlineEllipsis } from 'react-icons/ai';
 import { GenerateColumn } from './columns';
-import { Column, DataGrid, IDataGridOptions } from 'devextreme-react/data-grid';
+import { Column, DataGrid, Export, IDataGridOptions } from 'devextreme-react/data-grid';
 import { FullThingColumns } from '@/config/column';
 import { ItemType } from 'antd/lib/menu/hooks/useItems';
 
@@ -100,6 +100,7 @@ const GenerateThingTable = (props: IProps) => {
             );
           }}></Column>
       )}
+      <Export enabled formats={['xlsx']} />
     </DataGrid>
   );
 };
