@@ -1,3 +1,3 @@
 export const Theme = {
-  FocusColor: '#506cfa',
+  FocusColor: '#3838b9',
 };

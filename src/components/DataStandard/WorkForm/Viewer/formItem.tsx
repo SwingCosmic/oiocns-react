@@ -77,9 +77,9 @@ const FormItem: React.FC<IFormItemProps> = (props) => {
     }
   }
 
-  Object.keys(props.rule).forEach((type) => {
-    mixOptions[type] = props.rule[type];
-  });
+  for (const rule of props.rules) {
+    mixOptions[rule.typeName] = rule.value;
+  }
 
   if (mixOptions.isRequired) {
     mixOptions.isValid =

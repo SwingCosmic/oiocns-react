@@ -139,7 +139,13 @@ const AttributeConfig: React.FC<IAttributeProps> = ({
                   notityAttrChanged();
                 }}
                 speciesItems={items.map((a) => {
-                  return { id: a.id, text: a.name, value: a.id, parentId: a.parentId };
+                  return {
+                    id: a.id,
+                    code: a.info,
+                    text: a.name,
+                    value: `S${a.id}`,
+                    parentId: a.parentId,
+                  };
                 })}
               />
             )}

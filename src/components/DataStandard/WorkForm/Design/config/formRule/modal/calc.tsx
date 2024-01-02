@@ -2,14 +2,14 @@ import React, { useEffect, useState } from 'react';
 import { Field } from 'devextreme/ui/filter_builder';
 import { Modal, message } from 'antd';
 import { DropDownBox, SelectBox, TextArea, TextBox, TreeView } from 'devextreme-react';
-import { schema } from '@/ts/base';
+import { model } from '@/ts/base';
 import { getUuid } from '@/utils/tools';
 import { transformExpression } from '@/utils/script';
 
 interface IProps {
   fields: Field[];
-  current?: schema.FormCalcRule;
-  onOk: (rule: schema.FormCalcRule) => void;
+  current?: model.FormCalcRule;
+  onOk: (rule: model.FormCalcRule) => void;
   onCancel: () => void;
 }
 
@@ -55,7 +55,7 @@ const CalcRuleModal: React.FC<IProps> = (props) => {
               30,
             );
             throw error;
-          }            
+          }
         }
         props.onOk.apply(this, [
           {
@@ -128,8 +128,6 @@ const CalcRuleModal: React.FC<IProps> = (props) => {
         hint="说明：@0@ 表示 所选第一个触发变量，以此类推"
         labelMode="floating"
         value={formula}
-        autoResizeEnabled
-        minHeight={80}
         onValueChanged={(e) => {
           setFormula(e.value);
         }}></TextArea>
