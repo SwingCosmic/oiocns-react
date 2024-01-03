@@ -17,8 +17,8 @@ interface IAttributeProps {
 const initSpecialValues = [
   {
     type: 'currentPeriod',
-    name: '当前账期'
-  }
+    name: '当前账期',
+  },
 ];
 
 const AttributeConfig: React.FC<IAttributeProps> = ({
