@@ -67,10 +67,11 @@ const FormItem: React.FC<IFormItemProps> = (props) => {
 
   if (props.field.options?.initSpecialValue) {
     switch (props.field.options.initSpecialValue) {
-      case 'currentPeriod':
+      case 'currentPeriod': {
         const company = props.belong.directory.target as ICompany;
         mixOptions.defaultValue = company.currentPeriod;
         break;
+      }
       default:
         console.warn(`未知初始化默认值类型 ${props.field.options.initSpecialValue}`);
         break;
