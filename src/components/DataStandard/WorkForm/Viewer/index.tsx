@@ -136,20 +136,25 @@ const WorkFormViewer: React.FC<{
                     return true;
                   } else {
                     // 检查类型-匹配字典
-                    let findObj = props.fields.find(item=>item.id==calcRule.trigger[i])
-                    if(findObj){
+                    let findObj = props.fields.find(
+                      (item) => item.id == calcRule.trigger[i],
+                    );
+                    if (findObj) {
                       // 选择型处理，返回选中文本
-                      if(findObj.valueType=='选择型'){
-                        let triggerId = triggerData
-                        let findItem = findObj['lookups']?.find(it=>{
-                          return it.id== triggerId.split("S").join("");
-                        })
-                        let findText = findItem?.text
+                      if (findObj.valueType == '选择型') {
+                        let triggerId = triggerData;
+                        let findItem = findObj['lookups']?.find((it) => {
+                          return it.id == triggerId.split('S').join('');
+                        });
+                        let findText = findItem?.text;
                         formula = formula.replaceAll(`@${i}@`, JSON.stringify(findText));
-                      }else{
-                         formula = formula.replaceAll(`@${i}@`, JSON.stringify(triggerData))
+                      } else {
+                        formula = formula.replaceAll(
+                          `@${i}@`,
+                          JSON.stringify(triggerData),
+                        );
                       }
-                    }else{
+                    } else {
                       formula = formula.replaceAll(`@${i}@`, JSON.stringify(triggerData));
                     }
                   }
