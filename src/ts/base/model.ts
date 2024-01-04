@@ -912,10 +912,14 @@ export type FieldChange = {
   name: string;
   // 字段类型
   valueType: string;
-  // 变动前字段
+  // 变动前字段值
   before: any;
+  // 变动前名称
+  beforeName: string;
   // 要变更为的字段值
   after: any;
+  // 变动后名称
+  afterName: string;
 }
 
 export type Branche = {

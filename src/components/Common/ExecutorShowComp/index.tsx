@@ -10,6 +10,8 @@ import { AiOutlineCloseCircle } from 'react-icons/ai';
 import cls from './index.module.less';
 import { Emitter } from '@/ts/base/common';
 import FormItem from '@/components/DataStandard/WorkForm/Viewer/formItem';
+import { ShareIdSet } from '@/ts/core/public/entity';
+import { FieldModel } from '@/ts/base/model';
 
 interface IProps {
   work: IWork;
@@ -239,35 +241,7 @@ const FieldChangeTable: React.FC<FieldChangeTableProps> = (props) => {
             tableAlertRender={false}
             dataSource={fieldChanges}
             columns={[
-              {
-                title: '序号',
-                valueType: 'index',
-              },
-              {
-                title: '字段主键',
-                valueType: 'text',
-                dataIndex: 'id',
-              },
-              {
-                title: '字段名称',
-                valueType: 'text',
-                dataIndex: 'name',
-              },
-              {
-                title: '字段类型',
-                valueType: 'text',
-                dataIndex: 'valueType',
-              },
-              {
-                title: '变动后前值',
-                valueType: 'text',
-                dataIndex: 'before',
-              },
-              {
-                title: '变动后后值',
-                valueType: 'text',
-                dataIndex: 'after',
-              },
+              ...changeRecords,
               {
                 title: '操作',
                 valueType: 'option',
@@ -302,6 +276,48 @@ interface FieldChangeFormProps {
   onFinished: () => void;
 }
 
+export const changeRecords: any = [
+  {
+    title: '序号',
+    valueType: 'index',
+  },
+  {
+    title: '字段主键',
+    valueType: 'text',
+    dataIndex: 'id',
+  },
+  {
+    title: '字段名称',
+    valueType: 'text',
+    dataIndex: 'name',
+  },
+  {
+    title: '字段类型',
+    valueType: 'text',
+    dataIndex: 'valueType',
+  },
+  {
+    title: '变动前值',
+    valueType: 'text',
+    dataIndex: 'before',
+  },
+  {
+    title: '变动前名称',
+    valueType: 'text',
+    dataIndex: 'beforeName',
+  },
+  {
+    title: '变动后值',
+    valueType: 'text',
+    dataIndex: 'after',
+  },
+  {
+    title: '变动后名称',
+    valueType: 'text',
+    dataIndex: 'afterName',
+  },
+];
+
 const ExecutorForm: React.FC<FieldChangeFormProps> = (props) => {
   const formRef = useRef<ProFormInstance>();
   const forms = [...props.work.detailForms, ...props.work.primaryForms];
@@ -325,6 +341,28 @@ const ExecutorForm: React.FC<FieldChangeFormProps> = (props) => {
       </Modal>
     );
   }
+  const setField = (field: FieldModel, fieldName: string, value: any) => {
+    formRef.current?.setFieldValue(fieldName, value);
+    switch (field.valueType) {
+      case '选择型':
+      case '分类型':
+      case '附件型': {
+        const lookup = field.lookups?.find((item) => value == item.value);
+        console.log(value, field.lookups, lookup);
+        formRef.current?.setFieldValue(fieldName + 'Name', lookup?.text);
+        break;
+      }
+      case '描述型':
+      case '数值型':
+      case '日期型':
+      case '时间型':
+        formRef.current?.setFieldValue(fieldName + 'Name', value);
+        break;
+      case '用户型':
+        formRef.current?.setFieldValue(fieldName + 'Name', ShareIdSet.get(value)?.name);
+        break;
+    }
+  };
   return (
     <>
       <SchemaForm<model.FieldChange>
@@ -390,14 +428,24 @@ const ExecutorForm: React.FC<FieldChangeFormProps> = (props) => {
                     notifyEmitter={new Emitter()}
                     field={field}
                     belong={props.work.directory.target.space}
-                    onValuesChange={(_, value) => {
-                      formRef.current?.setFieldValue('before', value);
-                    }}
+                    onValuesChange={(_, value) => setField(field, 'before', value)}
                     rules={[]}
                   />
                 );
               }
               return <></>;
+            },
+          },
+          {
+            title: '变动前名称',
+            dataIndex: 'beforeName',
+            colProps: { span: 24 },
+            readonly: true,
+            formItemProps: {
+              rules: [{ required: true, message: '变动前名称为必填项' }],
+            },
+            renderFormItem: (_) => {
+              return <>{formRef.current?.getFieldValue('beforeName')}</>;
             },
           },
           {
@@ -418,14 +466,24 @@ const ExecutorForm: React.FC<FieldChangeFormProps> = (props) => {
                     notifyEmitter={new Emitter()}
                     field={field}
                     belong={props.work.directory.target.space}
-                    onValuesChange={(_, value) => {
-                      formRef.current?.setFieldValue('after', value);
-                    }}
+                    onValuesChange={(_, value) => setField(field, 'after', value)}
                     rules={[]}
                   />
                 );
               }
               return <></>;
+            },
+          },
+          {
+            title: '变动后名称',
+            dataIndex: 'afterName',
+            colProps: { span: 24 },
+            readonly: true,
+            formItemProps: {
+              rules: [{ required: true, message: '变动后值为必填项' }],
+            },
+            renderFormItem: (_) => {
+              return <>{formRef.current?.getFieldValue('afterName')}</>;
             },
           },
         ]}

@@ -4,7 +4,7 @@ import { IWork } from '..';
 import { Directory } from '../../thing/directory';
 
 /**
- * 数据领用
+ * 数据申领
  */
 export class Acquire extends Executor {
   /**
