@@ -207,7 +207,7 @@ export class StoreNode extends Node<model.Store> {
             formName: form.name,
             nodeId: this.work.node.id,
             creator: apply.belong.userId,
-            createTime: formatDate(new Date(), 'yyyy-MM-dd hh:mm:ss.S'),
+            createTime: formatDate(new Date(), 'yyyy-MM-dd HH:mm:ss.S'),
             rules: [],
           };
           for (const item of data[key]) {

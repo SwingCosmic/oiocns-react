@@ -175,6 +175,8 @@ export class WorkTask extends FileInfo<schema.XEntity> implements IWorkTask {
           break;
         case '归属权变更':
           break;
+        case '字段变更':
+          break;
       }
     }
     return executors;

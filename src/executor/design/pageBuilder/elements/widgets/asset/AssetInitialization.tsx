@@ -1,21 +1,21 @@
-import React, { useEffect, useState } from "react";
-import { defineElement } from "../../defineElement";
-import { ExistTypeMeta } from "../../../core/ElementMeta";
-import { SEntity } from "../../../design/config/FileProp";
-import { IForm } from "@/ts/core";
-import { useEffectOnce } from "react-use";
-import GenerateThingTable from "@/executor/tools/generate/thingTable";
-import CustomStore from "devextreme/data/custom_store";
-import { XThing } from "@/ts/base/schema";
-import { kernel } from "@/ts/base";
-import "./index.less";
-import { Spin, Tag } from "antd";
-import { formatDate } from "@/utils";
-import { DatePicker } from "@/components/Common/StringDatePickers/DatePicker";
+import React, { useEffect, useState } from 'react';
+import { defineElement } from '../../defineElement';
+import { ExistTypeMeta } from '../../../core/ElementMeta';
+import { SEntity } from '../../../design/config/FileProp';
+import { IForm } from '@/ts/core';
+import { useEffectOnce } from 'react-use';
+import GenerateThingTable from '@/executor/tools/generate/thingTable';
+import CustomStore from 'devextreme/data/custom_store';
+import { XThing } from '@/ts/base/schema';
+import { kernel } from '@/ts/base';
+import './index.less';
+import { Spin, Tag } from 'antd';
+import { formatDate } from '@/utils';
+import { DatePicker } from '@/components/Common/StringDatePickers/DatePicker';
 
 type DepreciationState = 'none' | 'calculated' | 'confirmed';
 
-const stateMap: Record<DepreciationState, {label: string, type: string }> = {
+const stateMap: Record<DepreciationState, { label: string; type: string }> = {
   none: {
     label: '未计提',
     type: 'error',
@@ -27,12 +27,11 @@ const stateMap: Record<DepreciationState, {label: string, type: string }> = {
   confirmed: {
     label: '已确认',
     type: 'success',
-  }
-}
+  },
+};
 
 export default defineElement({
   render(props, ctx) {
-    
     const [loading, setLoading] = useState(false);
     const [ready, setReady] = useState(false);
 
@@ -40,7 +39,7 @@ export default defineElement({
     const [detailForm, setDetailForm] = useState<IForm>(null!);
     const [creditTime, setCreditTime] = useState(formatDate(new Date(), 'yyyy-MM'));
     const [data, setData] = useState<XThing[]>([]);
- 
+
     const [depreciationState, setDepreciationState] = useState<DepreciationState>('none');
 
     async function init() {
@@ -76,34 +75,40 @@ export default defineElement({
           userData: [`F${props.form.id}`],
           filter: [
             // ['belongId', '=', belongId],
-            [`T${props.creditTimeField.id}`, '>=' , formatDate(startDate, 'yyyy/MM/dd 00:00:00')],
-            [`T${props.creditTimeField.id}`, '<=' , formatDate(endDate, 'yyyy/MM/dd 23:59:59')],
+            [
+              `T${props.creditTimeField.id}`,
+              '>=',
+              formatDate(startDate, 'yyyy/MM/dd 00:00:00'),
+            ],
+            [
+              `T${props.creditTimeField.id}`,
+              '<=',
+              formatDate(endDate, 'yyyy/MM/dd 23:59:59'),
+            ],
           ],
         };
         const res1 = await kernel.loadThing(belongId, [belongId], loadOptions);
         console.log(loadOptions, res1.data);
-        setData(res1.data);     
-        
+        setData(res1.data);
+
         if (res1.data.length == 0) {
           setDepreciationState('none');
           return;
         }
 
         const main = res1.data[0];
-
-
       } finally {
         setLoading(false);
       }
     }
 
-    useEffectOnce(() => { 
-      init(); 
+    useEffectOnce(() => {
+      init();
     });
-    useEffect(() => { 
-      loadData(); 
+    useEffect(() => {
+      loadData();
     }, [creditTime, ready]);
-    
+
     return (
       <div className="asset-page-element">
         <Spin spinning={loading}>
@@ -122,24 +127,28 @@ export default defineElement({
                 format="YYYY-MM"
               />
             </div>
-            <div className="asset-page-element__content" style={{background: 'white'}}>
-              <div style={{height: '100%'}}>
-                {form ? <GenerateThingTable
-                  fields={form.fields}
-                  height={'calc(100%)'}
-                  dataIndex="attribute"
-                  dataSource={
-                    new CustomStore({
-                      key: 'id',
-                      async load(_) {
-                        return data;
-                      },
-                    })
-                  }
-                /> : <></>}                
+            <div className="asset-page-element__content" style={{ background: 'white' }}>
+              <div style={{ height: '100%' }}>
+                {form ? (
+                  <GenerateThingTable
+                    fields={form.fields}
+                    height={'calc(100%)'}
+                    dataIndex="attribute"
+                    dataSource={
+                      new CustomStore({
+                        key: 'id',
+                        async load(_) {
+                          return data;
+                        },
+                      })
+                    }
+                  />
+                ) : (
+                  <></>
+                )}
               </div>
             </div>
-          </div> 
+          </div>
         </Spin>
       </div>
     );
@@ -165,5 +174,5 @@ export default defineElement({
         required: true,
       } as ExistTypeMeta<SEntity>,
     },
-  }
+  },
 });

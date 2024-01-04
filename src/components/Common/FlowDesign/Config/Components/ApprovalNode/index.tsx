@@ -12,6 +12,7 @@ import OpenFileDialog from '@/components/OpenFileDialog';
 import { SelectBox } from 'devextreme-react';
 import { getUuid } from '@/utils/tools';
 import Rule from '../../Rule';
+import ExecutorShowComp from '@/components/Common/ExecutorShowComp';
 interface IProps {
   work: IWork;
   current: NodeModel;
@@ -279,6 +280,8 @@ const ApprovalNode: React.FC<IProps> = (props) => {
                     id: getUuid(),
                     trigger: trigger,
                     funcName: funcName,
+                    changes: [],
+                    hookUrl: '',
                   });
                   setExecutors([...executors]);
                   setFuncName('');
@@ -289,10 +292,9 @@ const ApprovalNode: React.FC<IProps> = (props) => {
           }>
           {executors && executors.length > 0 && (
             <span>
-              <ShareShowComp
-                departData={executors?.map((a) => {
-                  return { id: a.id, name: a.funcName };
-                })}
+              <ExecutorShowComp
+                work={props.work}
+                executors={executors}
                 deleteFuc={(id: string) => {
                   setExecutors(executors.filter((a) => a.id != id));
                 }}

@@ -172,7 +172,7 @@ const View: React.FC<Omit<IProps, 'data'>> = (props) => {
                               return data;
                             }),
                           creator: orgCtrl.user.id,
-                          createTime: formatDate(new Date(), 'yyyy-MM-dd hh:mm:ss.S'),
+                          createTime: formatDate(new Date(), 'yyyy-MM-dd HH:mm:ss.S'),
                           rules: [],
                         },
                       ];
