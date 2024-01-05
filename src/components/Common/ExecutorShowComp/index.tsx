@@ -414,9 +414,6 @@ const ExecutorForm: React.FC<FieldChangeFormProps> = (props) => {
             title: '变动前值',
             dataIndex: 'before',
             colProps: { span: 24 },
-            formItemProps: {
-              rules: [{ required: true, message: '变动前值为必填项' }],
-            },
             renderFormItem: (_) => {
               const id = formRef.current?.getFieldValue('id');
               const field = fields.find((item) => item.id == id);
@@ -441,9 +438,6 @@ const ExecutorForm: React.FC<FieldChangeFormProps> = (props) => {
             dataIndex: 'beforeName',
             colProps: { span: 24 },
             readonly: true,
-            formItemProps: {
-              rules: [{ required: true, message: '变动前名称为必填项' }],
-            },
             renderFormItem: (_) => {
               return <>{formRef.current?.getFieldValue('beforeName')}</>;
             },

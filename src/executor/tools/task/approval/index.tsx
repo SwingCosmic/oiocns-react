@@ -2,6 +2,7 @@ import { changeRecords } from '@/components/Common/ExecutorShowComp';
 import { command, model } from '@/ts/base';
 import { IWorkTask, TaskStatus } from '@/ts/core';
 import { IExecutor } from '@/ts/core/work/executor';
+import { getNodeByNodeId } from '@/utils/tools';
 import ProTable from '@ant-design/pro-table';
 import { Button, Card, Input, Modal, Space, message } from 'antd';
 import React, { useState } from 'react';
@@ -80,7 +81,7 @@ const TaskApproval: React.FC<TaskDetailType> = ({ task, finished, fromData }) =>
         width={1200}
         onOk={async () => {
           try {
-            await props.executor.execute(new Map());
+            await props.executor.execute(fromData ?? new Map());
             await approving();
             setOpen(false);
           } catch (error) {
@@ -93,7 +94,6 @@ const TaskApproval: React.FC<TaskDetailType> = ({ task, finished, fromData }) =>
         <Space style={{ width: '100%' }} direction="vertical">
           <span>确认后，您的数据将自动产生变更操作，变更字段如下</span>
           {props.executor.metadata.changes.map((item, index) => {
-            console.log(item.fieldChanges);
             return (
               <Card key={index} title={item.name}>
                 <ProTable
@@ -128,7 +128,7 @@ const TaskApproval: React.FC<TaskDetailType> = ({ task, finished, fromData }) =>
         <Button
           type="primary"
           onClick={() => {
-            const node = task.instanceData?.node;
+            const node = getNodeByNodeId(task.taskdata.nodeId, task.instanceData?.node);
             const executors = node ? task.loadExecutors(node) : [];
             const executor = executors.find(
               (item) => item.metadata.funcName == '字段变更',
