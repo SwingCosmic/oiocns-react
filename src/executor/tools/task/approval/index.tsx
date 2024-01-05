@@ -79,9 +79,13 @@ const TaskApproval: React.FC<TaskDetailType> = ({ task, finished, fromData }) =>
         title={'字段变更确认'}
         width={1200}
         onOk={async () => {
-          await props.executor.execute(new Map());
-          await approving();
-          setOpen(false);
+          try {
+            await props.executor.execute(new Map());
+            await approving();
+            setOpen(false);
+          } catch (error) {
+            message.error((error as Error).message);
+          }
         }}
         onCancel={() => {
           setOpen(false);

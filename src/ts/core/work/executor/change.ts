@@ -1,6 +1,4 @@
 import { model } from '@/ts/base';
-import orgCtrl from '@/ts/controller';
-import { formatDate } from '@/utils';
 import { Executor } from '.';
 
 /**
@@ -21,22 +19,16 @@ export class FieldsChange extends Executor {
             const editData: model.FormEditData[] = instance.data[change.id];
             if (editData && editData.length > 0) {
               const edit = editData[editData.length - 1];
-              const afterEdit: model.FormEditData = {
-                before: edit.after,
-                after: edit.after.map((item) => {
-                  const newData = { ...item };
-                  for (const fieldChange of change.fieldChanges) {
-                    newData[fieldChange.id] = fieldChange.after;
+              edit.after.forEach((item) => {
+                for (const fieldChange of change.fieldChanges) {
+                  if (item[fieldChange.id] != fieldChange.before) {
+                    throw new Error(
+                      `当前字段${fieldChange.name}不为${fieldChange.beforeName}，变更失败`,
+                    );
                   }
-                  return newData;
-                }),
-                nodeId: this.task.taskdata.nodeId,
-                creator: orgCtrl.user.id,
-                createTime: formatDate(new Date(), 'yyyy-MM-dd HH:mm:ss.S'),
-                formName: edit.formName,
-                rules: [],
-              };
-              editData.push(afterEdit);
+                  item[fieldChange.id] = fieldChange.after;
+                }
+              });
             }
           }
         }
