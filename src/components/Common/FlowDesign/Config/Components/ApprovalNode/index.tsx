@@ -37,7 +37,8 @@ const ApprovalNode: React.FC<IProps> = (props) => {
   const [currentData, setCurrentData] = useState<{ id: string; name: string }>();
   useEffect(() => {
     props.current.primaryForms = props.current.primaryForms || [];
-    setExecutors(props.current.executors ?? []);
+    props.current.executors = props.current.executors || [];
+    setExecutors(props.current.executors);
     setPrimaryForms(props.current.primaryForms);
     setRadioValue(props.current.num == 0 ? 1 : 2);
     setDestType(props.current.destName != '发起人' ? '1' : '2');
@@ -118,55 +119,6 @@ const ApprovalNode: React.FC<IProps> = (props) => {
   return (
     <div className={cls[`app-roval-node`]}>
       <div className={cls[`roval-node`]}>
-        {' '}
-        <Card
-          type="inner"
-          title="审批对象"
-          className={cls[`card-info`]}
-          extra={
-            <>
-              <SelectBox
-                value={destType}
-                valueExpr={'value'}
-                displayExpr={'label'}
-                style={{ width: 120, display: 'inline-block' }}
-                onSelectionChanged={(e) => {
-                  switch (e.selectedItem.value) {
-                    case '1':
-                      props.current.destType = '角色';
-                      setCurrentData(undefined);
-                      break;
-                    case '2':
-                      props.current.num = 1;
-                      props.current.destId = '1';
-                      props.current.destName = '发起人';
-                      props.current.destType = '发起人';
-                      setCurrentData({ id: '1', name: '发起人' });
-                      props.refresh();
-                      break;
-                    default:
-                      break;
-                  }
-                  setDestType(e.selectedItem.value);
-                }}
-                dataSource={[
-                  { value: '1', label: '指定角色' },
-                  { value: '2', label: '发起人' },
-                ]}
-              />
-              {destType == '1' && (
-                <a
-                  style={{ paddingLeft: 10, display: 'inline-block' }}
-                  onClick={() => {
-                    setIsOpen(true);
-                  }}>
-                  选择角色
-                </a>
-              )}
-            </>
-          }>
-          {loadDestType()}
-        </Card>
         <Card
           type="inner"
           title="审批对象"
@@ -286,6 +238,7 @@ const ApprovalNode: React.FC<IProps> = (props) => {
                   });
                   setExecutors([...executors]);
                   setFuncName('');
+                  props.current.executors = executors;
                 }}>
                 添加
               </Button>
