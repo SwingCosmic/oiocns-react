@@ -25,6 +25,8 @@ export interface IForm extends IStandardFileInfo<schema.XForm> {
   ): Promise<boolean>;
   /** 删除表单特性 */
   deleteAttribute(data: schema.XAttribute): Promise<boolean>;
+  /** 加载物 */
+  loadThing(loadOptions: any): Promise<model.LoadResult<schema.XThing[]>>;
 }
 
 export class Form extends StandardFileInfo<schema.XForm> implements IForm {
@@ -33,6 +35,7 @@ export class Form extends StandardFileInfo<schema.XForm> implements IForm {
     this.canDesign = !_metadata.id.includes('_');
     this.setEntity();
   }
+
   canDesign: boolean;
   private _fieldsLoaded: boolean = false;
   fields: model.FieldModel[] = [];
@@ -87,7 +90,6 @@ export class Form extends StandardFileInfo<schema.XForm> implements IForm {
               .map((i) => {
                 return {
                   id: i.id,
-                  code: i.info,
                   text: i.name,
                   value: `S${i.id}`,
                   icon: i.icon,
@@ -191,5 +193,9 @@ export class Form extends StandardFileInfo<schema.XForm> implements IForm {
       return super.operates();
     }
     return [fileOperates.Copy, entityOperates.Remark];
+  }
+  async loadThing(loadOptions: any): Promise<model.LoadResult<schema.XThing[]>> {
+    const coll = this.directory.resource.genColl<schema.XThing>('_system-things');
+    return coll.loadResult(loadOptions);
   }
 }

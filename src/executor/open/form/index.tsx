@@ -8,7 +8,6 @@ import useMenuUpdate from '@/hooks/useMenuUpdate';
 import WorkForm from '@/components/DataStandard/WorkForm';
 import GenerateThingTable from '@/executor/tools/generate/thingTable';
 import CustomStore from 'devextreme/data/custom_store';
-import { kernel } from '@/ts/base';
 import { ImCopy, ImShuffle, ImTicket } from 'react-icons/im';
 import { Controller } from '@/ts/controller';
 import { Spin, message } from 'antd';
@@ -62,12 +61,7 @@ const FormView: React.FC<IProps> = ({ form, finished }) => {
                 } else if (selectMenu.item?.code) {
                   loadOptions.userData.push(selectMenu.item.code);
                 }
-                const result = await kernel.loadThing(
-                  form.belongId,
-                  [form.belongId],
-                  loadOptions,
-                );
-                return result;
+                return await form.loadThing(loadOptions);
               },
             })
           }
