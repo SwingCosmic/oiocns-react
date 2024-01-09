@@ -38,6 +38,7 @@ export class DataResource {
     this.templateColl = this.genTargetColl<XPageTemplate>('standard-page-template');
     this.stagingColl = this.genTargetColl<XStaging>('resource-staging');
     this.thingColl = this.genTargetColl<XThing>('_system-things');
+    this.changeColl = this.genTargetColl<any>('_system_things_changed');
   }
 
   /** 表单集合 */
@@ -64,6 +65,8 @@ export class DataResource {
   stagingColl: XCollection<XStaging>;
   /** 实体集合 */
   thingColl: XCollection<XThing>;
+  /** 变更集合 */
+  changeColl: XCollection<any>;
   /** 资源对应的用户信息 */
   get targetMetadata() {
     return this.target;
