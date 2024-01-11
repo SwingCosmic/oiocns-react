@@ -11,7 +11,6 @@ import { IStorage, Storage } from './outTeam/storage';
 import { personJoins, targetOperates } from '../public';
 import { IFile } from '../thing/fileinfo';
 import { ISession } from '../chat/session';
-import { XObject } from '../public/object';
 
 /** 人员类型接口 */
 export interface IPerson extends IBelong {
@@ -19,8 +18,6 @@ export interface IPerson extends IBelong {
   companys: ICompany[];
   /** 赋予人的身份(角色)实体 */
   givedIdentitys: schema.XIdProof[];
-  /** 用户缓存对象 */
-  cacheObj: XObject<schema.Xbase>;
   /** 个人常用文件 */
   commons: schema.XCommon[];
   /** 拷贝的文件 */
@@ -52,12 +49,10 @@ export class Person extends Belong implements IPerson {
   constructor(_metadata: schema.XTarget) {
     super(_metadata, []);
     this.copyFiles = new Map();
-    this.cacheObj = new XObject(_metadata, 'target-cache', [], [this.key]);
   }
 
   companys: ICompany[] = [];
   commons: schema.XCommon[] = [];
-  cacheObj: XObject<schema.Xbase>;
   givedIdentitys: schema.XIdProof[] = [];
   copyFiles: Map<string, IFile>;
   private _cohortLoaded: boolean = false;
@@ -278,6 +273,7 @@ export class Person extends Belong implements IPerson {
 
   async deepLoad(reload: boolean = false): Promise<void> {
     await this.cacheObj.all();
+    await this.financial.loadFinancial();
     await this._loadCommons();
     await Promise.all([
       this.loadTeams(reload),

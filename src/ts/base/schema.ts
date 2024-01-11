@@ -712,3 +712,27 @@ export interface XPageTemplate extends XStandard {
   // 模板类型
   kind?: string;
 }
+
+// 财务
+export interface XFinancial {
+  /** 初始化结账月 */
+  initializedPeriod: string | undefined;
+  /** 当前账期 */
+  currentPeriod: string | undefined;
+  /** 是否已生成初始账期 */
+  notGeneratedPeriod: boolean;
+}
+
+// 账期
+export type XPeriod = {
+  // 账期时间
+  period: string;
+  // 财务数据
+  data: XThing;
+  // 是否已折旧
+  depreciated: boolean;
+  // 是否已结账
+  closed: boolean;
+  // 是否已生成快照
+  snapshot: boolean;
+} & XEntity;

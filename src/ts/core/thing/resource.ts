@@ -11,6 +11,7 @@ import {
   XPageTemplate,
   XStaging,
   XThing,
+  XPeriod,
 } from '../../base/schema';
 import { BucketOpreates, ChatMessageType, Transfer } from '@/ts/base/model';
 import { kernel, model } from '@/ts/base';
@@ -36,6 +37,7 @@ export class DataResource {
     this.speciesItemColl = this.genTargetColl<XSpeciesItem>('standard-species-item');
     this.templateColl = this.genTargetColl<XPageTemplate>('standard-page-template');
     this.stagingColl = this.genTargetColl<XStaging>('resource-staging');
+    this.periodColl = this.genTargetColl<XPeriod>('resource-period');
     this.thingColl = this.genTargetColl<XThing>('_system-things');
   }
 
@@ -61,8 +63,8 @@ export class DataResource {
   stagingColl: XCollection<XStaging>;
   /** 实体集合 */
   thingColl: XCollection<XThing>;
-  // /** 账期集合 */
-  // periods: XCollection<>;
+  /** 账期集合 */
+  periodColl: XCollection<XPeriod>;
   /** 资源对应的用户信息 */
   get targetMetadata() {
     return this.target;

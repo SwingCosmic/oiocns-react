@@ -1,4 +1,4 @@
-import { command, kernel, model, schema } from '@/ts/base';
+import { kernel, model, schema } from '@/ts/base';
 import { IBelong, Belong } from '../base/belong';
 import { IGroup, Group } from '../outTeam/group';
 import { IDepartment, Department } from '../innerTeam/department';
@@ -27,10 +27,6 @@ export interface ICompany extends IBelong {
   departmentTypes: string[];
   /** 单位缓存对象 */
   cacheObj: XObject<schema.Xbase>;
-  /** 初始化账期 */
-  initPeriod: string | undefined;
-  /** 当前账期 */
-  currentPeriod: string | undefined;
   /** 退出单位 */
   exit(): Promise<boolean>;
   /** 加载组织集群 */
@@ -240,7 +236,7 @@ export class Company extends Belong implements ICompany {
   }
   async deepLoad(reload: boolean = false): Promise<void> {
     await this.cacheObj.all();
-    await this._initPeriod();
+    await this.financial.loadFinancial();
     await Promise.all([
       await this.loadGroups(reload),
       await this.loadDepartments(reload),
@@ -366,21 +362,5 @@ export class Company extends Belong implements ICompany {
         break;
     }
     return '';
-  }
-  async _initPeriod(): Promise<void> {
-    await this._loadPeriod('initPeriod');
-    await this._loadPeriod('currentPeriod');
-  }
-  async _loadPeriod(path: 'initPeriod' | 'currentPeriod'): Promise<void> {
-    const data = await this.cacheObj.get<string>(path);
-    if (data) {
-      this[path] = data;
-    }
-    this.cacheObj.subscribe(path, (res: string) => {
-      if (res) {
-        this[path] = res;
-        command.emitterFlag(path, true);
-      }
-    });
   }
 }

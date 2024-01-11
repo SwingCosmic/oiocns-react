@@ -1,5 +1,5 @@
-import React, { useEffect, useRef, useState } from 'react';
-import { ICompany, IFile, ISession, ITarget, TargetType, companyTypes } from '@/ts/core';
+import React, { useEffect, useState } from 'react';
+import { IBelong, IFile, ISession, ITarget, TargetType } from '@/ts/core';
 import { command } from '@/ts/base';
 import Directory from '@/components/Directory';
 import DirectoryViewer from '@/components/Directory/views';
@@ -9,7 +9,7 @@ import ChatBody from './chat';
 import PreviewLayout from '../layout';
 import { cleanMenus } from '@/utils/tools';
 import useCtrlUpdate from '@/hooks/useCtrlUpdate';
-import { Button, Card, DatePicker, Space, Tag } from 'antd';
+import NullableFinancial from './financial';
 
 const SessionBody = ({
   session,
@@ -93,66 +93,6 @@ const SessionBody = ({
     );
   };
 
-  const Setting: React.FC = () => {
-    if (companyTypes.includes(session.typeName as TargetType)) {
-      const company = session.target as ICompany;
-      const [initPeriod, setInitPeriod] = useState(company.initPeriod);
-      const [currentPeriod, setCurrentPeriod] = useState(company.currentPeriod);
-      const month = useRef<string>();
-      useEffect(() => {
-        const initId = command.subscribeByFlag('initPeriod', () => {
-          setInitPeriod(company.initPeriod);
-        });
-        const currentId = command.subscribeByFlag('currentPeriod', () => {
-          setCurrentPeriod(company.currentPeriod);
-        });
-        return () => {
-          command.unsubscribeByFlag(initId);
-          command.unsubscribeByFlag(currentId);
-        };
-      }, []);
-      const setPeriod = async (
-        period: 'initPeriod' | 'currentPeriod',
-        data: string | undefined,
-      ) => {
-        if (await company.cacheObj.set(period, data)) {
-          await company.cacheObj.notity(period, data, true, false);
-        }
-      };
-      const Center = () => {
-        if (initPeriod) {
-          return (
-            <Space>
-              <Tag color="green">已初始化</Tag>
-              <Card>{'初始结账日期：' + (initPeriod ?? '')}</Card>
-              <Card>{'当前业务时间：' + (currentPeriod ?? '')}</Card>
-            </Space>
-          );
-        } else {
-          return (
-            <Space>
-              <Tag color={'red'}>未初始化</Tag>
-              <DatePicker
-                style={{ width: '100%' }}
-                picker="month"
-                onChange={(_, data) => (month.current = data)}
-              />
-              <Button
-                onClick={async () => {
-                  const data = month.current;
-                  await setPeriod('initPeriod', data);
-                  await setPeriod('currentPeriod', data);
-                }}>
-                确认
-              </Button>
-            </Space>
-          );
-        }
-      };
-      return <Card title={'初始化账期'}>{<Center />}</Card>;
-    }
-  };
-
   const loadContext = () => {
     switch (bodyType) {
       case 'chat':
@@ -164,7 +104,7 @@ const SessionBody = ({
       case 'relation':
         return <RenderMemberDirectory target={session.target} />;
       case 'setting':
-        return <Setting />;
+        return <NullableFinancial belong={session.target as IBelong} />;
       default:
         return <></>;
     }

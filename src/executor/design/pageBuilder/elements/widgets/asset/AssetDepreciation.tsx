@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { defineElement } from '../../defineElement';
 import { ExistTypeMeta } from '../../../core/ElementMeta';
 import { SEntity } from '../../../design/config/FileProp';
-import { ICompany, IForm } from '@/ts/core';
+import { IBelong, IForm } from '@/ts/core';
 import { useEffectOnce } from 'react-use';
 import GenerateThingTable from '@/executor/tools/generate/thingTable';
 import CustomStore from 'devextreme/data/custom_store';
@@ -44,7 +44,7 @@ export default defineElement({
     const [depreciationState, setDepreciationState] = useState<DepreciationState>('none');
 
     function getCompany() {
-      return ctx.view.pageInfo.directory.target.space as ICompany;
+      return ctx.view.pageInfo.directory.target.space as IBelong;
     }
 
     async function init() {
@@ -55,8 +55,8 @@ export default defineElement({
         return;
       }
 
-      const company = getCompany();
-      let period = company.currentPeriod || company.initPeriod!;
+      const belong = getCompany();
+      let period = belong.financial.metadata?.initializedPeriod!;
       setCreditTime(() => period);
       if (!period) {
         setErrMsg('当前单位未初始化账期');
@@ -116,7 +116,6 @@ export default defineElement({
           return;
         }
 
-        const main = res1.data[0];
         const res2 = await kernel.loadThing(belongId, [belongId], {
           take: 100,
           skip: 0,
@@ -181,7 +180,8 @@ export default defineElement({
                 format="YYYY-MM"
                 disabledDate={(date) => {
                   return (
-                    date.toDate().getTime() < new Date(getCompany().initPeriod!).getTime()
+                    date.toDate().getTime() <
+                    new Date(getCompany().financial.metadata?.currentPeriod!).getTime()
                   );
                 }}
               />

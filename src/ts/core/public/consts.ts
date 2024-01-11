@@ -16,6 +16,8 @@ export const companyTypes = [
   TargetType.Hospital,
   TargetType.University,
 ];
+/** 支持的归属类型 */
+export const belongTypes = [...companyTypes, TargetType.Person];
 /** 支持的单位类型 */
 export const departmentTypes = [
   TargetType.College,
