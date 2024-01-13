@@ -128,6 +128,21 @@ const WorkForm = ({ finished, formType, current }: Iprops) => {
       },
     },
     {
+      title: '发起方式',
+      dataIndex: 'applyType',
+      valueType: 'select',
+      colProps: { span: 24 },
+      fieldProps: {
+        options: [
+          { value: '', label: '' },
+          { value: '', label: '列表选择' },
+        ],
+      },
+      formItemProps: {
+        rules: [{ required: true, message: '分类定义为必填项' }],
+      },
+    },
+    {
       title: '备注',
       readonly: readonly,
       dataIndex: 'remark',

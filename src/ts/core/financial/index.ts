@@ -2,6 +2,12 @@ import { IBelong, XObject } from '..';
 import { common, schema } from './../../base';
 import { IPeriod, Period } from './period';
 
+export interface PeriodResult {
+  data: IPeriod[];
+  success: boolean;
+  total: number;
+}
+
 /** 财务接口 */
 export interface IFinancial extends common.Emitter {
   /** 归属对象 */
@@ -12,9 +18,8 @@ export interface IFinancial extends common.Emitter {
   initializedPeriod: string | undefined;
   /** 当前账期 */
   currentPeriod: string | undefined;
-  /** 是否已 */
-  /** 账期集合 */
-  periods: IPeriod[];
+  /** 未生成初始账期 */
+  firstGenerated: boolean | undefined;
   /** 初始化账期 */
   initialize(period: string): Promise<void>;
   /** 清空结账日期 */
@@ -22,21 +27,18 @@ export interface IFinancial extends common.Emitter {
   /** 加载财务数据 */
   loadFinancial(): Promise<void>;
   /** 加载账期 */
-  loadPeriods(take: number): Promise<IPeriod[]>;
+  loadPeriods(skip: number, take: number): Promise<PeriodResult>;
   /** 生成初始账期 */
-  generatePeriod(): Promise<IPeriod | undefined>;
+  generatePeriod(): Promise<void>;
 }
 
 export class Financial extends common.Emitter implements IFinancial {
   constructor(belong: IBelong) {
     super();
     this.belong = belong;
-    this.periods = [];
   }
   metadata: schema.XFinancial | undefined;
   belong: IBelong;
-  periods: IPeriod[];
-  finished: boolean = false;
   get initializedPeriod(): string | undefined {
     return this.metadata?.initializedPeriod;
   }
@@ -48,6 +50,9 @@ export class Financial extends common.Emitter implements IFinancial {
   }
   get cache(): XObject<schema.Xbase> {
     return this.belong.cacheObj;
+  }
+  get firstGenerated(): boolean | undefined {
+    return this.metadata?.firstGenerated;
   }
   async loadFinancial(): Promise<void> {
     const data = await this.cache.get<schema.XFinancial>('financial');
@@ -63,7 +68,7 @@ export class Financial extends common.Emitter implements IFinancial {
     const financial: schema.XFinancial = {
       initializedPeriod: period,
       currentPeriod: period,
-      notGeneratedPeriod: true,
+      firstGenerated: false,
     };
     await this.setFinancial(financial);
   }
@@ -77,41 +82,35 @@ export class Financial extends common.Emitter implements IFinancial {
     await this.setFinancial({} as any);
     await this.belong.resource.periodColl.removeMatch({});
   }
-  async loadPeriods(take: number): Promise<IPeriod[]> {
-    if (!this.finished) {
-      const periods = await this.belong.resource.periodColl.load({
-        skip: this.periods.length,
-        take: take,
-        options: {
-          match: {
-            isDeleted: false,
-          },
-          sort: {
-            period: -1,
-          },
+  async loadPeriods(skip: number, take: number): Promise<PeriodResult> {
+    const result = await this.belong.resource.periodColl.loadResult({
+      skip: skip,
+      take: take,
+      options: {
+        match: {
+          isDeleted: false,
         },
-      });
-      const loaded = periods.map((item) => new Period(item, this.belong, this));
-      this.finished = loaded.length < take;
-      this.periods.push(...loaded);
-      return loaded;
-    }
-    return [];
+        sort: {
+          period: -1,
+        },
+      },
+    });
+    return {
+      data: result.data.map((item) => new Period(item, this.belong, this)),
+      success: result.success,
+      total: result.totalCount,
+    };
   }
-  async generatePeriod(): Promise<IPeriod | undefined> {
-    if (this.metadata?.notGeneratedPeriod) {
-      const period = await this.belong.resource.periodColl.insert({
+  async generatePeriod(): Promise<void> {
+    if (this.metadata && !this.metadata.firstGenerated) {
+      await this.belong.resource.periodColl.insert({
         period: this.currentPeriod,
         data: {} as schema.XThing,
         snapshot: false,
         depreciated: false,
         closed: false,
       } as schema.XPeriod);
-      if (period) {
-        const result = new Period(period, this.belong, this);
-        this.periods.unshift(result);
-        return result;
-      }
+      await this.setFinancial({ ...this.metadata, firstGenerated: true });
     }
     this.changCallback();
   }

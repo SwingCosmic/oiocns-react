@@ -1,4 +1,4 @@
-import { model, schema } from '.';
+import { model } from '.';
 import {
   XApplication,
   XAttributeProps,
@@ -632,6 +632,8 @@ export type WorkDefineModel = {
   applyAuth: string;
   // 流程节点
   resource: WorkNodeModel | undefined;
+  // 发起方式
+  applyType: string;
 };
 
 export type WorkInstanceModel = {

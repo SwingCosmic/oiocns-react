@@ -1,27 +1,23 @@
 import { IWork, IWorkApply, IWorkTask } from '@/ts/core';
-import { Button, Empty, Input, Spin } from 'antd';
+import { Button, Input } from 'antd';
 import message from '@/utils/message';
 import React from 'react';
 import WorkForm from '@/executor/tools/workForm';
-import useAsyncLoad from '@/hooks/useAsyncLoad';
 import { loadGatewayNodes } from '@/utils/tools';
 import FormItem from '@/components/DataStandard/WorkForm/Viewer/formItem';
 import { Emitter } from '@/ts/base/common';
-import { model } from '@/ts/base';
 // 卡片渲染
 interface IProps {
   current: IWork | IWorkTask;
+  apply: IWorkApply;
   finished?: () => void;
-  data?: model.InstanceDataModel;
 }
 
 /** 办事-业务流程--发起 */
-const TaskStart: React.FC<IProps> = ({ current, data, finished }) => {
+const TaskStart: React.FC<IProps> = ({ current, apply, finished }) => {
   const gatewayData = new Map<string, string>();
   const [notifyEmitter] = React.useState(new Emitter());
-  const [loaded, apply] = useAsyncLoad(() => current.createApply(undefined, data));
   const info: { content: string } = { content: '' };
-
   const loadGateway = (apply: IWorkApply) => {
     const gatewayInfos = loadGatewayNodes(apply.instanceData.node, []);
     return (
@@ -55,51 +51,37 @@ const TaskStart: React.FC<IProps> = ({ current, data, finished }) => {
       </>
     );
   };
-  if (!loaded) {
-    return (
-      <Spin tip={'配置信息加载中...'}>
-        <div style={{ width: '100%', height: '100%' }}></div>
-      </Spin>
-    );
-  }
-  if (apply) {
-    return (
-      <>
-        <WorkForm
-          allowEdit
-          belong={apply.belong}
-          data={apply.instanceData}
-          nodeId={apply.instanceData.node.id}
-        />
-        {loadGateway(apply)}
-        <div style={{ padding: 10, display: 'flex', alignItems: 'flex-end' }}>
-          <Input.TextArea
-            style={{ height: 100, width: 'calc(100% - 80px)', marginRight: 10 }}
-            placeholder="请填写备注信息"
-            onChange={(e) => {
-              info.content = e.target.value;
-            }}
-          />
-          <Button
-            type="primary"
-            onClick={async () => {
-              if (apply.validation()) {
-                await apply.createApply(apply.belong.id, info.content, gatewayData);
-                finished?.apply(this, []);
-              } else {
-                message.warn('请完善表单内容再提交!');
-              }
-            }}>
-            提交
-          </Button>
-        </div>
-      </>
-    );
-  }
   return (
-    <div style={{ width: '100%', height: '100%' }}>
-      <Empty />
-    </div>
+    <>
+      <WorkForm
+        allowEdit
+        belong={apply.belong}
+        data={apply.instanceData}
+        nodeId={apply.instanceData.node.id}
+      />
+      {loadGateway(apply)}
+      <div style={{ padding: 10, display: 'flex', alignItems: 'flex-end' }}>
+        <Input.TextArea
+          style={{ height: 100, width: 'calc(100% - 80px)', marginRight: 10 }}
+          placeholder="请填写备注信息"
+          onChange={(e) => {
+            info.content = e.target.value;
+          }}
+        />
+        <Button
+          type="primary"
+          onClick={async () => {
+            if (apply.validation()) {
+              await apply.createApply(apply.belong.id, info.content, gatewayData);
+              finished?.apply(this, []);
+            } else {
+              message.warn('请完善表单内容再提交!');
+            }
+          }}>
+          提交
+        </Button>
+      </div>
+    </>
   );
 };
 
