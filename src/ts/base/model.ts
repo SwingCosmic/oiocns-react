@@ -630,6 +630,8 @@ export type WorkDefineModel = {
   applicationId: string;
   // 发起权限
   applyAuth: string;
+  // 发起方式
+  applyType: string;
   // 流程节点
   resource: WorkNodeModel | undefined;
 };

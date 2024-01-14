@@ -128,6 +128,27 @@ const WorkForm = ({ finished, formType, current }: Iprops) => {
       },
     },
     {
+      title: '发起类型',
+      dataIndex: 'applyType',
+      valueType: 'select',
+      colProps: { span: 24 },
+      formItemProps: {
+        rules: [{ required: true, message: '事项编号为必填项' }],
+      },
+      fieldProps: {
+        options: [
+          {
+            label: '选择型',
+            value: 'select',
+          },
+          {
+            label: '列表型',
+            value: 'list',
+          },
+        ],
+      },
+    },
+    {
       title: '备注',
       readonly: readonly,
       dataIndex: 'remark',
@@ -158,6 +179,7 @@ const WorkForm = ({ finished, formType, current }: Iprops) => {
         values.applyAuth = values.applyAuths.at(-1);
         switch (formType) {
           case 'updateWork':
+            console.log(values);
             await (current as IWork).update(values);
             break;
           case 'newWork':
