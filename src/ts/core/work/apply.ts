@@ -41,13 +41,15 @@ export class WorkApply implements IWorkApply {
       );
     };
     const hides = this.getHideForms();
-    for (const formId of Object.keys(this.instanceData.data)) {
-      if (!hides.includes(formId)) {
-        const formData = this.instanceData.data[formId].at(-1);
-        const data: any = formData?.after.at(-1) ?? {};
-        for (const item of this.instanceData.fields[formId]) {
+    for (const formId of Object.keys(this.instanceData.fields).filter(
+      (a) => !hides.includes(a),
+    )) {
+      const formData = this.instanceData.data[formId]?.at(-1);
+      const data: any = formData?.after.at(-1) ?? {};
+      for (const item of this.instanceData.fields[formId]) {
+        var isRequired = item.options?.isRequired;
+        if (formData?.rules && Array.isArray(formData?.rules)) {
           const rules = formData?.rules.filter((a) => a.destId == item.id);
-          var isRequired = item.options?.isRequired;
           if (rules) {
             for (const rule of rules) {
               if (rule.typeName == 'isRequired') {
@@ -58,9 +60,9 @@ export class WorkApply implements IWorkApply {
               }
             }
           }
-          if (isRequired && valueIsNull(data[item.id])) {
-            return false;
-          }
+        }
+        if (isRequired && valueIsNull(data[item.id])) {
+          return false;
         }
       }
     }

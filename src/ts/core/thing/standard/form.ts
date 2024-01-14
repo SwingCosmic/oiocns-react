@@ -1,8 +1,9 @@
-import { getUuid } from '@/utils/tools';
+import { LoadResult } from '@/ts/base/model';
 import { schema, model } from '../../../base';
 import { entityOperates, fileOperates, orgAuth } from '../../../core/public';
 import { IDirectory } from '../directory';
 import { IStandardFileInfo, StandardFileInfo } from '../fileinfo';
+import { formatDate } from '@/utils';
 
 /** 表单类接口 */
 export interface IForm extends IStandardFileInfo<schema.XForm> {
@@ -12,6 +13,8 @@ export interface IForm extends IStandardFileInfo<schema.XForm> {
   fields: model.FieldModel[];
   /** 加载分类字典项 */
   loadItems(speciesIds: string[]): Promise<schema.XSpeciesItem[]>;
+  /** 加载引用表单 */
+  loadReferenceForm(formIs: string): Promise<schema.XForm>;
   /** 加载字段 */
   loadFields(reload?: boolean): Promise<model.FieldModel[]>;
   /** 保存 */
@@ -25,8 +28,8 @@ export interface IForm extends IStandardFileInfo<schema.XForm> {
   ): Promise<boolean>;
   /** 删除表单特性 */
   deleteAttribute(data: schema.XAttribute): Promise<boolean>;
-  /** 加载物 */
-  loadThing(loadOptions: any): Promise<model.LoadResult<schema.XThing[]>>;
+  /** 查询表数据 */
+  loadThing(loadOptions: any): Promise<LoadResult<any>>;
 }
 
 export class Form extends StandardFileInfo<schema.XForm> implements IForm {
@@ -114,6 +117,10 @@ export class Form extends StandardFileInfo<schema.XForm> implements IForm {
       },
     });
   }
+  async loadReferenceForm(formId: string): Promise<schema.XForm> {
+    const data = await this.directory.resource.formColl.find([formId]);
+    return data[0];
+  }
   async createAttribute(propertys: schema.XProperty[]): Promise<schema.XAttribute[]> {
     const data = propertys.map((prop) => {
       return {
@@ -169,9 +176,10 @@ export class Form extends StandardFileInfo<schema.XForm> implements IForm {
       directoryId: destination.id,
     };
     if (!this.allowCopy(destination)) {
-      newMetaData.code = getUuid();
+      const uuid = formatDate(new Date(), 'yyyyMMddHHmmss');
+      newMetaData.name = this.metadata.name + `-副本${uuid}`;
+      newMetaData.code = this.metadata.code + uuid;
       newMetaData.id = 'snowId()';
-      newMetaData.name = `${this.metadata.name} - 副本[${newMetaData.code}]`;
     }
     const data = await destination.resource.formColl.replace(newMetaData);
     if (data) {
@@ -194,8 +202,14 @@ export class Form extends StandardFileInfo<schema.XForm> implements IForm {
     }
     return [fileOperates.Copy, entityOperates.Remark];
   }
-  async loadThing(loadOptions: any): Promise<model.LoadResult<schema.XThing[]>> {
-    const coll = this.directory.resource.genColl<schema.XThing>('_system-things');
-    return coll.loadResult(loadOptions);
+  async loadThing(loadOptions: any): Promise<LoadResult<any>> {
+    const res = await this.directory.resource.thingColl.loadResult(loadOptions);
+    if (res.success && !Array.isArray(res.data)) {
+      res.data = [];
+    }
+    res.totalCount = res.totalCount ?? 0;
+    res.groupCount = res.groupCount ?? 0;
+    res.summary = res.summary ?? [];
+    return res;
   }
 }

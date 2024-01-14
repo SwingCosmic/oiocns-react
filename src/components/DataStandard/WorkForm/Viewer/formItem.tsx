@@ -1,4 +1,4 @@
-import { model } from '@/ts/base';
+import { model, schema } from '@/ts/base';
 import { Emitter } from '@/ts/base/common';
 import HtmlEditItem from './customItem/htmlItem';
 import TreeSelectItem from './customItem/treeItem';
@@ -7,15 +7,18 @@ import MemberBoxProps from './customItem/memberBox';
 import DepartmentBox from './customItem/departmentBox';
 import SearchTargetItem from './customItem/searchTarget';
 import CurrentTargetItem from './customItem/currentTarget';
+import DataBox from './customItem/dataBox';
 import { getItemWidth, getWidget } from '../Utils';
 import { DateBox, NumberBox, SelectBox, TextArea, TextBox } from 'devextreme-react';
 import React, { useEffect, useState } from 'react';
 import { ValueChangedEvent } from 'devextreme/ui/text_box';
 import { formatDate } from '@/utils';
 import { IBelong, TargetType } from '@/ts/core';
+import { useEffectOnce } from 'react-use';
 
 interface IFormItemProps {
   data: any;
+  form: schema.XForm;
   numStr: string;
   notifyEmitter: Emitter;
   field: model.FieldModel;
@@ -37,12 +40,14 @@ const FormItem: React.FC<IFormItemProps> = (props) => {
   if (props.readOnly) {
     props.field.options.readOnly = true;
   }
-  if (props.data[props.field.id] == undefined && props.field.options?.defaultValue) {
-    props.onValuesChange?.apply(this, [
-      props.field.id,
-      props.field.options?.defaultValue,
-    ]);
-  }
+  useEffectOnce(() => {
+    if (props.data[props.field.id] == undefined && props.field.options?.defaultValue) {
+      props.onValuesChange?.apply(this, [
+        props.field.id,
+        props.field.options?.defaultValue,
+      ]);
+    }
+  });
   const mixOptions: any = {
     height: 36,
     name: props.field.id,
@@ -97,6 +102,10 @@ const FormItem: React.FC<IFormItemProps> = (props) => {
           displayExpr={'text'}
           valueExpr={'value'}
         />
+      );
+    case '引用选择框':
+      return (
+        <DataBox {...mixOptions} attributes={props.form.attributes} field={props.field} />
       );
     case '多级选择框':
       return <TreeSelectItem {...mixOptions} speciesItems={props.field.lookups} />;
