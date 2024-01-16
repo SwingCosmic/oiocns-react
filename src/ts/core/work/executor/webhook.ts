@@ -1,6 +1,43 @@
-import { kernel } from '@/ts/base';
-import { Executor } from '.';
+import { kernel, model } from '@/ts/base';
 import orgCtrl from '@/ts/controller';
+import Ajv from 'ajv';
+import { Executor } from '.';
+
+const ajv = new Ajv();
+const object = {
+  type: 'object',
+  properties: {
+    name: { type: 'string' },
+  },
+  patternProperties: {
+    '^\\d+': {
+      anyOf: [{ type: 'string' }, { type: 'number' }],
+    },
+  },
+  additionalProperties: false,
+};
+const schema = {
+  type: 'object',
+  patternProperties: {
+    '^\\d+$': {
+      type: 'object',
+      properties: {
+        before: {
+          type: 'array',
+          items: object,
+        },
+        after: {
+          type: 'array',
+          items: object,
+        },
+        nodeId: { type: 'string' },
+        creator: { type: 'string' },
+        createTime: { type: 'string' },
+      },
+    },
+  },
+  additionalProperties: false,
+};
 
 /**
  * 外部链接
@@ -9,7 +46,7 @@ export class Webhook extends Executor {
   async execute(): Promise<boolean> {
     this.changeProgress(0);
     const work = await this.task.findWorkById(this.task.taskdata.defineId);
-    await kernel.httpForward({
+    const result = await kernel.httpForward({
       uri: this.metadata.hookUrl,
       method: 'POST',
       header: { 'Content-Type': 'application/json' },
@@ -21,7 +58,32 @@ export class Webhook extends Executor {
         instanceData: this.task.instanceData,
       }),
     });
+    if (result.success) {
+      await this.writeBack(result);
+    }
     this.changeProgress(100);
     return true;
+  }
+  async writeBack(result: model.ResultType<model.HttpResponseType>): Promise<void> {
+    await this.task.loadInstance();
+    try {
+      const validate = ajv.compile(schema);
+      const content = JSON.parse(result.data.content);
+      if (validate(content)) {
+        const value: { [key: string]: model.FormEditData } = content as any;
+        for (const entry of Object.entries(value)) {
+          for (const item of entry[1].after) {
+            const belongId = this.task.belong.metadata.id;
+            const result = await kernel.createThing(belongId, [belongId], item.name);
+            Object.assign(item, result.data);
+          }
+          if (this.task.instanceData?.data) {
+            this.task.instanceData.data[entry[0]] = [entry[1]];
+          }
+        }
+      }
+    } catch (error) {
+      console.log(error);
+    }
   }
 }
