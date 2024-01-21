@@ -81,10 +81,18 @@ export const collecting = (
               case '选择型':
               case '分类型':
                 if (column.lookups) {
+                  const map: Map<String, t.model.FiledLookup> = new Map();
+                  column.lookups.forEach((item) => map.set(item.id, item));
                   for (const item of column.lookups) {
-                    if (item.code == value) {
+                    if (item.text == value) {
                       ansItem[column.dataIndex] = item.value;
                       ansItem.labels.push(item.value);
+                      let temp = item;
+                      while (temp.parentId && map.has(temp.parentId)) {
+                        const parent = map.get(temp.parentId)!;
+                        ansItem.labels.push(parent.value);
+                        temp = map.get(temp.parentId)!;
+                      }
                       break;
                     }
                   }
@@ -95,8 +103,6 @@ export const collecting = (
                 break;
               case '时间型':
                 ansItem[column.dataIndex] = formatZhDate(value, 'yyyy/MM/dd HH:mm:ss');
-                break;
-              case '用户型':
                 break;
               case '数值型':
                 ansItem[column.dataIndex] = Number(value);
