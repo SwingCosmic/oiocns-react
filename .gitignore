@@ -15,7 +15,7 @@ dist-ssr
 *.icloud
 
 # yarn
-yarn.lock
+# yarn.lock
 yarn-error.log
 
 # package-lock.json
