@@ -11,7 +11,7 @@ export interface PeriodResult {
 /** 财务接口 */
 export interface IFinancial extends common.Emitter {
   /** 归属对象 */
-  belong: IBelong;
+  space: IBelong;
   /** 元数据 */
   metadata: schema.XFinancial | undefined;
   /** 初始化结账月 */
@@ -20,6 +20,8 @@ export interface IFinancial extends common.Emitter {
   currentPeriod: string | undefined;
   /** 未生成初始账期 */
   firstGenerated: boolean | undefined;
+  /** 账期集合 */
+  periods: IPeriod[];
   /** 初始化账期 */
   initialize(period: string): Promise<void>;
   /** 清空结账日期 */
@@ -27,7 +29,7 @@ export interface IFinancial extends common.Emitter {
   /** 加载财务数据 */
   loadFinancial(): Promise<void>;
   /** 加载账期 */
-  loadPeriods(skip: number, take: number): Promise<PeriodResult>;
+  loadPeriods(reload?: boolean): Promise<IPeriod[]>;
   /** 生成初始账期 */
   generatePeriod(): Promise<void>;
 }
@@ -35,10 +37,12 @@ export interface IFinancial extends common.Emitter {
 export class Financial extends common.Emitter implements IFinancial {
   constructor(belong: IBelong) {
     super();
-    this.belong = belong;
+    this.space = belong;
   }
   metadata: schema.XFinancial | undefined;
-  belong: IBelong;
+  space: IBelong;
+  periods: IPeriod[] = [];
+  loaded: boolean = false;
   get initializedPeriod(): string | undefined {
     return this.metadata?.initializedPeriod;
   }
@@ -49,7 +53,7 @@ export class Financial extends common.Emitter implements IFinancial {
     return this.metadata?.currentPeriod + '-01 00:00:00';
   }
   get cache(): XObject<schema.Xbase> {
-    return this.belong.cacheObj;
+    return this.space.cacheObj;
   }
   get firstGenerated(): boolean | undefined {
     return this.metadata?.firstGenerated;
@@ -80,30 +84,42 @@ export class Financial extends common.Emitter implements IFinancial {
   }
   async clear(): Promise<void> {
     await this.setFinancial({} as any);
-    await this.belong.resource.periodColl.removeMatch({});
+    await this.space.resource.periodColl.removeMatch({});
   }
-  async loadPeriods(skip: number, take: number): Promise<PeriodResult> {
-    const result = await this.belong.resource.periodColl.loadResult({
-      skip: skip,
-      take: take,
-      options: {
-        match: {
-          isDeleted: false,
+  async loadPeriods(reload: boolean = false, skip: number = 0): Promise<IPeriod[]> {
+    if (!this.loaded || reload) {
+      if (skip == 0) {
+        this.periods = [];
+      }
+      const take = 12 * 6;
+      const res = await this.space.resource.periodColl.loadResult({
+        skip: skip,
+        take: take,
+        options: {
+          match: {
+            isDeleted: false,
+          },
+          sort: {
+            period: -1,
+          },
         },
-        sort: {
-          period: -1,
-        },
-      },
-    });
-    return {
-      data: result.data.map((item) => new Period(item, this.belong, this)),
-      success: result.success,
-      total: result.totalCount,
-    };
+      });
+      if (res.success) {
+        if (res.data && res.data.length > 0) {
+          this.periods.push(
+            ...res.data.map((item) => new Period(item, this.space, this)),
+          );
+          if (this.periods.length < res.totalCount && res.data.length === take) {
+            await this.loadPeriods(true, this.periods.length);
+          }
+        }
+      }
+    }
+    return this.periods;
   }
   async generatePeriod(): Promise<void> {
     if (this.metadata && !this.metadata.firstGenerated) {
-      await this.belong.resource.periodColl.insert({
+      await this.space.resource.periodColl.insert({
         period: this.currentPeriod,
         data: {} as schema.XThing,
         snapshot: false,

@@ -720,7 +720,7 @@ export interface XFinancial {
   /** 当前账期 */
   currentPeriod: string | undefined;
   /** 是否已生成初始账期 */
-  notGeneratedPeriod: boolean;
+  firstGenerated: boolean;
 }
 
 // 账期
@@ -735,4 +735,6 @@ export type XPeriod = {
   closed: boolean;
   // 是否已生成快照
   snapshot: boolean;
+  // 是否已生成平衡
+  balanced: boolean;
 } & XEntity;
