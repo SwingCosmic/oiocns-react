@@ -1,4 +1,4 @@
-import { IBelong, IEntity, IFinancial } from '..';
+import { IBelong, IEntity, IFinancial, XCollection } from '..';
 import { Entity } from '../public';
 import { command, schema, common } from './../../base';
 
@@ -34,9 +34,11 @@ export class Period extends Entity<schema.XPeriod> implements IPeriod {
     super(metadata, []);
     this.space = belong;
     this.financial = financial;
+    this.coll = this.space.resource.periodColl;
   }
   space: IBelong;
   financial: IFinancial;
+  coll: XCollection<schema.XPeriod>;
   get annual(): string {
     return this.metadata.period.substring(0, 4);
   }
@@ -79,11 +81,13 @@ export class Period extends Entity<schema.XPeriod> implements IPeriod {
     const currentMonth = new Date(this.period);
     const nextMonth = new Date(currentMonth);
     nextMonth.setMonth(currentMonth.getMonth() + 1);
-    const period = await this.space.resource.periodColl.insert({
+    const period = await this.coll.insert({
       period: common.formatDate(nextMonth, 'yyyy-MM'),
       data: {},
       depreciated: false,
       closed: false,
+      snapshot: false,
+      balanced: false,
     } as schema.XPeriod);
     if (period) {
       this.space.cacheObj.set('financial.currentPeriod', period.period);
@@ -91,7 +95,6 @@ export class Period extends Entity<schema.XPeriod> implements IPeriod {
     }
   }
   async update(metadata: schema.XPeriod): Promise<void> {
-    await this.space.resource.periodColl.replace(metadata);
-    this.financial.changCallback();
+    await this.coll.replace(metadata);
   }
 }
