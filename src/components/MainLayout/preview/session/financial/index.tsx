@@ -74,7 +74,7 @@ const Periods: React.FC<IProps> = ({ financial }) => {
   const [periods, setPeriods] = useState<IPeriod[]>([]);
   useEffect(() => {
     const id = financial.subscribe(() => {
-      financial.loadPeriods().then((data) => setPeriods(data));
+      financial.loadPeriods().then((data) => setPeriods([...data]));
     });
     return () => financial.unsubscribe(id);
   }, []);

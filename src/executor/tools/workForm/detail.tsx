@@ -8,6 +8,10 @@ import GenerateThingTable from '../generate/thingTable';
 import { getUuid } from '@/utils/tools';
 import { Uploader, generating } from '../uploadTemplate';
 import * as el from '@/utils/excel';
+import { Workbook } from 'exceljs';
+import { exportDataGrid as toExcel } from 'devextreme/excel_exporter';
+import saveAs from 'file-saver';
+import { deepClone } from '@/ts/base/common';
 
 interface IProps {
   allowEdit: boolean;
@@ -95,7 +99,15 @@ const DetailTable: React.FC<IProps> = (props) => {
               text: '导入',
               icon: 'add',
               onClick: async () => {
-                const excel = new el.Excel(el.getAnythingSheets(form, fields));
+                const values = deepClone(fields);
+                values.unshift({
+                  id: 'id',
+                  name: '主键',
+                  code: 'id',
+                  valueType: '描述型',
+                  remark: '主键'
+                });
+                const excel = new el.Excel(el.getAnythingSheets(form, values));
                 const modal = Modal.info({
                   icon: <></>,
                   okText: '关闭',

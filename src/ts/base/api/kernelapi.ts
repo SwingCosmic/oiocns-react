@@ -960,6 +960,7 @@ export default class KernelApi {
     belongId: string,
     relations: string[],
     name: string,
+    count: number = 1,
   ): Promise<model.ResultType<schema.XThing>> {
     return await this.dataProxy({
       module: 'Thing',
@@ -967,7 +968,7 @@ export default class KernelApi {
       flag: 'createThing',
       belongId,
       relations,
-      params: name,
+      params: { name, count },
     });
   }
   /**

@@ -35,6 +35,15 @@ export class Period extends Entity<schema.XPeriod> implements IPeriod {
     this.space = belong;
     this.financial = financial;
     this.coll = this.space.resource.periodColl;
+    this.coll.subscribe([this.key], (result) => {
+      if (this.id == result.data.id) {
+        switch (result.operate) {
+          case 'insert':
+            console.log('insert');
+            break;
+        }
+      }
+    });
   }
   space: IBelong;
   financial: IFinancial;
@@ -90,11 +99,12 @@ export class Period extends Entity<schema.XPeriod> implements IPeriod {
       balanced: false,
     } as schema.XPeriod);
     if (period) {
-      this.space.cacheObj.set('financial.currentPeriod', period.period);
-      command.emitterFlag('financial', true);
+      await this.space.cacheObj.set('financial.currentPeriod', period.period);
+      await this.coll.notity({ data: period, operate: 'insert' });
     }
   }
   async update(metadata: schema.XPeriod): Promise<void> {
     await this.coll.replace(metadata);
+    this.financial.changCallback();
   }
 }

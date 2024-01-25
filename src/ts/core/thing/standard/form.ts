@@ -25,8 +25,8 @@ export interface IForm extends IStandardFileInfo<schema.XForm> {
   ): Promise<boolean>;
   /** 删除表单特性 */
   deleteAttribute(data: schema.XAttribute): Promise<boolean>;
-  /** 加载物 */
-  loadThing(loadOptions: any): Promise<model.LoadResult<schema.XThing[]>>;
+  /** 查询表数据 */
+  loadThing(loadOptions: any): Promise<model.LoadResult<any>>;
 }
 
 export class Form extends StandardFileInfo<schema.XForm> implements IForm {
@@ -90,6 +90,7 @@ export class Form extends StandardFileInfo<schema.XForm> implements IForm {
               .map((i) => {
                 return {
                   id: i.id,
+                  code: i.code,
                   text: i.name,
                   value: `S${i.id}`,
                   icon: i.icon,
@@ -194,8 +195,14 @@ export class Form extends StandardFileInfo<schema.XForm> implements IForm {
     }
     return [fileOperates.Copy, entityOperates.Remark];
   }
-  async loadThing(loadOptions: any): Promise<model.LoadResult<schema.XThing[]>> {
-    const coll = this.directory.resource.genColl<schema.XThing>('_system-things');
-    return coll.loadResult(loadOptions);
+  async loadThing(loadOptions: any): Promise<model.LoadResult<any>> {
+    const res = await this.directory.resource.thingColl.loadResult(loadOptions);
+    if (res.success && !Array.isArray(res.data)) {
+      res.data = [];
+    }
+    res.totalCount = res.totalCount ?? 0;
+    res.groupCount = res.groupCount ?? 0;
+    res.summary = res.summary ?? [];
+    return res;
   }
 }

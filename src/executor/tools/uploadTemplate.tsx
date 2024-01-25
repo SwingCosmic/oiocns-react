@@ -288,13 +288,34 @@ export const generating = (
     );
   };
   const createThings = async (data: el.schema.XThing[], onAdd: () => void) => {
-    for (const item of data) {
-      const thing = await kernel.createThing(belong.id, [belong.id], formName);
-      if (thing.success) {
-        const merge = { ...item, ...thing.data };
-        formData.before.push(merge);
-        formData.after.push(merge);
+    const existIds = data.filter((item) => item.id).map((item) => item.id);
+    const existThings: { [key: string]: el.schema.XThing } = {};
+    if (existIds.length > 0) {
+      const res = await kernel.loadThing(belong.id, [belong.id], {
+        options: { match: { id: { _in_: existIds } } },
+      });
+      if (res.success) {
+        res.data.forEach((item) => (existThings[item.id] = item));
       }
+    }
+    const generatedNum = data.length - Object.keys(existThings).length;
+    const generatedThing = await kernel.createThing(
+      belong.id,
+      [belong.id],
+      formName,
+      generatedNum,
+    );
+    let offset = 0;
+    for (const item of data) {
+      let merge: el.schema.XThing;
+      if (existThings[item.id]) {
+        merge = { ...existThings[item.id], ...item };
+      } else {
+        merge = { ...item, ...generatedThing.data[offset] };
+        offset += 1;
+      }
+      formData.before.push(merge);
+      formData.after.push(merge);
       onAdd();
     }
   };

@@ -157,12 +157,7 @@ export const Center: React.FC<IProps> = ({ current }) => {
                             new Excel(
                               sheets.map((sheet) => {
                                 return new AnyHandler(
-                                  new AnySheet(
-                                    sheet.id,
-                                    sheet.name,
-                                    sheet.columns,
-                                    current.directory,
-                                  ),
+                                  new AnySheet(sheet.id, sheet.name, sheet.columns),
                                 );
                               }),
                             ),
