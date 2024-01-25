@@ -23,6 +23,24 @@ interface IProps {
   finished: () => void;
 }
 
+export const exporting = (e: any, formName: string) => {
+  if (e.format === 'xlsx') {
+    const workbook = new Workbook();
+    const worksheet = workbook.addWorksheet(formName);
+    toExcel({
+      worksheet: worksheet,
+      component: e.component,
+    }).then(function () {
+      workbook.xlsx.writeBuffer().then(function (buffer) {
+        saveAs(
+          new Blob([buffer], { type: 'application/octet-stream' }),
+          formName + '.xlsx',
+        );
+      });
+    });
+  }
+};
+
 /** 表单查看 */
 const FormView: React.FC<IProps> = ({ form, finished }) => {
   const [select, setSelcet] = useState();
@@ -66,23 +84,7 @@ const FormView: React.FC<IProps> = ({ form, finished }) => {
             })
           }
           remoteOperations={true}
-          onExporting={(e) => {
-            if (e.format === 'xlsx') {
-              const workbook = new Workbook();
-              const worksheet = workbook.addWorksheet(form.name);
-              toExcel({
-                worksheet: worksheet,
-                component: e.component,
-              }).then(function () {
-                workbook.xlsx.writeBuffer().then(function (buffer) {
-                  saveAs(
-                    new Blob([buffer], { type: 'application/octet-stream' }),
-                    form.name + '.xlsx',
-                  );
-                });
-              });
-            }
-          }}
+          onExporting={(e) => exporting(e, form.name)}
           toolbar={{
             visible: true,
             items: [

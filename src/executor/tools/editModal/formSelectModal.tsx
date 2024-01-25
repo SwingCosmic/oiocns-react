@@ -5,6 +5,7 @@ import { IBelong } from '@/ts/core';
 import GenerateThingTable from '../generate/thingTable';
 import CustomStore from 'devextreme/data/custom_store';
 import EntityIcon from '@/components/Common/GlobalComps/entityIcon';
+import { exporting } from '@/executor/open/form';
 
 interface IFormSelectProps {
   form: schema.XForm;
@@ -46,6 +47,7 @@ const FormSelectModal = ({ form, fields, belong, onSave }: IFormSelectProps) => 
           })
         }
         remoteOperations={true}
+        onExporting={(e) => exporting(e, form.name)}
       />
     ),
     onOk: () => {
