@@ -6,6 +6,7 @@ import { Application, IApplication } from './application';
 import { Form, IForm } from './form';
 import { IPageTemplate, PageTemplate } from './page';
 import { IProperty, Property } from './property';
+import { IReportTree, ReportTree } from './reporttree';
 import { ISpecies, Species } from './species';
 import { ITransfer, Transfer } from './transfer';
 
@@ -28,6 +29,8 @@ export class StandardFiles {
   xApplications: schema.XApplication[] = [];
   /** 页面模板 */
   templates: IPageTemplate[] = [];
+  /** 报表树 */
+  reportTrees: IReportTree[] = [];
   /** 表单加载完成标志 */
   formLoaded: boolean = false;
   /** 迁移配置加载完成标志 */
@@ -36,6 +39,8 @@ export class StandardFiles {
   speciesesLoaded: boolean = false;
   /** 属性加载完成标志 */
   propertysLoaded: boolean = false;
+  /** 报表树加载完成标志 */
+  reportTreesLoaded: boolean = false;
   constructor(_directory: IDirectory) {
     this.directory = _directory;
     if (this.directory.parent === undefined) {
@@ -66,6 +71,7 @@ export class StandardFiles {
       this.loadPropertys(reload),
       this.loadSpecieses(reload),
       this.loadTemplates(reload),
+      this.loadReportTrees(reload),
     ]);
     return this.standardFiles;
   }
@@ -134,6 +140,17 @@ export class StandardFiles {
     );
     this.templates = templates.map((i) => new PageTemplate(i, this.directory));
     return this.templates;
+  }
+  async loadReportTrees(reload: boolean = false): Promise<IReportTree[]> {
+    if (this.reportTreesLoaded === false || reload) {
+      this.reportTreesLoaded = true;
+      const data = await this.resource.reportTreeColl.load({
+        options: { match: { directoryId: this.id } },
+      });
+      this.reportTrees = data.map((i) => new ReportTree(i, this.directory));
+    }
+    console.log(this.reportTrees)
+    return this.reportTrees;
   }
   async createForm(data: schema.XForm): Promise<schema.XForm | undefined> {
     const result = await this.resource.formColl.insert({
@@ -211,6 +228,7 @@ export class StandardFiles {
       ...data,
       directoryId: this.id,
     });
+    console.log(result)
     if (result) {
       await this.resource.reportTreeColl.notity({ data: result, operate: 'insert' });
       return result;
@@ -399,6 +417,14 @@ function standardFilesChanged(
         operate,
         data,
         () => new Transfer(data, directory),
+      );
+      break;
+    case '报表树':
+      directory.standard.reportTrees = ArrayChanged(
+        directory.standard.reportTrees,
+        operate,
+        data,
+        () => new ReportTree(data, directory),
       );
       break;
     case '模板':

@@ -5,7 +5,7 @@ import { IDirectory } from '@/ts/core';
 import UploadItem from '../../tools/uploadItem';
 import { EntityColumns } from './entityColumns';
 import { schema } from '@/ts/base';
-import { IReportTree } from '@/ts/core/thing/standard/reporttree';
+import { IReportTree, treeTypeNames } from '@/ts/core/thing/standard/reporttree';
 
 interface Iprops {
   formType: string;
@@ -65,6 +65,21 @@ const ReportTreeForm = (props: Iprops) => {
         rules: [{ required: true, message: '报表树代码为必填项' }],
       },
     },
+    {
+      title: '树类型',
+      dataIndex: 'treeType',
+      valueType: 'select',
+      fieldProps: {
+        options: Object.entries(treeTypeNames)
+          .map(([value, label]) => ({
+            value: parseInt(value),
+            label,
+          })),
+      },
+      formItemProps: {
+        rules: [{ required: true, message: '树类型为必填项' }],
+      },
+    },
   ];
   if (readonly) {
     columns.push(...EntityColumns(props.current!.metadata));
@@ -101,7 +116,7 @@ const ReportTreeForm = (props: Iprops) => {
           case 'update':
             await tree!.update(values);
             break;
-          case 'new':
+          case 'newReportTree':
             await directory.standard.createReportTree(values);
             break;
         }

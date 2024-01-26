@@ -140,6 +140,7 @@ export class Directory extends StandardFileInfo<schema.XDirectory> implements ID
       cnt.push(...this.standard.specieses);
       cnt.push(...this.standard.transfers);
       cnt.push(...this.standard.templates);
+      cnt.push(...this.standard.reportTrees);
     }
     return cnt.sort((a, b) => (a.metadata.updateTime < b.metadata.updateTime ? 1 : -1));
   }

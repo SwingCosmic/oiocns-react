@@ -27,7 +27,14 @@ export class ReportTree extends StandardFileInfo<schema.XReportTree> implements 
     return 'reporttrees';
   }
   get groupTags(): string[] {
-    return [treeTypeNames[this.metadata.treeType], ...super.groupTags];
+    const tags = [...super.groupTags];
+    const treeTypeName = treeTypeNames[this.metadata.treeType];
+    if (treeTypeName) {
+      tags.push(treeTypeName);
+    } else {
+      tags.push(`未知类型 ${this.metadata.treeType || ''} 树`);
+    }
+    return tags;
   }
 
   override async copy(destination: IDirectory): Promise<boolean> {
