@@ -12,6 +12,7 @@ import {
   XStaging,
   XThing,
   XPeriod,
+  XReportTree,
 } from '../../base/schema';
 import { BucketOpreates, ChatMessageType, Transfer } from '@/ts/base/model';
 import { kernel, model } from '@/ts/base';
@@ -36,6 +37,7 @@ export class DataResource {
     this.applicationColl = this.genTargetColl<XApplication>('standard-application');
     this.speciesItemColl = this.genTargetColl<XSpeciesItem>('standard-species-item');
     this.templateColl = this.genTargetColl<XPageTemplate>('standard-page-template');
+    this.reportTreeColl = this.genTargetColl<XReportTree>('standard-report-tree');
     this.stagingColl = this.genTargetColl<XStaging>('resource-staging');
     this.periodColl = this.genTargetColl<XPeriod>('resource-period');
     this.thingColl = this.genTargetColl<XThing>('_system-things');
@@ -59,6 +61,8 @@ export class DataResource {
   transferColl: XCollection<Transfer>;
   /** 页面模板集合 */
   templateColl: XCollection<XPageTemplate>;
+  /** 报表树集合 */
+  reportTreeColl: XCollection<XReportTree>;
   /** 暂存集合 */
   stagingColl: XCollection<XStaging>;
   /** 实体集合 */

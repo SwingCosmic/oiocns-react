@@ -204,6 +204,18 @@ export class StandardFiles {
       return result;
     }
   }
+  async createReportTree(
+    data: schema.XReportTree,
+  ): Promise<schema.XReportTree | undefined> {
+    const result = await this.resource.reportTreeColl.insert({
+      ...data,
+      directoryId: this.id,
+    });
+    if (result) {
+      await this.resource.reportTreeColl.notity({ data: result, operate: 'insert' });
+      return result;
+    }
+  }
   async delete() {
     await this.resource.formColl.removeMany(this.forms.map((a) => a.metadata));
     await this.resource.transferColl.removeMany(this.transfers.map((a) => a.metadata));
