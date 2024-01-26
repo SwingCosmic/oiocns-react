@@ -56,7 +56,7 @@ export default defineElement({
       }
 
       const belong = getCompany();
-      let period = belong.financial.metadata?.initializedPeriod!;
+      let period = belong.financial.metadata?.initialized!;
       setCreditTime(() => period);
       if (!period) {
         setErrMsg('当前单位未初始化账期');
@@ -181,7 +181,7 @@ export default defineElement({
                 disabledDate={(date) => {
                   return (
                     date.toDate().getTime() <
-                    new Date(getCompany().financial.metadata?.currentPeriod!).getTime()
+                    new Date(getCompany().financial.metadata?.current!).getTime()
                   );
                 }}
               />
