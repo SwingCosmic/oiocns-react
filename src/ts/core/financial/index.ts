@@ -1,4 +1,4 @@
-import { IBelong, XObject } from '..';
+import { IBelong, XCollection, XObject } from '..';
 import { common, schema } from './../../base';
 import { IPeriod, Period } from './period';
 
@@ -18,9 +18,9 @@ export interface IFinancial extends common.Emitter {
   initializedPeriod: string | undefined;
   /** 当前账期 */
   currentPeriod: string | undefined;
-  /** 未生成初始账期 */
-  firstGenerated: boolean | undefined;
   /** 账期集合 */
+  coll: XCollection<schema.XPeriod>;
+  /** 缓存对象 */
   periods: IPeriod[];
   /** 初始化账期 */
   initialize(period: string): Promise<void>;
@@ -31,18 +31,42 @@ export interface IFinancial extends common.Emitter {
   /** 加载账期 */
   loadPeriods(reload?: boolean): Promise<IPeriod[]>;
   /** 生成初始账期 */
-  generatePeriod(): Promise<void>;
+  generatePeriod(period: string): Promise<void>;
 }
 
 export class Financial extends common.Emitter implements IFinancial {
   constructor(belong: IBelong) {
     super();
     this.space = belong;
+    this.coll = this.space.resource.periodColl;
+    this.coll.subscribe([this.key], (result) => {
+      switch (result.operate) {
+        case 'insert':
+          this.periods.unshift(new Period(result.data, this));
+          this.setFinancial({ currentPeriod: result.data.period });
+          break;
+        case 'update':
+          this.periods.forEach((item) => {
+            if (result.data.id == item.id) {
+              item.updateMetadata(result.data);
+            }
+          });
+          break;
+        case 'clear':
+          this.periods = [];
+          break;
+      }
+      this.changCallback();
+    });
   }
   metadata: schema.XFinancial | undefined;
   space: IBelong;
   periods: IPeriod[] = [];
   loaded: boolean = false;
+  coll: XCollection<schema.XPeriod>;
+  get key() {
+    return this.space.key + '-financial';
+  }
   get initializedPeriod(): string | undefined {
     return this.metadata?.initializedPeriod;
   }
@@ -55,9 +79,6 @@ export class Financial extends common.Emitter implements IFinancial {
   get cache(): XObject<schema.Xbase> {
     return this.space.cacheObj;
   }
-  get firstGenerated(): boolean | undefined {
-    return this.metadata?.firstGenerated;
-  }
   async loadFinancial(): Promise<void> {
     const data = await this.cache.get<schema.XFinancial>('financial');
     if (data) {
@@ -69,22 +90,18 @@ export class Financial extends common.Emitter implements IFinancial {
     });
   }
   async initialize(period: string): Promise<void> {
-    const financial: schema.XFinancial = {
-      initializedPeriod: period,
-      currentPeriod: period,
-      firstGenerated: false,
-    };
-    await this.setFinancial(financial);
+    await this.setFinancial({ initializedPeriod: period });
   }
   private async setFinancial(financial: schema.XFinancial) {
-    const success = await this.cache.set('financial', financial);
-    if (success) {
+    if (await this.cache.set('financial', financial)) {
       await this.cache.notity('financial', financial, true, false);
     }
   }
   async clear(): Promise<void> {
     await this.setFinancial({} as any);
-    await this.space.resource.periodColl.removeMatch({});
+    if (await this.coll.removeMatch({})) {
+      await this.coll.notity({ operate: 'clear' });
+    }
   }
   async loadPeriods(reload: boolean = false, skip: number = 0): Promise<IPeriod[]> {
     if (!this.loaded || reload) {
@@ -106,9 +123,7 @@ export class Financial extends common.Emitter implements IFinancial {
       });
       if (res.success) {
         if (res.data && res.data.length > 0) {
-          this.periods.push(
-            ...res.data.map((item) => new Period(item, this.space, this)),
-          );
+          this.periods.push(...res.data.map((item) => new Period(item, this)));
           if (this.periods.length < res.totalCount && res.data.length === take) {
             await this.loadPeriods(true, this.periods.length);
           }
@@ -117,17 +132,19 @@ export class Financial extends common.Emitter implements IFinancial {
     }
     return this.periods;
   }
-  async generatePeriod(): Promise<void> {
-    if (this.metadata && !this.metadata.firstGenerated) {
-      await this.space.resource.periodColl.insert({
-        period: this.currentPeriod,
+  async generatePeriod(period: string): Promise<void> {
+    if (!this.metadata?.currentPeriod) {
+      const result = await this.space.resource.periodColl.insert({
+        period: period,
         data: {} as schema.XThing,
         snapshot: false,
         depreciated: false,
         closed: false,
+        balanced: false,
       } as schema.XPeriod);
-      await this.setFinancial({ ...this.metadata, firstGenerated: true });
+      if (result) {
+        await this.coll.notity({ data: result, operate: 'insert' });
+      }
     }
-    this.changCallback();
   }
 }

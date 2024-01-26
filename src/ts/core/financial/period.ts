@@ -1,6 +1,6 @@
-import { IBelong, IEntity, IFinancial, XCollection } from '..';
+import { IBelong, IEntity, IFinancial } from '..';
 import { Entity } from '../public';
-import { command, schema, common } from './../../base';
+import { common, schema } from './../../base';
 
 export interface IPeriod extends IEntity<schema.XPeriod> {
   /** 归属空间 */
@@ -30,24 +30,13 @@ export interface IPeriod extends IEntity<schema.XPeriod> {
 }
 
 export class Period extends Entity<schema.XPeriod> implements IPeriod {
-  constructor(metadata: schema.XPeriod, belong: IBelong, financial: IFinancial) {
+  constructor(metadata: schema.XPeriod, financial: IFinancial) {
     super(metadata, []);
-    this.space = belong;
+    this.space = financial.space;
     this.financial = financial;
-    this.coll = this.space.resource.periodColl;
-    this.coll.subscribe([this.key], (result) => {
-      if (this.id == result.data.id) {
-        switch (result.operate) {
-          case 'insert':
-            console.log('insert');
-            break;
-        }
-      }
-    });
   }
   space: IBelong;
   financial: IFinancial;
-  coll: XCollection<schema.XPeriod>;
   get annual(): string {
     return this.metadata.period.substring(0, 4);
   }
@@ -90,21 +79,11 @@ export class Period extends Entity<schema.XPeriod> implements IPeriod {
     const currentMonth = new Date(this.period);
     const nextMonth = new Date(currentMonth);
     nextMonth.setMonth(currentMonth.getMonth() + 1);
-    const period = await this.coll.insert({
-      period: common.formatDate(nextMonth, 'yyyy-MM'),
-      data: {},
-      depreciated: false,
-      closed: false,
-      snapshot: false,
-      balanced: false,
-    } as schema.XPeriod);
-    if (period) {
-      await this.space.cacheObj.set('financial.currentPeriod', period.period);
-      await this.coll.notity({ data: period, operate: 'insert' });
-    }
+    await this.financial.generatePeriod(common.formatDate(nextMonth, 'yyyy-MM'));
   }
   async update(metadata: schema.XPeriod): Promise<void> {
-    await this.coll.replace(metadata);
-    this.financial.changCallback();
+    if (await this.financial.coll.replace(metadata)) {
+      await this.financial.coll.notity({ operate: 'update', data: metadata });
+    }
   }
 }

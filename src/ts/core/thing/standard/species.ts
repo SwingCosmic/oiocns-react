@@ -29,6 +29,13 @@ export class Species extends StandardFileInfo<schema.XSpecies> implements ISpeci
   get cacheFlag(): string {
     return 'species';
   }
+  get groupTags(): string[] {
+    const tags = [...super.groupTags];
+    if (this.metadata.generateTargetId) {
+      tags.push('组织分类');
+    }
+    return tags;
+  }
   override async delete(): Promise<boolean> {
     if (this.directory) {
       let success = true;

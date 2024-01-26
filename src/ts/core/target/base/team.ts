@@ -7,6 +7,7 @@ import { ISession } from '../../chat/session';
 import { IPerson } from '../person';
 import { logger, sleep } from '@/ts/base/common';
 import TargetResources from './resource';
+import { IDirectory } from '../..';
 
 /** 团队抽象接口类 */
 export interface ITeam extends IEntity<schema.XTarget> {
@@ -52,6 +53,11 @@ export interface ITeam extends IEntity<schema.XTarget> {
     sub?: schema.XTarget,
     subTargetId?: string,
   ): Promise<boolean>;
+  /** 生成组织分类 */
+  generateSpecies(
+    directory: IDirectory,
+    onProgress: (total: number) => void,
+  ): Promise<schema.XSpecies | undefined>;
 }
 
 /** 团队基类实现 */
@@ -338,5 +344,11 @@ export abstract class Team extends Entity<schema.XTarget> implements ITeam {
       },
     });
     return res.data || { offset: offset, limit: 2000, result: [] };
+  }
+  async generateSpecies(
+    _: IDirectory,
+    __: (total: number) => void,
+  ): Promise<schema.XSpecies | undefined> {
+    return;
   }
 }

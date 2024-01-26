@@ -7,6 +7,8 @@ import { ITeam } from '../base/team';
 import { targetOperates } from '../../public';
 import { ISession } from '../../chat/session';
 import { IFile } from '../../thing/fileinfo';
+import { IDirectory } from '../..';
+import { Species } from '../../thing/standard/species';
 
 /** 组织集群接口 */
 export interface IGroup extends ITarget {
@@ -138,6 +140,7 @@ export class Group extends Target implements IGroup {
     const operates = super.operates();
     if (this.hasRelationAuth()) {
       operates.unshift(targetOperates.NewGroup);
+      operates.unshift(targetOperates.GenSpecies);
     }
     return operates;
   }
@@ -153,5 +156,53 @@ export class Group extends Target implements IGroup {
         break;
     }
     return '';
+  }
+  async generateSpecies(
+    directory: IDirectory,
+    onItemProgress: (total: number) => void,
+  ): Promise<schema.XSpecies | undefined> {
+    const result = await directory.standard.createSpecies({
+      generateTargetId: this.id,
+      generateTargetName: this.name,
+      directoryId: directory.id,
+      name: this.name,
+      code: this.code,
+      remark: this.remark,
+      icon: this.metadata.icon,
+      typeName: '分类',
+    } as schema.XSpecies);
+    let counter = 0;
+    const counting = async (
+      group: IGroup,
+      operate: (parent: ITarget, target: schema.XTarget) => Promise<void>,
+    ) => {
+      counter = counter + 1;
+      counter = this.members.length;
+      for (const item of this.members) {
+        await operate(group, item);
+      }
+      for (const child of group.children) {
+        await operate(group, child.metadata);
+        await counting(child, operate);
+      }
+    };
+    if (result) {
+      const species = new Species(result, directory);
+      await counting(this, async (parent: ITarget, item: schema.XTarget) => {
+        await species.createItem({
+          info: item.code,
+          parentId: parent.id,
+          speciesId: species.id,
+          name: item.name,
+          code: item.id,
+          remark: item.name,
+          icon: item.icon,
+          typeName: '分类项',
+        } as schema.XSpeciesItem);
+        onItemProgress(counter);
+      });
+    }
+    onItemProgress(counter);
+    return result;
   }
 }

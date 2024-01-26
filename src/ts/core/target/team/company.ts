@@ -281,6 +281,7 @@ export class Company extends Belong implements ICompany {
         targetOperates.JoinStorage,
         targetOperates.NewGroup,
         targetOperates.NewDepartment,
+        targetOperates.GenSpecies
       );
     }
     return operates;

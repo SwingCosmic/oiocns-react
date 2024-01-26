@@ -1,9 +1,10 @@
-import React from 'react';
+import React, { useRef, useState } from 'react';
 import {
   IApplication,
   IDirectory,
   IEntity,
   IFile,
+  IGroup,
   IMemeber,
   ISession,
   IStorage,
@@ -14,7 +15,7 @@ import {
 import orgCtrl from '@/ts/controller';
 import QrCode from 'qrcode.react';
 import { command, model, schema } from '@/ts/base';
-import { List, Modal, Upload } from 'antd';
+import { Button, List, Modal, Progress, Space, Upload } from 'antd';
 import message from '@/utils/message';
 import { uploadBusiness, uploadStandard } from './tools/uploadTemplate';
 import TypeIcon from '@/components/Common/GlobalComps/typeIcon';
@@ -22,6 +23,7 @@ import EntityIcon from '@/components/Common/GlobalComps/entityIcon';
 import { shareOpenLink } from '@/utils/tools';
 import { XStandard } from '@/ts/base/schema';
 import { IStandardFileInfo } from '@/ts/core/thing/fileinfo';
+import OpenFileDialog from '@/components/OpenFileDialog';
 /** 执行非页面命令 */
 export const executeCmd = (cmd: string, entity: any) => {
   switch (cmd) {
@@ -83,6 +85,8 @@ export const executeCmd = (cmd: string, entity: any) => {
       return fileCommonToggle(entity);
     case 'applyFriend':
       return applyFriend(entity);
+    case 'genSpecies':
+      return generateSpecies(entity);
   }
   return false;
 };
@@ -419,4 +423,55 @@ const createShortcut = async (entity: IStandardFileInfo<XStandard>) => {
   if (await entity.createShortcut()) {
     orgCtrl.changCallback();
   }
+};
+
+/** 生成分类树 */
+const generateSpecies = async (entity: IGroup) => {
+  const Compo = () => {
+    const [center, setCenter] = useState(<></>);
+    const progressRef = useRef(0);
+    const [progress, setProgress] = useState(0);
+    return (
+      <>
+        <Space style={{ width: '100%' }} direction="vertical">
+          <Button
+            onClick={() => {
+              setCenter(
+                <OpenFileDialog
+                  accepts={['目录']}
+                  rootKey={entity.space.key}
+                  onOk={(files: IFile[]) => {
+                    if (files.length > 0) {
+                      entity.generateSpecies(files[0] as IDirectory, (total) => {
+                        progressRef.current += 1;
+                        setProgress(
+                          Number(((progressRef.current * 100.0) / total).toFixed(2)),
+                        );
+                      });
+                    }
+                    setCenter(<></>);
+                  }}
+                  onCancel={() => {
+                    setCenter(<></>);
+                  }}
+                />,
+              );
+            }}>
+            选择生成位置
+          </Button>
+          <Progress percent={progress} />
+        </Space>
+        {center}
+      </>
+    );
+  };
+  const modal = Modal.info({
+    icon: <></>,
+    okText: '关闭',
+    width: 610,
+    title: '文件上传',
+    maskClosable: true,
+    onOk: () => modal.destroy(),
+    content: <Compo />,
+  });
 };

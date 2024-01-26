@@ -331,6 +331,12 @@ export const targetOperates = {
     label: '激活存储',
     iconType: '激活',
   },
+  GenSpecies: {
+    sort: 100,
+    cmd: 'genSpecies',
+    label: '生成组织分类',
+    iconType: '分类',
+  },
 };
 
 /** 人员的申请 */

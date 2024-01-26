@@ -1,5 +1,5 @@
-import React from 'react';
-import { ProFormColumnsType } from '@ant-design/pro-components';
+import React, { useRef } from 'react';
+import { ProFormColumnsType, ProFormInstance } from '@ant-design/pro-components';
 import SchemaForm from '@/components/SchemaForm';
 import { IDirectory } from '@/ts/core';
 import UploadItem from '../../tools/uploadItem';
@@ -20,6 +20,7 @@ const SpeciesForm = (props: Iprops) => {
   let title = '';
   let directory: IDirectory;
   let species: ISpecies | undefined;
+  const formRef = useRef<ProFormInstance>();
   const readonly = props.formType === 'remark';
   let initialValue: any = props.current.metadata;
   switch (props.formType) {
@@ -95,6 +96,7 @@ const SpeciesForm = (props: Iprops) => {
       open
       title={title}
       width={640}
+      formRef={formRef}
       columns={columns}
       initialValues={initialValue}
       rowProps={{

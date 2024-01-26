@@ -381,6 +381,10 @@ export type XRelation = {
 export type XSpecies = {
   // 来源用户ID
   sourceId: string;
+  // 组织 ID
+  generateTargetId: string;
+  // 组织名称
+  generateTargetName: string;
   // 分类的类目
   speciesItems: XSpeciesItem[] | undefined;
   // 使用该分类的度量属性
@@ -716,11 +720,9 @@ export interface XPageTemplate extends XStandard {
 // 财务
 export interface XFinancial {
   /** 初始化结账月 */
-  initializedPeriod: string | undefined;
+  initializedPeriod?: string;
   /** 当前账期 */
-  currentPeriod: string | undefined;
-  /** 是否已生成初始账期 */
-  firstGenerated: boolean;
+  currentPeriod?: string;
 }
 
 // 账期

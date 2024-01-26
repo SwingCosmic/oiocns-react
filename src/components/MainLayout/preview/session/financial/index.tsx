@@ -2,7 +2,6 @@ import { command } from '@/ts/base';
 import { IBelong, IFinancial, TargetType } from '@/ts/core';
 import { IPeriod } from '@/ts/core/financial/period';
 import { belongTypes } from '@/ts/core/public/consts';
-import { generateUuid } from '@/utils/excel';
 import { ProTable } from '@ant-design/pro-components';
 import { Button, Card, DatePicker, Space, Tag, message } from 'antd';
 import React, { useEffect, useMemo, useRef, useState } from 'react';
@@ -27,8 +26,10 @@ const Financial: React.FC<IProps> = ({ financial }) => {
         <Space>
           <Card>{'初始结账日期：' + (metadata?.initializedPeriod ?? '')}</Card>
           <Card>{'当前业务时间：' + (metadata?.currentPeriod ?? '')}</Card>
-          {!financial.firstGenerated && (
-            <Button onClick={() => financial.generatePeriod()}>生成期初账期</Button>
+          {metadata?.initializedPeriod && !financial.currentPeriod && (
+            <Button onClick={() => financial.generatePeriod(metadata.initializedPeriod!)}>
+              生成期初账期
+            </Button>
           )}
           <Button onClick={() => financial.clear()}>清空初始化</Button>
         </Space>
