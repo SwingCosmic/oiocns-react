@@ -95,6 +95,7 @@ const EntityForm: React.FC<IProps> = ({ cmd, entity, finished }) => {
         />
       );
     case 'newReportTree':
+    case 'updateReportTree':
       return (
         <ReportTreeForm
           formType={cmd}

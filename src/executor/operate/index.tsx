@@ -25,6 +25,7 @@ const entityMap: any = {
   事项配置: 'WorkConfig',
   实体配置: 'ThingConfig',
   页面模板: 'PageTemplate',
+  报表树: 'ReportTree',
 };
 
 interface IProps {

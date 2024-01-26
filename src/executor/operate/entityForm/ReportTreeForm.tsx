@@ -27,6 +27,11 @@ const ReportTreeForm = (props: Iprops) => {
       initialValue = {};
       directory = props.current as IDirectory;
       break;
+    case 'updateReportTree':
+      title = '更新报表树';
+      tree = props.current as IReportTree;
+      directory = props.current.directory;
+      break;
     default:
       return <></>;
   }
@@ -113,7 +118,7 @@ const ReportTreeForm = (props: Iprops) => {
       onFinish={async (values) => {
         values.typeName = "报表树";
         switch (props.formType) {
-          case 'update':
+          case 'updateReportTree':
             await tree!.update(values);
             break;
           case 'newReportTree':
