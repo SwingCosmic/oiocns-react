@@ -1,4 +1,3 @@
-import { command } from '@/ts/base';
 import { IBelong, IFinancial, TargetType } from '@/ts/core';
 import { IPeriod } from '@/ts/core/financial/period';
 import { belongTypes } from '@/ts/core/public/consts';
@@ -17,17 +16,17 @@ const Financial: React.FC<IProps> = ({ financial }) => {
     return metadata && Object.keys(metadata).length > 0;
   }, [metadata]);
   useEffect(() => {
-    const id = financial.subscribe(() => setMetadata(financial.metadata));
-    return () => command.unsubscribeByFlag(id);
+    const id = financial.subscribe(() => setMetadata({ ...financial.metadata }));
+    return () => financial.unsubscribe(id);
   }, []);
   const Center = () => {
     if (initialized) {
       return (
         <Space>
-          <Card>{'初始结账日期：' + (metadata?.initializedPeriod ?? '')}</Card>
-          <Card>{'当前业务时间：' + (metadata?.currentPeriod ?? '')}</Card>
-          {metadata?.initializedPeriod && !financial.currentPeriod && (
-            <Button onClick={() => financial.generatePeriod(metadata.initializedPeriod!)}>
+          <Card>{'初始结账日期：' + (metadata?.initialized ?? '')}</Card>
+          <Card>{'当前业务时间：' + (metadata?.current ?? '')}</Card>
+          {metadata?.initialized && !financial.current && (
+            <Button onClick={() => financial.generatePeriod(metadata.initialized!)}>
               生成期初账期
             </Button>
           )}

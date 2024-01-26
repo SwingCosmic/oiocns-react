@@ -69,7 +69,7 @@ const FormItem: React.FC<IFormItemProps> = (props) => {
     switch (props.field.options.initSpecialValue) {
       case 'currentPeriod': {
         const company = props.belong.directory.target as ICompany;
-        mixOptions.defaultValue = company.currentPeriod;
+        mixOptions.defaultValue = company.financial.current;
         break;
       }
       default:
