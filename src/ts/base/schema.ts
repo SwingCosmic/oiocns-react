@@ -723,6 +723,21 @@ export interface XFinancial {
   initialized?: string;
   /** 当前账期 */
   current?: string;
+  /** 折旧配置 */
+  depreciation: {
+    // 折旧方法
+    method: XProperty;
+    // 原值
+    originalValue: XProperty;
+    // 累计折旧
+    accumulated: XProperty;
+    // 月折旧额
+    monthly: XProperty;
+    // 净值
+    netWorth: XProperty;
+    // 使用年限
+    useLife: XProperty;
+  }
 }
 
 // 账期
