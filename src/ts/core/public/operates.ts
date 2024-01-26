@@ -205,6 +205,12 @@ export const directoryOperates = {
     label: '新建页面模板',
     iconType: '页面模板',
   },
+  NewReportTree: {
+    sort: 12,
+    cmd: 'newReportTree',
+    label: '新建报表树',
+    iconType: '报表树',
+  },
 };
 
 /** 目录下新增 */
@@ -222,6 +228,7 @@ export const directoryNew = {
     directoryOperates.NewForm,
     directoryOperates.NewTransferConfig,
     directoryOperates.NewPageTemplate,
+    directoryOperates.NewReportTree,
   ],
 };
 

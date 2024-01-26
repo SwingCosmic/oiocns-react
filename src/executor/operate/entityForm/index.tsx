@@ -12,6 +12,7 @@ import LabelsForm from './labelsForm';
 import RenameForm from './renameForm';
 import TransferForm from './transferForm';
 import PageTemplateForm from './templateForm';
+import ReportTreeForm from './ReportTreeForm';
 
 interface IProps {
   cmd: string;
@@ -88,6 +89,14 @@ const EntityForm: React.FC<IProps> = ({ cmd, entity, finished }) => {
     case 'updatePageTemplate':
       return (
         <PageTemplateForm
+          formType={cmd}
+          current={entity as any}
+          finished={reloadFinish}
+        />
+      );
+    case 'newReportTree':
+      return (
+        <ReportTreeForm
           formType={cmd}
           current={entity as any}
           finished={reloadFinish}
