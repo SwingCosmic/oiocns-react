@@ -15,22 +15,24 @@ export interface IFinancial extends common.Emitter {
   /** 元数据 */
   metadata: schema.XFinancial | undefined;
   /** 初始化结账月 */
-  initializedPeriod: string | undefined;
+  initialized: string | undefined;
   /** 当前账期 */
-  currentPeriod: string | undefined;
+  current: string | undefined;
   /** 账期集合 */
   coll: XCollection<schema.XPeriod>;
   /** 缓存对象 */
   periods: IPeriod[];
   /** 初始化账期 */
   initialize(period: string): Promise<void>;
+  /** 设置当前账期 */
+  setCurrent(period: string): Promise<void>;
   /** 清空结账日期 */
   clear(): Promise<void>;
   /** 加载财务数据 */
   loadFinancial(): Promise<void>;
   /** 加载账期 */
   loadPeriods(reload?: boolean): Promise<IPeriod[]>;
-  /** 生成初始账期 */
+  /** 生成账期 */
   generatePeriod(period: string): Promise<void>;
 }
 
@@ -43,7 +45,7 @@ export class Financial extends common.Emitter implements IFinancial {
       switch (result.operate) {
         case 'insert':
           this.periods.unshift(new Period(result.data, this));
-          this.setFinancial({ currentPeriod: result.data.period });
+          this.setCurrent(result.data.period);
           break;
         case 'update':
           this.periods.forEach((item) => {
@@ -67,14 +69,11 @@ export class Financial extends common.Emitter implements IFinancial {
   get key() {
     return this.space.key + '-financial';
   }
-  get initializedPeriod(): string | undefined {
-    return this.metadata?.initializedPeriod;
+  get initialized(): string | undefined {
+    return this.metadata?.initialized;
   }
-  get currentPeriod(): string | undefined {
-    return this.metadata?.currentPeriod;
-  }
-  get currentPeriodTime(): string {
-    return this.metadata?.currentPeriod + '-01 00:00:00';
+  get current(): string | undefined {
+    return this.metadata?.current;
   }
   get cache(): XObject<schema.Xbase> {
     return this.space.cacheObj;
@@ -88,17 +87,33 @@ export class Financial extends common.Emitter implements IFinancial {
       this.metadata = res;
       this.changCallback();
     });
+    this.cache.subscribe('financial.initialized', (res: string) => {
+      if (this.metadata) {
+        this.metadata.initialized = res;
+        this.changCallback();
+      }
+    });
+    this.cache.subscribe('financial.current', (res: string) => {
+      if (this.metadata) {
+        this.metadata.current = res;
+        this.changCallback();
+      }
+    });
   }
   async initialize(period: string): Promise<void> {
-    await this.setFinancial({ initializedPeriod: period });
+    if (await this.cache.set('financial.initialized', period)) {
+      await this.cache.notity('financial.initialized', period, true, false);
+    }
   }
-  private async setFinancial(financial: schema.XFinancial) {
-    if (await this.cache.set('financial', financial)) {
-      await this.cache.notity('financial', financial, true, false);
+  async setCurrent(period: string) {
+    if (await this.cache.set('financial.current', period)) {
+      await this.cache.notity('financial.current', period, true, false);
     }
   }
   async clear(): Promise<void> {
-    await this.setFinancial({} as any);
+    if (await this.cache.set('financial', {})) {
+      await this.cache.notity('financial', {}, true, false);
+    }
     if (await this.coll.removeMatch({})) {
       await this.coll.notity({ operate: 'clear' });
     }
@@ -133,18 +148,16 @@ export class Financial extends common.Emitter implements IFinancial {
     return this.periods;
   }
   async generatePeriod(period: string): Promise<void> {
-    if (!this.metadata?.currentPeriod) {
-      const result = await this.space.resource.periodColl.insert({
-        period: period,
-        data: {} as schema.XThing,
-        snapshot: false,
-        depreciated: false,
-        closed: false,
-        balanced: false,
-      } as schema.XPeriod);
-      if (result) {
-        await this.coll.notity({ data: result, operate: 'insert' });
-      }
+    const result = await this.space.resource.periodColl.insert({
+      period: period,
+      data: {} as schema.XThing,
+      snapshot: false,
+      depreciated: false,
+      closed: false,
+      balanced: false,
+    } as schema.XPeriod);
+    if (result) {
+      await this.coll.notity({ data: result, operate: 'insert' });
     }
   }
 }

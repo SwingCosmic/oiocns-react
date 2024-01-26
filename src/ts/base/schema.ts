@@ -720,9 +720,9 @@ export interface XPageTemplate extends XStandard {
 // 财务
 export interface XFinancial {
   /** 初始化结账月 */
-  initializedPeriod?: string;
+  initialized?: string;
   /** 当前账期 */
-  currentPeriod?: string;
+  current?: string;
 }
 
 // 账期
