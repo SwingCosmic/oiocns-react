@@ -60,7 +60,6 @@ export class Company extends Belong implements ICompany {
   departmentTypes: string[] = [];
   cacheObj: XObject<schema.Xbase>;
   initPeriod: string | undefined;
-  currentPeriod: string | undefined;
   private _groupLoaded: boolean = false;
   private _departmentLoaded: boolean = false;
   async loadGroups(reload: boolean = false): Promise<IGroup[]> {
