@@ -740,3 +740,59 @@ export type XPeriod = {
   // 是否已生成平衡
   balanced: boolean;
 } & XEntity;
+
+export enum ReportTreeNodeTypes {
+  // 单户（本级）类节点 0
+  /** 实体本级节点 */
+  Normal = "单户表",
+  /** 虚拟单户节点 */
+  VirtualUnit = "虚拟单位表",
+  /** 外部单位节点，境外企业，在系统中不存在或者已注销 */
+  ExternalUnit = "外部单位表",
+
+  // 汇总（合并）类节点 1
+  /** 集团合并（汇总）节点 */
+  Merge = "集团合并表",
+  /** 完全（虚拟）汇总节点 */
+  FullSummary = "完全汇总表",
+  /** 针对涉密或其他因素，对一家单位单独开设的可填写汇总表 */
+  SingleSummary = "单独汇总表",
+
+  // 调整（差额）类节点 2
+  /** 集团差额节点 */ 
+  Balance = "集团差额表",
+  /** 汇总调整节点 */ 
+  SummaryAdjust = "汇总调整表",
+}
+
+export interface XReportTreeNode extends XEntity {
+  typeName: "报表树节点";
+  /** 生成报表树节点的分类项 */
+  speciesItemId: string;
+  /** 节点类型 */
+  nodeType: 0 | 1 | 2;
+  nodeTypeName: ReportTreeNodeTypes | (string & {});
+  /** 上级ID */
+  parentId?: string;
+  /** 子节点 */
+  children: XReportTreeNode[];
+} 
+
+export enum ReportTreeTypes {
+  /** 普通树形 */
+  Normal = 1,
+  /** 汇总树形 */
+  Summary = 2,
+  /** 财务合并树形，带差额表 */ 
+  Financial = 3,
+}
+
+export interface XReportTree extends XStandard {
+  typeName: "报表树";
+  /** 生成报表树所用的组织分类 */
+  speciesId: string;
+  /** 报表树根节点 */
+  rootNode: XReportTreeNode;
+  /** 树类型 */
+  treeType: ReportTreeTypes;
+}
