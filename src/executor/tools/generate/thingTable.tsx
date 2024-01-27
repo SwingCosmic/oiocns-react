@@ -6,6 +6,7 @@ import { GenerateColumn } from './columns';
 import {
   Column,
   DataGrid,
+  Export,
   IDataGridOptions,
   Selection,
 } from 'devextreme-react/data-grid';
@@ -107,6 +108,7 @@ const GenerateThingTable = (props: IProps) => {
           }}></Column>
       )}
       {props.select && <Selection mode="multiple" showCheckBoxesMode={'always'} />}
+      <Export enabled formats={['xlsx']} />
     </DataGrid>
   );
 };

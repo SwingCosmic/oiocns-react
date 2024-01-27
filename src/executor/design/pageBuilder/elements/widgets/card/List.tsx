@@ -141,7 +141,7 @@ const View: React.FC<Omit<IProps, 'data'>> = (props) => {
               key={'add'}
               onClick={async () => {
                 if (props.work?.id) {
-                  const work = await props.ctx.view.pageInfo.findWorkById(props.work.id);
+                  const work = await props.ctx.view.pageInfo.loadWork(props.work.id);
                   const node = await work?.loadNode();
                   if (work && node) {
                     const instance: model.InstanceDataModel = {
@@ -160,7 +160,7 @@ const View: React.FC<Omit<IProps, 'data'>> = (props) => {
                           before: [],
                           after: stagings
                             .filter((item) => keys.includes(item.id))
-                            .filter((item) => item.data['F' + form.id])
+                            .filter((item) => item.data.labels?.includes('F' + form.id))
                             .map((item) => {
                               const data = deepClone(item.data);
                               for (const field of form.fields) {
@@ -172,7 +172,7 @@ const View: React.FC<Omit<IProps, 'data'>> = (props) => {
                               return data;
                             }),
                           creator: orgCtrl.user.id,
-                          createTime: formatDate(new Date(), 'yyyy-MM-dd HH:mm:ss.S'),
+                          createTime: formatDate(new Date(), 'yyyy-MM-dd hh:mm:ss.S'),
                           rules: [],
                         },
                       ];

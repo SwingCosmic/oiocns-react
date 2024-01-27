@@ -45,6 +45,9 @@ export const exporting = (e: any, formName: string) => {
 const FormView: React.FC<IProps> = ({ form, finished }) => {
   const [select, setSelcet] = useState();
   const [loaded] = useAsyncLoad(() => form.loadContent());
+  const dataRange = form.metadata.options?.dataRange;
+  const filterExp: any[] = JSON.parse(dataRange?.filterExp ?? '[]');
+  const labels = dataRange?.labels ?? [];
   const FormBrower: React.FC = () => {
     const [, rootMenu, selectMenu, setSelectMenu] = useMenuUpdate(
       () => config.loadSpeciesItemMenu(form),
@@ -68,18 +71,21 @@ const FormView: React.FC<IProps> = ({ form, finished }) => {
           }}
           pager={{ visible: false }}
           onRowDblClick={(e: any) => setSelcet(e.data)}
-          filterValue={JSON.parse(form.metadata.searchRule ?? '[]')}
+          filterValue={filterExp}
           dataSource={
             new CustomStore({
               key: 'id',
               async load(loadOptions) {
-                loadOptions.userData = [`F${form.id}`];
-                if (selectMenu.item?.value) {
-                  loadOptions.userData.push(selectMenu.item.value);
-                } else if (selectMenu.item?.code) {
-                  loadOptions.userData.push(selectMenu.item.code);
+                if ((filterExp && filterExp.length > 0) || labels.length > 0) {
+                  loadOptions.userData = labels.map((a) => a.value);
+                  if (selectMenu.item?.value) {
+                    loadOptions.userData.push(selectMenu.item.value);
+                  } else if (selectMenu.item?.code) {
+                    loadOptions.userData.push(selectMenu.item.code);
+                  }
+                  return await form.loadThing(loadOptions);
                 }
-                return await form.loadThing(loadOptions);
+                return { data: [], success: true, totalCount: 0, groupCount: 0 };
               },
             })
           }
@@ -123,7 +129,7 @@ const FormView: React.FC<IProps> = ({ form, finished }) => {
                 icon: <ImShuffle fontSize={22} color={Theme.FocusColor} />,
               },
             ],
-            onMenuClick(key, data) {
+            onMenuClick(_key, _data) {
               // console.log(key, data);
             },
           }}
