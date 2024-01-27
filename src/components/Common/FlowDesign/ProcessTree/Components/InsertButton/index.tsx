@@ -86,12 +86,9 @@ const InsertButton: React.FC<InsertButtonProps> = (props: any) => {
         </div>
       }
       trigger="click">
-      <Button
-        type="primary"
-        shape="circle"
-        icon={<ai.AiOutlinePlus />}
-        onClick={() => setOpen(true)}
-      />
+      <Button type="primary" shape="circle" size="small" onClick={() => setOpen(true)}>
+        +
+      </Button>
     </Popover>
   );
 };

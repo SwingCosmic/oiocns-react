@@ -10,6 +10,7 @@ import { AddNodeType, NodeModel } from '../processType';
 import { IWork } from '@/ts/core';
 import { model } from '@/ts/base';
 import { Card } from 'antd';
+import { TextBox } from 'devextreme-react';
 /**
  * @description: 流程设置抽屉
  * @return {*}
@@ -88,7 +89,26 @@ const Config: React.FC<IProps> = (props) => {
         return <div>暂无需要处理的数据</div>;
     }
   };
-  return <Card title={props.node.name + '配置'}>{loadContent()}</Card>;
+  return (
+    <Card
+      style={{ border: 'none', backgroundColor: '#fff' }}
+      headStyle={{ borderBottom: 'none' }}
+      title={
+        <TextBox
+          height={32}
+          placeholder="节点名称*"
+          value={props.node.name}
+          label="流程名称"
+          labelMode="floating"
+          onValueChange={(e) => {
+            props.node.name = e;
+            props.refresh();
+          }}
+        />
+      }>
+      {loadContent()}
+    </Card>
+  );
 };
 
 export default Config;

@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { Card, Modal } from 'antd';
+import { Card, Modal, Space } from 'antd';
 import { Button, DataGrid, SelectBox, TextArea, TextBox } from 'devextreme-react';
 import { model, schema } from '@/ts/base';
 import { getUuid } from '@/utils/tools';
@@ -41,6 +41,7 @@ const CalcRuleModal: React.FC<IProps> = (props) => {
         ...a.attributes.map((s) => {
           return {
             id: s.id,
+            key: a.id + s.id,
             formName: a.name,
             formId: a.id,
             typeName: '对象',
@@ -57,6 +58,7 @@ const CalcRuleModal: React.FC<IProps> = (props) => {
           return {
             id: s.id,
             formName: a.name,
+            key: a.id + s.id,
             formId: a.id,
             typeName: '集合',
             trigger: a.id,
@@ -104,105 +106,109 @@ const CalcRuleModal: React.FC<IProps> = (props) => {
       okButtonProps={{
         disabled: vaildDisable(),
       }}>
-      <TextBox
-        label="名称*"
-        labelMode="floating"
-        value={name}
-        onValueChange={(e) => {
-          setName(e);
-        }}
-      />
-      <SelectBox
-        label="目标对象*"
-        labelMode="floating"
-        value={target?.id}
-        showClearButton
-        displayExpr={(item) => {
-          return item ? `[${item.formName}]${item.name}` : '';
-        }}
-        valueExpr="id"
-        dataSource={triggers.filter((a) => a.typeName == '对象')}
-        onSelectionChanged={(e) => {
-          setTarget(e.selectedItem);
-        }}
-      />
-      <Card bordered title={'变量维护'} style={{ margin: 10 }}>
-        <>
-          <TextBox
-            width={'30%'}
-            label="变量名称*"
-            labelMode="floating"
-            value={argsCode}
-            onValueChange={setArgsCode}
-            style={{ display: 'inline-block', margin: 2 }}
-          />
-          <SelectBox
-            width={'45%'}
-            label="变量对象*"
-            labelMode="floating"
-            value={select?.id}
-            showClearButton
-            displayExpr={(item) => {
-              return item ? `[${item.formName}]${item.name}` : '';
-            }}
-            valueExpr="id"
-            dataSource={triggers.filter((a) => !mappingData.find((s) => s.id == a.id))}
-            style={{ display: 'inline-block', margin: 2 }}
-            onSelectionChanged={(e) => {
-              setSelect(e.selectedItem);
-            }}
-          />
-          <Button
-            width={'20%'}
-            style={{ display: 'inline-block', margin: 2 }}
-            onClick={() => {
-              if (select && argsCode) {
-                if (!mappingData.map((a) => a.code).includes(argsCode)) {
-                  setSelect(undefined);
-                  setArgsCode(undefined);
-                  setMappingData([{ ...select, code: argsCode }, ...mappingData]);
+      <Space direction="vertical" size="middle" style={{ display: 'flex' }}>
+        <TextBox
+          label="名称"
+          labelMode="outside"
+          value={name}
+          onValueChange={(e) => {
+            setName(e);
+          }}
+        />
+        <SelectBox
+          valueExpr="key"
+          label="目标对象"
+          labelMode="outside"
+          value={target?.key}
+          showClearButton
+          displayExpr={(item) => {
+            return item ? `[${item.formName}]${item.name}` : '';
+          }}
+          dataSource={triggers.filter((a) => a.typeName == '对象')}
+          onSelectionChanged={(e) => {
+            setTarget(e.selectedItem);
+          }}
+        />
+        <Card bordered title={'变量维护'} style={{ margin: 10 }}>
+          <>
+            <TextBox
+              width={'30%'}
+              label="变量名称*"
+              labelMode="floating"
+              value={argsCode}
+              onValueChange={setArgsCode}
+              style={{ display: 'inline-block', margin: 2 }}
+            />
+            <SelectBox
+              width={'45%'}
+              label="变量对象*"
+              labelMode="floating"
+              valueExpr="key"
+              value={select?.key}
+              showClearButton
+              displayExpr={(item) => {
+                return item ? `[${item.formName}]${item.name}` : '';
+              }}
+              dataSource={triggers.filter((a) => !mappingData.find((s) => s.id == a.id))}
+              style={{ display: 'inline-block', margin: 2 }}
+              onSelectionChanged={(e) => {
+                setSelect(e.selectedItem);
+              }}
+            />
+            <Button
+              width={'20%'}
+              style={{ display: 'inline-block', margin: 2 }}
+              onClick={() => {
+                if (select && argsCode) {
+                  if (!mappingData.map((a) => a.code).includes(argsCode)) {
+                    setSelect(undefined);
+                    setArgsCode(undefined);
+                    setMappingData([{ ...select, code: argsCode }, ...mappingData]);
+                  }
+                }
+              }}>
+              新增
+            </Button>
+          </>
+          <DataGrid
+            allowColumnResizing
+            keyExpr="id"
+            dataSource={mappingData}
+            onSaved={(e) => {
+              for (const change of e.changes) {
+                if (change.type == 'remove') {
+                  setMappingData(mappingData.filter((a) => a.id != change.key));
                 }
               }
             }}>
-            新增
-          </Button>
-        </>
-        <DataGrid
-          allowColumnResizing
-          keyExpr="id"
-          dataSource={mappingData}
-          onSaved={(e) => {
-            for (const change of e.changes) {
-              if (change.type == 'remove') {
-                setMappingData(mappingData.filter((a) => a.id != change.key));
-              }
-            }
-          }}>
-          <Paging enabled={true} pageSize={10} />
-          <Editing mode="row" allowDeleting={true} />
-          <Column dataField="code" caption="变量代码" />
-          <Column dataField="typeName" caption="类型" />
-          <Column dataField="formName" caption="表单名称" />
-          <Column dataField="name" caption="对象名称" />
-        </DataGrid>
-      </Card>
-      <Card title="计算代码" style={{ padding: 5 }}>
-        <CodeMirror
-          aria-label="计算规则"
-          value={formula}
-          height={'100px'}
-          extensions={[javascript()]}
-          onChange={setFormula}
+            <Paging enabled={true} pageSize={10} />
+            <Editing mode="row" allowDeleting={true} />
+            <Column dataField="code" caption="变量代码" />
+            <Column dataField="typeName" caption="类型" />
+            <Column dataField="formName" caption="表单名称" />
+            <Column dataField="name" caption="对象名称" />
+          </DataGrid>
+        </Card>
+      </Space>
+      <Space direction="vertical" size="middle" style={{ display: 'flex' }}>
+        <Card title="计算代码" style={{ padding: 5 }}>
+          <CodeMirror
+            aria-label="计算规则"
+            value={formula}
+            height={'100px'}
+            extensions={[javascript()]}
+            onChange={setFormula}
+          />
+        </Card>
+        <TextArea
+          label="描述"
+          labelMode="outside"
+          onValueChanged={(e) => {
+            setRemark(e.value);
+          }}
+          value={remark}
         />
-      </Card>
-      <TextArea
-        label="描述"
-        labelMode="floating"
-        onValueChanged={(e) => {
-          setRemark(e.value);
-        }}
-        value={remark}
-      />
+      </Space>
     </Modal>
   );
 };

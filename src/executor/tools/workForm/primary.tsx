@@ -10,6 +10,7 @@ interface IProps {
   allowEdit: boolean;
   belong: IBelong;
   forms: schema.XForm[];
+  infos: model.FormInfo[];
   changedFields: model.MappingData[];
   data: model.InstanceDataModel;
   getFormData: (form: schema.XForm) => model.FormEditData;
@@ -19,6 +20,7 @@ interface IProps {
 const PrimaryForm: React.FC<IProps> = (props) => {
   if (props.forms.length < 1) return <></>;
   const form = props.forms[0];
+  const info = props.infos[0];
   const [fields, setFields] = useState<model.FieldModel[]>();
   const [data, setData] = useState<schema.XThing>();
   const [formData, setFormData] = useState<model.FormEditData>();
@@ -31,8 +33,8 @@ const PrimaryForm: React.FC<IProps> = (props) => {
       setData(afterData);
     } else {
       kernel.createThing(props.belong.id, [], form.name).then((res) => {
-        if (res.success && res.data) {
-          setData(res.data);
+        if (res.success && Array.isArray(res.data) && res.data.length > 0) {
+          setData(res.data[0]);
         }
       });
     }
@@ -41,10 +43,12 @@ const PrimaryForm: React.FC<IProps> = (props) => {
   return (
     <WorkFormViewer
       form={form}
+      info={info}
       fields={fields}
       data={data}
-      changedFields={props.changedFields.filter((a) => a.formId == form.id)}
-      rules={[...(props.data.rules ?? []), ...(formData.rules ?? [])]}
+      formData={formData}
+      changedFields={props.changedFields}
+      rules={props.data.rules}
       belong={props.belong}
       readonly={!props.allowEdit}
       onValuesChange={(field, value, data) => {
@@ -69,9 +73,10 @@ const PrimaryForms: React.FC<IProps> = (props) => {
   const loadItems = () => {
     const items = [];
     for (const form of props.forms) {
+      let info = props.infos.find((item) => item.id == form.id) ?? ({} as model.FormInfo);
       if (
         props.data.rules?.find(
-          (a) => a.destId == form.id && a.typeName == 'visible' && a.value == false,
+          (a) => a.destId == form.id && a.typeName == 'visible' && !a.value,
         )
       ) {
         continue;
@@ -79,13 +84,15 @@ const PrimaryForms: React.FC<IProps> = (props) => {
       items.push({
         key: form.id,
         label: form.name,
-        children: <PrimaryForm {...props} forms={[form]} />,
+        forceRender: true,
+        children: <PrimaryForm {...props} forms={[form]} infos={[info]} />,
       });
     }
     return items;
   };
   return (
     <Tabs
+      className="ogo-tabs-primary"
       items={loadItems()}
       activeKey={activeTabKey}
       onChange={(key) => setActiveTabKey(key)}

@@ -954,21 +954,24 @@ export default class KernelApi {
   /**
    * 创建物
    * @param name 物的名称
-   * @returns {model.ResultType<schema.XThing>} 移除异步结果
+   * @returns {model.ResultType<schema.XThing[]>} 移除异步结果
    */
   public async createThing(
     belongId: string,
     relations: string[],
     name: string,
     count: number = 1,
-  ): Promise<model.ResultType<schema.XThing>> {
+  ): Promise<model.ResultType<schema.XThing[]>> {
     return await this.dataProxy({
       module: 'Thing',
       action: 'Create',
       flag: 'createThing',
       belongId,
       relations,
-      params: { name, count },
+      params: {
+        name,
+        count,
+      },
     });
   }
   /**

@@ -146,7 +146,7 @@ const SettingIdentity: React.FC<IProps> = ({ target, finished }) => {
       </MainLayout>
       {['新增', '编辑'].includes(operateKey) && (
         <IdentityForm
-          current={selectMenu.item}
+          current={operateKey == '新增' ? target : selectMenu.item}
           finished={(success) => {
             setOperateKey('');
             if (success) {

@@ -13,15 +13,15 @@ interface CurrentTargetItemProps extends ISelectBoxOptions {
 const CurrentTargetItem: React.FC<CurrentTargetItemProps> = (props) => {
   const [selectTarget, setSelectTarget] = useState<schema.XTarget>();
   useEffect(() => {
-    props.onValueChanged?.apply(this, [{ value: selectTarget?.id } as any]);
+    if (selectTarget && (!props.defaultValue || props.defaultValue.length <= 5)) {
+      props.onValueChanged?.apply(this, [{ value: selectTarget?.id } as any]);
+    }
   }, [selectTarget]);
   useEffect(() => {
-    if (props.readOnly) {
-      if (props.defaultValue && props.defaultValue.length > 5) {
-        orgCtrl.user.findEntityAsync(props.defaultValue).then((value) => {
-          setSelectTarget(value as schema.XTarget);
-        });
-      }
+    if (props.defaultValue && props.defaultValue.length > 5) {
+      orgCtrl.user.findEntityAsync(props.defaultValue).then((value) => {
+        setSelectTarget(value as schema.XTarget);
+      });
     } else {
       setSelectTarget(props.target);
     }

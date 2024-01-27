@@ -795,11 +795,17 @@ export type WorkNodeModel = {
   detailForms: XForm[];
 };
 
-type FormInfo = {
+export type FormInfo = {
   // 表单Id
   id: string;
   // 类型
   typeName: string;
+  // 允许新增
+  allowAdd: boolean;
+  // 允许编辑
+  allowEdit: boolean;
+  // 允许选择
+  allowSelect: boolean;
 };
 
 export type Rule = {
@@ -808,7 +814,7 @@ export type Rule = {
   // 规则名称
   name: string;
   // 规则类型
-  type: 'show' | 'calc' | 'executor';
+  type: 'show' | 'calc' | 'executor' | 'attribute';
   // 触发对象
   trigger: string[];
   // 备注
@@ -825,10 +831,14 @@ export type FormShowRule = {
   target: string;
   // 条件
   condition: string;
+  // 条件文本
+  conditionText: string;
 } & Rule;
 
 // 表单计算规则
 export type FormCalcRule = {
+  // 键值对
+  mappingData: MappingData[];
   // 目标对象
   target: string;
   // 表达式
@@ -864,7 +874,16 @@ export type NodeExecutorRule = {
   function: string;
 } & Rule;
 
+// 属性筛选
+export type AttributeFilterRule = {
+  // 条件
+  condition: string;
+  // 条件文本
+  conditionText: string;
+} & Rule;
+
 export type MappingData = {
+  key: string;
   id: string;
   code: string;
   name: string;
@@ -920,7 +939,7 @@ export type FieldChange = {
   after: any;
   // 变动后名称
   afterName: string;
-}
+};
 
 export type Branche = {
   conditions: Condition[] | undefined;
@@ -1443,3 +1462,19 @@ export type DiskInfoType = {
   // 查询时间
   getTime: string;
 };
+
+// 草稿
+export type DraftsType = {
+  // 数据
+  typeName: string;
+  // 关系
+  relations: string;
+  // 办事id
+  workId: string;
+  // 备注信息
+  contentText: string;
+  // 办事名称
+  name?: string;
+  // 节点信息
+  data: model.InstanceDataModel;
+} & Xbase;

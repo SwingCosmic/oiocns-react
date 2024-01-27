@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Button } from 'antd';
+import { Card, Divider } from 'antd';
 import cls from './index.module.less';
 import { NodeModel } from '../../../processType';
 import ShareShowComp from '@/components/Common/ShareShowComp';
@@ -25,29 +25,41 @@ const CcNode: React.FC<IProps> = (props) => {
   return (
     <div className={cls[`app-roval-node`]}>
       <div className={cls[`roval-node`]}>
-        <div style={{ marginBottom: '10px' }}>
-          <Button
-            type="primary"
-            shape="round"
-            size="small"
-            onClick={() => {
-              setIsApprovalOpen(true);
-            }}>
-            选择抄送对象
-          </Button>
-        </div>
-        <div>
-          {currentData.id != '' ? (
-            <ShareShowComp
-              departData={[{ id: props.current.destId, name: props.current.destName }]}
-              deleteFuc={() => {
-                props.current.destId = '';
-                props.current.destName = '';
-                setCurrentData({ id: '', name: '' });
-                props.refresh();
-              }}></ShareShowComp>
-          ) : null}
-        </div>
+        <Card
+          type="inner"
+          title={
+            <div>
+              <Divider type="vertical" className={cls['divider']} />
+              <span>抄送对象</span>
+            </div>
+          }
+          headStyle={{ backgroundColor: '#fcfcfc' }}
+          bodyStyle={{
+            backgroundColor: '#fcfcfc',
+            paddingTop: '0px',
+            paddingLeft: '12px',
+          }}
+          extra={
+            <a
+              onClick={() => {
+                setIsApprovalOpen(true);
+              }}>
+              + 选择抄送对象
+            </a>
+          }>
+          <div>
+            {currentData.id ? (
+              <ShareShowComp
+                departData={[{ id: props.current.destId, name: props.current.destName }]}
+                deleteFuc={() => {
+                  props.current.destId = '';
+                  props.current.destName = '';
+                  setCurrentData({ id: '', name: '' });
+                  props.refresh();
+                }}></ShareShowComp>
+            ) : null}
+          </div>
+        </Card>
       </div>
       <SelectIdentity
         multiple={false}

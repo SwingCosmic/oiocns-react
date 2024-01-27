@@ -29,6 +29,7 @@ const AttributeConfig: React.FC<IAttributeProps> = ({
   const [openDialog, setOpenDialog] = useState(false);
   const [attribute, setAttribute] = React.useState(current.metadata.attributes[index]);
   const [items, setItems] = useState<schema.XSpeciesItem[]>([]);
+  const [refForm, setRefForm] = useState<schema.XForm | null>(null);
   const notityAttrChanged = () => {
     current.metadata.attributes[index] = attribute;
     notifyEmitter.changCallback('attr', attribute);
@@ -36,15 +37,29 @@ const AttributeConfig: React.FC<IAttributeProps> = ({
       setAttribute({ ...attribute });
     }
   };
-  useEffect(() => {
-    const speciesId = attribute.property?.speciesId;
-    if (speciesId && speciesId.length > 5) {
-      current.loadItems([speciesId]).then((data) => {
-        setItems(data);
-      });
-    } else {
-      setItems([]);
+
+  async function loadAttributeResource() {
+    if (!attribute.property) {
+      return;
     }
+
+    if (attribute.property.valueType == '引用型') {
+      if (attribute.property.formId) {
+        const data = await current.loadReferenceForm(attribute.property.formId);
+        setRefForm(data);
+      }
+    } else {
+      const speciesId = attribute.property.speciesId;
+      if (speciesId && speciesId.length > 5) {
+        const data = await current.loadItems([speciesId]);
+        setItems(data);
+      } else {
+        setItems([]);
+      }
+    }
+  }
+  useEffect(() => {
+    loadAttributeResource();
   }, [attribute]);
   useEffect(() => {
     setAttribute({
@@ -112,6 +127,38 @@ const AttributeConfig: React.FC<IAttributeProps> = ({
                   icon: i.icon,
                   parentId: i.parentId,
                 };
+              }),
+            }}
+          />,
+        );
+        break;
+      case '引用选择框':
+        options.push(
+          <SimpleItem
+            dataField="options.allowViewDetail"
+            editorType="dxCheckBox"
+            label={{ text: '允许查看数据详情' }}
+            // editorOptions={{
+            //   disabled: true,
+            // }}
+          />,
+          <SimpleItem
+            dataField="options.multiple"
+            editorType="dxCheckBox"
+            label={{ text: '是否支持多选' }}
+            // editorOptions={{
+            //   disabled: true,
+            // }}
+          />,
+          <SimpleItem
+            dataField="options.nameAttribute"
+            editorType="dxSelectBox"
+            label={{ text: '展示文字的特性' }}
+            editorOptions={{
+              displayExpr: 'name',
+              valueExpr: 'id',
+              dataSource: (refForm?.attributes || []).filter((i) => {
+                return i.property?.valueType == '描述型';
               }),
             }}
           />,
@@ -269,7 +316,7 @@ const AttributeConfig: React.FC<IAttributeProps> = ({
       labelMode="floating"
       formData={attribute}
       onFieldDataChanged={notityAttrChanged}>
-      <GroupItem caption={'特性参数'}>
+      <GroupItem>
         <SimpleItem dataField="name" isRequired={true} label={{ text: '名称' }} />
         <SimpleItem dataField="code" isRequired={true} label={{ text: '代码' }} />
         <SimpleItem
@@ -309,7 +356,7 @@ const AttributeConfig: React.FC<IAttributeProps> = ({
           }}
         />
       </GroupItem>
-      <GroupItem caption={'表单参数'}>
+      <GroupItem>
         <SimpleItem
           dataField="options.readOnly"
           editorType="dxCheckBox"
@@ -332,7 +379,7 @@ const AttributeConfig: React.FC<IAttributeProps> = ({
         />
         {loadItemConfig()}
       </GroupItem>
-      <GroupItem caption={'表格参数'}>
+      <GroupItem>
         <SimpleItem
           dataField="options.fixed"
           editorType="dxCheckBox"

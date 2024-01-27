@@ -2,6 +2,12 @@ import { kernel, model } from '../../base';
 import { IBelong } from '../target/base/belong';
 import { IForm } from '../thing/standard/form';
 export interface IWorkApply {
+  /** 主表 */
+  primaryForms: IForm[];
+  /** 子表 */
+  detailForms: IForm[];
+  /** 发起样式类型 */
+  applyType: string;
   /** 办事空间 */
   belong: IBelong;
   /** 元数据 */
@@ -23,12 +29,20 @@ export class WorkApply implements IWorkApply {
     _metadata: model.WorkInstanceModel,
     _data: model.InstanceDataModel,
     _belong: IBelong,
-    _forms: IForm[],
+    _primaryForms: IForm[],
+    _detailForms: IForm[],
+    _applyType: string,
   ) {
+    this.primaryForms = _primaryForms;
+    this.detailForms = _detailForms;
     this.metadata = _metadata;
     this.instanceData = _data;
+    this.applyType = _applyType ?? '';
     this.belong = _belong;
   }
+  primaryForms: IForm[];
+  detailForms: IForm[];
+  applyType: string;
   belong: IBelong;
   metadata: model.WorkInstanceModel;
   instanceData: model.InstanceDataModel;
@@ -41,13 +55,15 @@ export class WorkApply implements IWorkApply {
       );
     };
     const hides = this.getHideForms();
-    for (const formId of Object.keys(this.instanceData.data)) {
-      if (!hides.includes(formId)) {
-        const formData = this.instanceData.data[formId].at(-1);
-        const data: any = formData?.after.at(-1) ?? {};
-        for (const item of this.instanceData.fields[formId]) {
+    for (const formId of Object.keys(this.instanceData.fields).filter(
+      (a) => !hides.includes(a),
+    )) {
+      const formData = this.instanceData.data[formId]?.at(-1);
+      const data: any = formData?.after.at(-1) ?? {};
+      for (const item of this.instanceData.fields[formId]) {
+        var isRequired = item.options?.isRequired;
+        if (formData?.rules && Array.isArray(formData?.rules)) {
           const rules = formData?.rules.filter((a) => a.destId == item.id);
-          var isRequired = item.options?.isRequired;
           if (rules) {
             for (const rule of rules) {
               if (rule.typeName == 'isRequired') {

@@ -9,7 +9,9 @@ import { FileInfo, IFile } from '../thing/fileinfo';
 import { Acquire } from './executor/acquire';
 import { IExecutor } from './executor';
 import { FieldsChange } from './executor/change';
-export type TaskTypeName = '待办' | '已办' | '抄送' | '发起的';
+import { Webhook } from './executor/webhook';
+import message from '@/utils/message';
+export type TaskTypeName = '待办' | '已办' | '抄送' | '已发起' | '草稿';
 
 export interface IWorkTask extends IFile {
   /** 内容 */
@@ -131,12 +133,14 @@ export class WorkTask extends FileInfo<schema.XEntity> implements IWorkTask {
     switch (type) {
       case '已办':
         return this.taskdata.status >= TaskStatus.ApprovalStart;
-      case '发起的':
+      case '已发起':
         return this.taskdata.createUser == this.userId;
       case '待办':
         return this.taskdata.status < TaskStatus.ApprovalStart;
       case '抄送':
         return this.taskdata.approveType === '抄送';
+      case '草稿':
+        return false;
     }
   }
   async updated(_metadata: schema.XWorkTask): Promise<boolean> {
@@ -175,6 +179,9 @@ export class WorkTask extends FileInfo<schema.XEntity> implements IWorkTask {
           break;
         case '字段变更':
           executors.push(new FieldsChange(item, this));
+          break;
+        case 'Webhook':
+          executors.push(new Webhook(item, this));
           break;
       }
     }
@@ -223,9 +230,15 @@ export class WorkTask extends FileInfo<schema.XEntity> implements IWorkTask {
       }
       if (this.taskdata.taskType === '加用户') {
         return this.approvalJoinTask(status, comment);
-      } else if (await this.loadInstance(true)) {
+      } else {
         fromData?.forEach((data, k) => {
           if (this.instanceData) {
+            if (this.instanceData.data[k]) {
+              this.instanceData.data[k].push(
+                ...this.instanceData.data[k].filter((s) => s.nodeId != data.nodeId),
+                data,
+              );
+            }
             this.instanceData.data[k] = [data];
           }
         });
@@ -244,20 +257,22 @@ export class WorkTask extends FileInfo<schema.XEntity> implements IWorkTask {
   // 申请加用户审批
   private async approvalJoinTask(status: number, comment: string): Promise<boolean> {
     if (this.targets && this.targets.length === 2) {
+      if (status < TaskStatus.RefuseStart) {
+        const target = this.user.targets.find((a) => a.id == this.targets[1].id);
+        if (target) {
+          target.pullMembers([this.targets[0]]);
+        } else {
+          message.warn('组织加载中，请等待加载完成后再进行该任务审批');
+          return false;
+        }
+      }
       const res = await kernel.approvalTask({
         id: this.taskdata.id,
         status: status,
         comment: comment,
         data: JSON.stringify(this.instanceData),
       });
-      if (res.data && status < TaskStatus.RefuseStart) {
-        for (const item of this.user.targets) {
-          if (item.id === this.targets[1].id) {
-            item.pullMembers([this.targets[0]]);
-            return true;
-          }
-        }
-      }
+      return res.success;
     }
     return false;
   }

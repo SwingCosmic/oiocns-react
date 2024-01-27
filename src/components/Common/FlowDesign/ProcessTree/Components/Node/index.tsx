@@ -18,6 +18,7 @@ type NodeProps = {
  */
 const Node: React.FC<NodeProps> = (props: NodeProps) => {
   let isRoot = false;
+  let isJGNode = (props.config.code as string).startsWith('JGNODE');
   let placeholder = '';
   console.log(props);
   switch (props.config.type) {
@@ -62,7 +63,10 @@ const Node: React.FC<NodeProps> = (props: NodeProps) => {
         <div className={cls['all-process-end']} onClick={() => props.onSelected()}>
           <div className={cls['process-content']}>
             <div className={cls['process-left']}>发起</div>
-            <div className={cls['process-right']}>流程开始</div>
+            <div className={cls['process-right']}>
+              <div className={cls['process-right_send']}>发起权限</div>
+              <div className={cls['process-right_allMem']}>全员</div>
+            </div>
           </div>
         </div>
       )}
@@ -76,19 +80,23 @@ const Node: React.FC<NodeProps> = (props: NodeProps) => {
             }>
             <div
               style={{ display: 'flex' }}
-              onClick={() => props.onSelected()}
+              onClick={() => {
+                if (!isJGNode) {
+                  props.onSelected();
+                }
+              }}
               title="点击配置">
               <div className={cls['node-body-header']}>{props.config.type}</div>
               <div className={cls['node-body-right']}>
                 <div className={cls['name-title']}>{props.config.name}</div>
-                <span className={cls['name-select-title']}>
+                <div className={cls['name-select-title']}>
                   {props.config.destName || (
-                    <span style={{ color: '#999' }}>{placeholder}</span>
+                    <span style={{ color: '#6F7686' }}>{placeholder}</span>
                   )}
-                </span>
+                </div>
               </div>
             </div>
-            {props.isEdit && !isRoot && (
+            {props.isEdit && !isRoot && !isJGNode && (
               <div className={cls.closeBtn}>
                 <ai.AiOutlineClose onClick={() => props.onDelNode()} title="点击删除" />
               </div>

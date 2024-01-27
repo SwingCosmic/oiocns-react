@@ -14,7 +14,7 @@ interface IProps {
 
 const Design: React.FC<IProps> = ({ current, resource }) => {
   const [key, Refresh] = useCtrlUpdate(current);
-  const [mainWidth, setMainWidth] = React.useState<number>(550);
+  const [mainWidth, setMainWidth] = React.useState<number | string>('70%');
   const [currentNode, setCurrentNode] = useState<NodeModel>(resource);
 
   return (
@@ -25,30 +25,24 @@ const Design: React.FC<IProps> = ({ current, resource }) => {
         maxWidth={800}
         minWidth={400}
         onResize={(e) => setMainWidth(e.width)}>
-        <Layout.Sider width={'100%'} style={{ height: '100%' }}>
-          <Config
-            key={currentNode.id}
-            node={currentNode}
-            define={current}
-            refresh={Refresh}
+        <Layout.Sider key={key} width={'100%'} style={{ height: '100%' }}>
+          <ProcessTree
+            target={current.directory.target}
+            isEdit={true}
+            resource={resource}
+            onSelectedNode={(node) => {
+              setCurrentNode(node);
+            }}
           />
         </Layout.Sider>
       </Resizable>
-      <Layout.Content key={key}>
-        {React.useMemo(
-          () => (
-            <ProcessTree
-              target={current.directory.target}
-              isEdit={true}
-              resource={resource}
-              onSelectedNode={(node) => {
-                console.log(node);
-                setCurrentNode(node);
-              }}
-            />
-          ),
-          [current],
-        )}
+      <Layout.Content>
+        <Config
+          key={currentNode.id}
+          node={currentNode}
+          define={current}
+          refresh={Refresh}
+        />
       </Layout.Content>
     </Layout>
   );

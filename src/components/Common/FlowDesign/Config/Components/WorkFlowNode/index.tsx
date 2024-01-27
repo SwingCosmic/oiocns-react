@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { AiOutlineSetting } from 'react-icons/ai';
-import { Row, Button, Space } from 'antd';
+import { Row, Button, Space, Divider, Card } from 'antd';
 import cls from './index.module.less';
 import { NodeModel } from '../../../processType';
 import { IBelong, IWork } from '@/ts/core';
@@ -26,36 +26,47 @@ const WorkFlowNode: React.FC<IProps> = (props) => {
     name: props.current.destName,
   });
 
+  if (props.current.code.startsWith('JGNODE')) return <></>;
   return (
     <div className={cls[`app-roval-node`]}>
       <div className={cls[`roval-node`]}>
-        <Row style={{ marginBottom: '10px' }}>
-          <AiOutlineSetting style={{ marginTop: '3px' }} />
-          <span className={cls[`roval-node-title`]}>选择其他办事</span>
-        </Row>
-        <Space>
-          <Button
-            type="primary"
-            shape="round"
-            size="small"
-            onClick={() => {
-              setIsOpen(true);
-            }}>
-            选择其他办事
-          </Button>
-        </Space>
-        <div>
-          {currentData.id != '' ? (
-            <ShareShowComp
-              departData={[currentData]}
-              deleteFuc={() => {
-                props.current.destId = '';
-                props.current.destName = '';
-                setCurrentData({ id: '', name: '' });
-                props.refresh();
-              }}></ShareShowComp>
-          ) : null}
-        </div>
+        <Card
+          type="inner"
+          style={{ border: 'none' }}
+          headStyle={{
+            backgroundColor: '#FCFCFC',
+            padding: '0px 12px',
+            borderBottom: 'none',
+          }}
+          title={
+            <div>
+              <Divider type="vertical" className={cls['divider']} />
+              <span>其他办事</span>
+            </div>
+          }
+          className={cls['card-info']}
+          bodyStyle={{ padding: '0px 12px 12px 0px', border: 'none' }}
+          extra={
+            <a
+              onClick={() => {
+                setIsOpen(true);
+              }}>
+              + 选择其他办事
+            </a>
+          }>
+          <div>
+            {currentData.id ? (
+              <ShareShowComp
+                departData={[currentData]}
+                deleteFuc={() => {
+                  props.current.destId = '';
+                  props.current.destName = '';
+                  setCurrentData({ id: '', name: '' });
+                  props.refresh();
+                }}></ShareShowComp>
+            ) : null}
+          </div>
+        </Card>
       </div>
       {isOpen && (
         <OpenFileDialog

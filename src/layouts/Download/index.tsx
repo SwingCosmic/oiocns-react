@@ -33,15 +33,6 @@ const Download: React.FC = () => {
           <DownLoadContent />
         </div>
         <div className={cls.copyright}>
-          <div className={cls.copyrightEn}>
-            <a
-              href="https://orginone.cn"
-              target="_blank"
-              style={{ color: '#8a8a8a' }}
-              rel="noopener noreferrer">
-              Powered by Orginone{' '}
-            </a>
-          </div>
           {resources.unitName !== '' && (
             <div className={cls.copyrightZh}>
               主办单位：
@@ -62,6 +53,15 @@ const Download: React.FC = () => {
               style={{ color: '#8a8a8a' }}
               rel="noopener noreferrer">
               资产云开放协同创新中心
+            </a>
+          </div>
+          <div className={cls.copyrightEn}>
+            <a
+              href="https://orginone.cn"
+              target="_blank"
+              style={{ color: '#8a8a8a' }}
+              rel="noopener noreferrer">
+              Powered by Orginone{' '}
             </a>
           </div>
         </div>

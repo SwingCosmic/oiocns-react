@@ -9,7 +9,7 @@ import EntityIcon from '@/components/Common/GlobalComps/entityIcon';
 import useAsyncLoad from '@/hooks/useAsyncLoad';
 import message from '@/utils/message';
 import useObjectUpdate from '@/hooks/useObjectUpdate';
-import { Card } from 'antd';
+import { Card, Divider } from 'antd';
 interface IProps {
   current: NodeModel;
   define: IWork;
@@ -70,7 +70,21 @@ const GatewayNode: React.FC<IProps> = (props) => {
     <div className={cls[`app-roval-node`]}>
       <div className={cls[`roval-node`]}>
         {loaded && (
-          <Card className={cls[`card-info`]} type="inner" title="网关绑定详情">
+          <Card
+            className={cls[`card-info`]}
+            type="inner"
+            style={{ border: 'none' }}
+            headStyle={{
+              backgroundColor: '#FCFCFC',
+              padding: '0px 12px',
+              borderBottom: 'none',
+            }}
+            title={
+              <div>
+                <Divider type="vertical" className={cls['divider']} />
+                <span>网关绑定详情</span>
+              </div>
+            }>
             <CardOrTableComp<schema.XWorkGateway>
               key={tkey}
               rowKey={'id'}

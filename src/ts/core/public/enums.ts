@@ -17,8 +17,6 @@ export enum TargetType {
   /** 自归属用户 */
   'Person' = '人员',
   'Company' = '单位',
-  'University' = '大学',
-  'Hospital' = '医院',
   'Storage' = '存储资源'
 }
 
@@ -75,6 +73,7 @@ export enum ValueType {
   'Time' = '时间型',
   'Date' = '日期型',
   'Target' = '用户型',
+  'Reference' = '引用型'
 }
 
 /** 规则触发时机 */

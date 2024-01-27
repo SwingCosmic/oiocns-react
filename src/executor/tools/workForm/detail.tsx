@@ -8,15 +8,15 @@ import GenerateThingTable from '../generate/thingTable';
 import { getUuid } from '@/utils/tools';
 import { Uploader, generating } from '../uploadTemplate';
 import * as el from '@/utils/excel';
-import { Workbook } from 'exceljs';
-import { exportDataGrid as toExcel } from 'devextreme/excel_exporter';
-import saveAs from 'file-saver';
+import { XThing } from '@/ts/base/schema';
+import { AiFillEdit, AiFillRest } from 'react-icons/ai';
 import { deepClone } from '@/ts/base/common';
 
 interface IProps {
   allowEdit: boolean;
   belong: IBelong;
   forms: schema.XForm[];
+  infos: model.FormInfo[];
   changedFields: model.MappingData[];
   data: model.InstanceDataModel;
   getFormData: (form: schema.XForm) => model.FormEditData;
@@ -26,13 +26,13 @@ interface IProps {
 const DetailTable: React.FC<IProps> = (props) => {
   if (props.forms.length < 1) return <></>;
   const form = props.forms[0];
+  const info = props.infos[0];
   if (!props.data.fields[form.id]) return <></>;
   const fields = props.data.fields[form.id];
   const operateRule = {
-    allowAdd: true,
-    allowEdit: true,
-    allowSelect: true,
-    ...JSON.parse(form.operateRule ?? '{}'),
+    allowAdd: info?.allowAdd ?? true,
+    allowEdit: info?.allowEdit ?? true,
+    allowSelect: info?.allowSelect ?? true,
   };
   const [key, setKey] = useState<string>(form.id);
   const [formData, setFormData] = useState(props.getFormData(form));
@@ -49,6 +49,55 @@ const DetailTable: React.FC<IProps> = (props) => {
       setKey(getUuid());
     }
   }, [props.changedFields]);
+  const loadMenus = () => {
+    if (props.allowEdit) {
+      var items = [
+        {
+          key: 'remove',
+          label: '移除',
+          icon: <AiFillRest fontSize={22} />,
+        },
+      ];
+      if (operateRule.allowEdit) {
+        items.unshift({
+          key: 'update',
+          label: '更新',
+          icon: <AiFillEdit fontSize={22} />,
+        });
+      }
+      return {
+        items: items,
+        onMenuClick(key: string, data: XThing) {
+          switch (key) {
+            case 'update':
+              EditModal.showFormEdit({
+                form: form,
+                fields: fields,
+                belong: props.belong,
+                create: false,
+                initialValues: data,
+                onSave: (values) => {
+                  const thing = formData.after.find((a) => a.id == data.id);
+                  if (thing) {
+                    Object.keys(values).forEach((k) => {
+                      thing[k] = values[k];
+                    });
+                  }
+                  setFormData({ ...formData });
+                },
+              });
+              break;
+            case 'remove':
+              formData.before = formData.before.filter((i) => i.id != data.id);
+              formData.after = formData.after.filter((i) => i.id != data.id);
+              setSelectKeys([]);
+              setFormData({ ...formData });
+              break;
+          }
+        },
+      };
+    }
+  };
   return (
     <GenerateThingTable
       key={key}
@@ -220,6 +269,7 @@ const DetailTable: React.FC<IProps> = (props) => {
           },
         ],
       }}
+      dataMenus={loadMenus()}
       dataSource={formData.after}
       beforeSource={formData.before}
     />
@@ -232,6 +282,7 @@ const DetailForms: React.FC<IProps> = (props) => {
   const loadItems = () => {
     const items = [];
     for (const form of props.forms) {
+      let info = props.infos.find((item) => item.id == form.id) ?? ({} as model.FormInfo);
       if (
         props.data.rules?.find(
           (a) => a.destId == form.id && a.typeName == 'visible' && !a.value,
@@ -241,8 +292,9 @@ const DetailForms: React.FC<IProps> = (props) => {
       }
       items.push({
         key: form.id,
+        forceRender: true,
         label: form.name,
-        children: <DetailTable {...props} forms={[form]} />,
+        children: <DetailTable {...props} forms={[form]} infos={[info]} />,
       });
     }
     return items;

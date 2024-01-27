@@ -5,8 +5,7 @@
 }
 
 .node {
-  padding: 0 50px;
-  width: 320px;
+  width: 200px;
   position: relative;
 
   &:before {
@@ -25,15 +24,14 @@
 
   .node-body {
     cursor: pointer;
-    max-height: 120px;
     position: relative;
     border-radius: 5px;
     background-color: white;
     box-shadow: 0px 0px 5px 0px #d8d8d8;
     .nodeNewStyle {
       display: flex;
-      border: 1px solid #ff9e3a;
-      border-radius: 4px;
+      border: 1px solid #173ADA80;
+      border-radius: 8px;
     }
     .process-content {
       justify-content: center;
@@ -41,8 +39,9 @@
     }
     .nodeAproStyle {
       display: flex;
-      border: 1px solid #0844e1;
-      border-radius: 4px;
+      border: 1px solid #173ADA80;
+      border-radius: 8px;
+      position: relative;
     }
     .node-body-header {
       width: 60px;
@@ -51,34 +50,25 @@
       justify-content: center;
       align-items: center;
       color: #0844e1;
-      border-right: 1px solid #ff9e3a;
-      border-top-right-radius: 4px;
-      border-bottom-right-radius: 4px;
+      border-right: 1px solid #173ADA80;
     }
     .node-root-body-right {
-      width: calc(100% - 60px);
-      // display: flex;
-      align-items: center;
-      justify-content: center;
-      position: relative;
-      color: #ff9e3a;
+      width: 200px;
     }
     .node-body-right {
-      width: calc(100% - 60px);
+      width: calc(200px - 60px);
       display: flex;
       flex-direction: column;
-      justify-content: space-around;
-      position: relative;
-      padding: 10px;
+      justify-content: center;
+      padding: 10px 16px;
       .name-title {
-        width: 125px;
         display: inline-block;
-        color: #ff9e3a;
+        color: #173ADA;
+
         font-weight: 500;
       }
       .name-select-title {
-        height: 14px;
-        width: 125px;
+        // width: 125px;
         display: inline-block;
         font-weight: 500;
       }
@@ -106,6 +96,7 @@
     .closeBtn {
       top: 2px;
       right: 10px;
+      position: absolute;
     }
   }
 
@@ -115,18 +106,14 @@
     .btn {
       width: 100%;
       display: flex;
-      padding: 20px 0 32px;
+      padding: 20px 0 28px;
       justify-content: center;
-    }
-
-    .el-button {
-      height: 32px;
     }
 
     &::before {
       content: '';
       position: absolute;
-      top: 0;
+      top: 4px;
       left: 0;
       right: 0;
       bottom: 0;
@@ -167,8 +154,8 @@
     box-shadow: 0px 0px 5px 0px #d8d8d8;
     .nodeNewStyle {
       display: flex;
-      border: 1px solid #ff9e3a;
-      border-radius: 4px;
+      border: 1px solid #0844e1;
+      border-radius: 8px;
     }
     .process-content {
       justify-content: center;
@@ -177,34 +164,22 @@
     .nodeAproStyle {
       display: flex;
       border: 1px solid #0844e1;
-      border-radius: 4px;
+      border-radius: 8px;
     }
     .node-root-body-right {
-      width: calc(100% - 60px);
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      position: relative;
-      color: #ff9e3a;
+      // width: calc(100% - 60px);
     }
     .node-body-right {
-      width: calc(100% - 60px);
+      width: calc(200 - 60px);
       display: flex;
       flex-direction: column;
-      justify-content: space-around;
+      align-items: center;
+      justify-content: center;
+      // justify-content: space-around;
       position: relative;
-      padding: 10px;
+      // padding: 10px;
       .name-title {
-        width: 125px;
-        display: inline-block;
         color: #ff9e3a;
-        font-weight: 500;
-      }
-      .name-select-title {
-        height: 14px;
-        width: 125px;
-        display: inline-block;
-        font-weight: 500;
       }
     }
 
@@ -267,9 +242,9 @@
   align-items: center;
   justify-content: center;
   .process-content {
-    width: 240px;
+    width: 200px;
     display: flex;
-    border: 1px solid #116300;
+    border: 1px solid #005a0080;
     border-radius: 4px;
   }
   .process-left {
@@ -277,20 +252,26 @@
     justify-content: center;
     align-items: center;
     width: 60px;
-    height: 60px;
-    border-right: 1px solid #116300;
-    border-top-right-radius: 4px;
-    border-bottom-right-radius: 4px;
+    min-height: 60px;
+    border-right: 1px solid #005a0080;
+    
     color: #116300;
     font-weight: 500;
   }
   .process-right {
     width: calc(100% - 60px);
     display: flex;
+    flex-direction: column;
     justify-content: center;
-    align-items: center;
-    color: #808080;
+    color:#12580E;
     font-weight: 500;
+    padding: 10px 16px;
+  }
+  .process-right_send {
+    color: #12580E;
+  }
+  .process-right_allMem {
+    color: #15181D
   }
 }
 

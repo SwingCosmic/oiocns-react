@@ -1,8 +1,10 @@
-import { getUuid } from '@/utils/tools';
+import { LoadResult } from '@/ts/base/model';
 import { schema, model } from '../../../base';
 import { entityOperates, fileOperates, orgAuth } from '../../../core/public';
 import { IDirectory } from '../directory';
 import { IStandardFileInfo, StandardFileInfo } from '../fileinfo';
+import { formatDate } from '@/utils';
+import { ITemporaryStorage, TemporaryStorage } from '../../work/storage';
 
 /** 表单类接口 */
 export interface IForm extends IStandardFileInfo<schema.XForm> {
@@ -10,8 +12,12 @@ export interface IForm extends IStandardFileInfo<schema.XForm> {
   attributes: schema.XAttribute[];
   /** 表单字段 */
   fields: model.FieldModel[];
+  /** 暂存箱 */
+  storage: ITemporaryStorage;
   /** 加载分类字典项 */
   loadItems(speciesIds: string[]): Promise<schema.XSpeciesItem[]>;
+  /** 加载引用表单 */
+  loadReferenceForm(formIs: string): Promise<schema.XForm>;
   /** 加载字段 */
   loadFields(reload?: boolean): Promise<model.FieldModel[]>;
   /** 保存 */
@@ -26,7 +32,7 @@ export interface IForm extends IStandardFileInfo<schema.XForm> {
   /** 删除表单特性 */
   deleteAttribute(data: schema.XAttribute): Promise<boolean>;
   /** 查询表数据 */
-  loadThing(loadOptions: any): Promise<model.LoadResult<any>>;
+  loadThing(loadOptions: any): Promise<LoadResult<any>>;
 }
 
 export class Form extends StandardFileInfo<schema.XForm> implements IForm {
@@ -34,8 +40,9 @@ export class Form extends StandardFileInfo<schema.XForm> implements IForm {
     super(_metadata, _directory, _directory.resource.formColl);
     this.canDesign = !_metadata.id.includes('_');
     this.setEntity();
+    this.storage = new TemporaryStorage(this);
   }
-
+  storage: ITemporaryStorage;
   canDesign: boolean;
   private _fieldsLoaded: boolean = false;
   fields: model.FieldModel[] = [];
@@ -90,7 +97,6 @@ export class Form extends StandardFileInfo<schema.XForm> implements IForm {
               .map((i) => {
                 return {
                   id: i.id,
-                  code: i.code,
                   text: i.name,
                   value: `S${i.id}`,
                   icon: i.icon,
@@ -114,6 +120,10 @@ export class Form extends StandardFileInfo<schema.XForm> implements IForm {
         },
       },
     });
+  }
+  async loadReferenceForm(formId: string): Promise<schema.XForm> {
+    const data = await this.directory.resource.formColl.find([formId]);
+    return data[0];
   }
   async createAttribute(propertys: schema.XProperty[]): Promise<schema.XAttribute[]> {
     const data = propertys.map((prop) => {
@@ -170,9 +180,10 @@ export class Form extends StandardFileInfo<schema.XForm> implements IForm {
       directoryId: destination.id,
     };
     if (!this.allowCopy(destination)) {
-      newMetaData.code = getUuid();
+      const uuid = formatDate(new Date(), 'yyyyMMddHHmmss');
+      newMetaData.name = this.metadata.name + `-副本${uuid}`;
+      newMetaData.code = this.metadata.code + uuid;
       newMetaData.id = 'snowId()';
-      newMetaData.name = `${this.metadata.name} - 副本[${newMetaData.code}]`;
     }
     const data = await destination.resource.formColl.replace(newMetaData);
     if (data) {
@@ -195,7 +206,7 @@ export class Form extends StandardFileInfo<schema.XForm> implements IForm {
     }
     return [fileOperates.Copy, entityOperates.Remark];
   }
-  async loadThing(loadOptions: any): Promise<model.LoadResult<any>> {
+  async loadThing(loadOptions: any): Promise<LoadResult<any>> {
     const res = await this.directory.resource.thingColl.loadResult(loadOptions);
     if (res.success && !Array.isArray(res.data)) {
       res.data = [];

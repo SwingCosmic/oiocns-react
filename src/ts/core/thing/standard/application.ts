@@ -5,6 +5,8 @@ import { IFile, IStandardFileInfo, StandardFileInfo } from '../fileinfo';
 import { IWork, Work } from '../../work';
 import { XCollection } from '../../public/collection';
 import { formatDate } from '@/utils';
+import { deepClone } from '@/ts/base/common';
+import { getUuid } from '@/utils/tools';
 
 /** 应用/模块接口类 */
 export interface IApplication extends IStandardFileInfo<schema.XApplication> {
@@ -75,16 +77,16 @@ export class Application
   }
   async copy(destination: IDirectory): Promise<boolean> {
     if (this.allowCopy(destination)) {
-      const uuid = formatDate(new Date(), 'yyyyMMddHHmmss');
-      const name = this.metadata.name.split('-')[0] + `-副本${uuid}`;
-      const code = this.metadata.code.split('-')[0] + uuid;
       const appData = {
         ...this.metadata,
-        code: code,
-        name: name,
         shareId: destination.target.id,
         id: 'snowId()',
       };
+      if (this.directory.belongId === destination.belongId) {
+        const uuid = formatDate(new Date(), 'yyyyMMddHHmmss');
+        appData.name = this.metadata.name.split('-')[0] + `-副本${uuid}`;
+        appData.code = this.metadata.code.split('-')[0] + uuid;
+      }
       switch (destination.typeName) {
         case '目录': {
           appData.typeName = '应用';
@@ -171,6 +173,7 @@ export class Application
     coll: XCollection<schema.XApplication>,
   ): Promise<schema.XApplication[]> {
     const modules: schema.XApplication[] = [];
+    const isSameBelong = this.directory.target.id === destApplication.shareId;
     for (const child of application.children) {
       const result = await coll.insert({
         ...child.metadata,
@@ -184,10 +187,44 @@ export class Application
       }
     }
     for (const work of await application.loadWorks()) {
-      const node = await work.loadNode();
-      if (node) {
+      var node = deepClone(await work.loadNode());
+      if (node && node.code) {
         delete node.children;
         delete node.branches;
+      } else {
+        node = {
+          code: `node_${getUuid()}`,
+          type: '起始',
+          name: '发起',
+          num: 1,
+          forms: [],
+          executors: [],
+          formRules: [],
+          primaryForms: [],
+          detailForms: [],
+        } as unknown as model.WorkNodeModel;
+      }
+      if (!isSameBelong && node) {
+        node.children = {
+          id: '0',
+          num: 0,
+          type: '子流程',
+          destType: '身份',
+          destName: `[${this.target.name}]${this.name}`,
+          defineId: '0',
+          belongId: '0',
+          code: 'JGNODE' + getUuid(),
+          name: '监管办事',
+          destId: work.metadata.id,
+          resource: '{}',
+          children: undefined,
+          branches: undefined,
+          primaryForms: [],
+          detailForms: [],
+          formRules: [],
+          forms: [],
+          executors: [],
+        };
       }
       await kernel.createWorkDefine({
         ...work.metadata,

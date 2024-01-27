@@ -435,6 +435,8 @@ const generateSpecies = async (entity: IGroup) => {
       <>
         <Space style={{ width: '100%' }} direction="vertical">
           <Button
+            type="primary"
+            ghost
             onClick={() => {
               setCenter(
                 <OpenFileDialog
@@ -469,7 +471,7 @@ const generateSpecies = async (entity: IGroup) => {
     icon: <></>,
     okText: '关闭',
     width: 610,
-    title: '文件上传',
+    title: '生成组织分类',
     maskClosable: true,
     onOk: () => modal.destroy(),
     content: <Compo />,

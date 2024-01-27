@@ -1,5 +1,5 @@
 import { AiOutlineArrowRight, AiOutlineLock, AiOutlineUser } from 'react-icons/ai';
-import { Alert, Button, Input, message, Modal, Space } from 'antd';
+import { Alert, Button, Checkbox, Input, message, Modal, Space } from 'antd';
 import React, { useState } from 'react';
 import { useHistory } from 'react-router-dom';
 import orgCtrl from '@/ts/controller';
@@ -8,6 +8,7 @@ import { model } from '@/ts/base';
 import { getResouces } from '@/config/location';
 const PassportRegister: React.FC<{ to: (flag: string) => void }> = ({ to }) => {
   const resources = getResouces();
+  const [allowRegister, setAllowRegister] = useState(false);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [privateKey, setPrivateKey] = useState<String>();
   const history = useHistory();
@@ -139,7 +140,35 @@ const PassportRegister: React.FC<{ to: (flag: string) => void }> = ({ to }) => {
         value={formData.remark}
         onChange={(e) => setFormData({ ...formData, remark: e.target.value })}
       />
-      <Button block type="primary" size="large" onClick={registerAction}>
+      <div
+        style={{
+          display: 'flex',
+          flexDirection: 'row',
+          flexWrap: 'nowrap',
+          alignItems: 'center',
+          height: 30,
+        }}>
+        <Checkbox
+          onChange={(e) => {
+            setAllowRegister(e.target.checked);
+          }}>
+          同意
+        </Checkbox>
+        <a
+          type="link"
+          style={{ margin: '20px 14px' }}
+          href={`${location.origin}/#/privacy/policy`}
+          target="_blank"
+          rel="noreferrer">
+          《个人信息和隐私保护》
+        </a>
+      </div>
+      <Button
+        disabled={!allowRegister}
+        block
+        type="primary"
+        size="large"
+        onClick={registerAction}>
         注册
       </Button>
       <div style={{ fontSize: 22, gap: 10, color: '#666666' }}>

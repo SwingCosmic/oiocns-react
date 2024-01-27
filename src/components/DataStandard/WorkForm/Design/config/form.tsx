@@ -2,7 +2,7 @@ import { Emitter } from '@/ts/base/common';
 import { IForm } from '@/ts/core';
 import { Form } from 'devextreme-react';
 import { GroupItem, SimpleItem } from 'devextreme-react/form';
-import React from 'react';
+import React, { useEffect } from 'react';
 
 interface IAttributeProps {
   current: IForm;
@@ -13,6 +13,17 @@ const FormConfig: React.FC<IAttributeProps> = ({ notifyEmitter, current }) => {
   const notityAttrChanged = () => {
     notifyEmitter.changCallback('form');
   };
+  useEffect(() => {
+    if (!current.metadata.options) {
+      current.metadata.options = { itemWidth: 300 };
+    }
+    current.metadata.options.dataRange = current.metadata.options.dataRange ?? {
+      labels: [],
+    };
+    current.metadata.options.workDataRange = current.metadata.options.workDataRange ?? {
+      labels: [],
+    };
+  }, [current]);
   return (
     <>
       <Form
@@ -20,19 +31,9 @@ const FormConfig: React.FC<IAttributeProps> = ({ notifyEmitter, current }) => {
         height={'calc(100vh - 130px)'}
         formData={current.metadata}
         onFieldDataChanged={notityAttrChanged}>
-        <GroupItem caption={'表单参数'} />
+        <GroupItem />
         <SimpleItem dataField="name" isRequired={true} label={{ text: '名称' }} />
         <SimpleItem dataField="code" isRequired={true} label={{ text: '代码' }} />
-        <SimpleItem
-          dataField="labels"
-          label={{ text: '根标签集' }}
-          editorType="dxTagBox"
-          editorOptions={{
-            displayExpr: 'name',
-            valueExpr: 'id',
-            dataSource: current.metadata.attributes.filter((i) => i && i.propId),
-          }}
-        />
         <SimpleItem
           dataField="options.itemWidth"
           editorType="dxNumberBox"

@@ -1,6 +1,5 @@
 import { IBelong, IFinancial, TargetType } from '@/ts/core';
 import { IPeriod } from '@/ts/core/financial/period';
-import { belongTypes } from '@/ts/core/public/consts';
 import { ProTable } from '@ant-design/pro-components';
 import { Button, Card, DatePicker, Space, Tag, message } from 'antd';
 import React, { useEffect, useMemo, useRef, useState } from 'react';
@@ -11,6 +10,7 @@ interface IProps {
 
 const Financial: React.FC<IProps> = ({ financial }) => {
   const [metadata, setMetadata] = useState(financial.metadata);
+  console.log(financial)
   const month = useRef<string>();
   const initialized = useMemo(() => {
     return metadata && Object.keys(metadata).length > 0;
@@ -147,6 +147,7 @@ const Periods: React.FC<IProps> = ({ financial }) => {
           {
             title: '操作',
             valueType: 'option',
+            width: 300,
             render: (_, item) => {
               return (
                 <Space>
@@ -199,7 +200,7 @@ interface FinancialProps {
 }
 
 const NullableFinancial: React.FC<FinancialProps> = ({ belong }) => {
-  if (belongTypes.includes(belong.typeName as TargetType)) {
+  if ([TargetType.Company, TargetType.Person].includes(belong.typeName as TargetType)) {
     return (
       <Space style={{ width: '100%' }} direction="vertical">
         <Financial financial={belong.financial} />

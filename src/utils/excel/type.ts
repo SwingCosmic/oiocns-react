@@ -74,6 +74,13 @@ export interface Form extends schema.XForm {
 export interface Attribute extends schema.XAttribute {
   formCode: string;
   propCode: string;
+  readOnly?: string;
+  isRequired?: string;
+  hideField?: string;
+  visible?: string;
+  showToRemark?: string;
+  species?: string;
+  fixed?: string;
 }
 
 // 分类

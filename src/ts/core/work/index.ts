@@ -6,6 +6,7 @@ import { IDirectory } from '../thing/directory';
 import { IWorkApply, WorkApply } from './apply';
 import { entityOperates, fileOperates } from '../public';
 import { getUuid, loadGatewayNodes } from '@/utils/tools';
+import { deepClone } from '@/ts/base/common';
 
 export interface IWork extends IFileInfo<schema.XWorkDefine> {
   /** 我的办事 */
@@ -54,6 +55,7 @@ export const fullDefineRule = (data: schema.XWorkDefine) => {
   if (data.rule && data.rule.includes('{') && data.rule.includes('}')) {
     const rule = JSON.parse(data.rule);
     data.hasGateway = rule.hasGateway;
+    data.applyType = rule.applyType;
   }
   data.typeName = '办事';
   return data;
@@ -140,21 +142,59 @@ export class Work extends FileInfo<schema.XWorkDefine> implements IWork {
   async copy(destination: IDirectory): Promise<boolean> {
     if (this.allowCopy(destination)) {
       const app = destination as unknown as IApplication;
-      const node = await this.loadNode();
-      if (node) {
+      const isSameBelong = this.directory.target.id === destination.target.id;
+      var node = deepClone(await this.loadNode());
+      if (node && node.code) {
         delete node.children;
         delete node.branches;
+      } else {
+        node = {
+          code: `node_${getUuid()}`,
+          type: '起始',
+          name: '发起',
+          num: 1,
+          forms: [],
+          executors: [],
+          formRules: [],
+          primaryForms: [],
+          detailForms: [],
+        } as unknown as model.WorkNodeModel;
       }
-      const uuid = getUuid();
-      const res = await app.createWork({
+      if (!isSameBelong && node) {
+        node.children = {
+          id: '0',
+          num: 0,
+          type: '子流程',
+          destType: '身份',
+          destName: `[${this.target.name}]${this.name}`,
+          defineId: '0',
+          belongId: '0',
+          code: 'JGNODE' + getUuid(),
+          name: '监管办事',
+          destId: this.metadata.id,
+          resource: '{}',
+          children: undefined,
+          branches: undefined,
+          primaryForms: [],
+          detailForms: [],
+          formRules: [],
+          forms: [],
+          executors: [],
+        };
+      }
+      const data = {
         ...this.metadata,
         applicationId: app.id,
         shareId: app.directory.target.id,
         resource: node && node.code ? node : undefined,
-        code: `${this.metadata.code}-${uuid}`,
-        name: `${this.metadata.name} - 副本${uuid}`,
         id: '0',
-      });
+      };
+      if (isSameBelong) {
+        const uuid = getUuid();
+        data.code = `${this.metadata.code}-${uuid}`;
+        data.name = `${this.metadata.name} - 副本${uuid}`;
+      }
+      const res = await app.createWork(data);
       return res != undefined;
     }
     return false;
@@ -243,6 +283,8 @@ export class Work extends FileInfo<schema.XWorkDefine> implements IWork {
       const res = await kernel.queryWorkNodes({ id: this.id });
       if (res.success) {
         this.node = res.data;
+        this.primaryForms = [];
+        this.detailForms = [];
         await this.recursionForms(this.node);
       }
     }
@@ -280,7 +322,9 @@ export class Work extends FileInfo<schema.XWorkDefine> implements IWork {
         } as model.WorkInstanceModel,
         data,
         this.directory.target.space,
-        this.forms,
+        this.primaryForms,
+        this.detailForms,
+        this.metadata.applyType,
       );
     }
   }

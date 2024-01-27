@@ -2,8 +2,8 @@ import React, { useEffect, useState } from 'react';
 import { AiOutlineUser } from 'react-icons/ai';
 import { Button, Col, Radio, Form, InputNumber, Card, Divider } from 'antd';
 import cls from './index.module.less';
-import { NodeModel, executorNames } from '@/components/Common/FlowDesign/processType';
-import ShareShowComp from '@/components/Common/ShareShowComp';
+import { NodeModel } from '@/components/Common/FlowDesign/processType';
+import ShareShowComp, { FormOption } from '@/components/Common/ShareShowComp';
 import { IBelong, IWork } from '@/ts/core';
 import SelectIdentity from '@/components/Common/SelectIdentity';
 import { command, model, schema } from '@/ts/base';
@@ -12,6 +12,7 @@ import OpenFileDialog from '@/components/OpenFileDialog';
 import { SelectBox } from 'devextreme-react';
 import { getUuid } from '@/utils/tools';
 import Rule from '../../Rule';
+import ExecutorConfigModal from './configModal';
 import ExecutorShowComp from '@/components/Common/ExecutorShowComp';
 interface IProps {
   work: IWork;
@@ -26,22 +27,22 @@ interface IProps {
  */
 
 const ApprovalNode: React.FC<IProps> = (props) => {
-  const [funcName, setFuncName] = useState<string>('');
-  const [trigger, setTrigger] = useState<string>('before');
   const [executors, setExecutors] = useState<model.Executor[]>([]);
   const [isOpen, setIsOpen] = useState<boolean>(false); // 打开弹窗
   const [formModel, setFormModel] = useState<string>('');
   const [primaryForms, setPrimaryForms] = useState<schema.XForm[]>();
   const [radioValue, setRadioValue] = useState(1);
-  const [destType, setDestType] = useState('1');
+  const [destType, setDestType] = useState(
+    props.current.destName !== '发起人' ? '1' : '2',
+  );
   const [currentData, setCurrentData] = useState<{ id: string; name: string }>();
+  const [executorModal, setExecutorModal] = useState(false);
   useEffect(() => {
     props.current.primaryForms = props.current.primaryForms || [];
     props.current.executors = props.current.executors || [];
     setExecutors(props.current.executors);
     setPrimaryForms(props.current.primaryForms);
     setRadioValue(props.current.num == 0 ? 1 : 2);
-    setDestType(props.current.destName != '发起人' ? '1' : '2');
     setCurrentData({
       id: props.current.destId,
       name: props.current.destName,
@@ -119,6 +120,7 @@ const ApprovalNode: React.FC<IProps> = (props) => {
   return (
     <div className={cls[`app-roval-node`]}>
       <div className={cls[`roval-node`]}>
+        {' '}
         <Card
           type="inner"
           title="审批对象"
@@ -169,6 +171,56 @@ const ApprovalNode: React.FC<IProps> = (props) => {
         </Card>
         <Card
           type="inner"
+          title="审批对象"
+          className={cls[`card-info`]}
+          extra={
+            <>
+              <SelectBox
+                value={destType}
+                valueExpr={'value'}
+                displayExpr={'label'}
+                style={{ width: 120, display: 'inline-block' }}
+                onSelectionChanged={(e) => {
+                  switch (e.selectedItem.value) {
+                    case '1':
+                      props.current.destType = '角色';
+                      setCurrentData(undefined);
+                      break;
+                    case '2':
+                      props.current.num = 1;
+                      props.current.destId = '1';
+                      props.current.destName = '发起人';
+                      props.current.destType = '发起人';
+                      setCurrentData({ id: '1', name: '发起人' });
+                      break;
+                    default:
+                      break;
+                  }
+                  if (destType != e.selectedItem.value) {
+                    setDestType(e.selectedItem.value);
+                    props.refresh();
+                  }
+                }}
+                dataSource={[
+                  { value: '1', label: '指定角色' },
+                  { value: '2', label: '发起人' },
+                ]}
+              />
+              {destType == '1' && (
+                <a
+                  style={{ paddingLeft: 10, display: 'inline-block' }}
+                  onClick={() => {
+                    setIsOpen(true);
+                  }}>
+                  + 选择角色
+                </a>
+              )}
+            </>
+          }>
+          {loadDestType()}
+        </Card>
+        <Card
+          type="inner"
           title="表单管理"
           className={cls[`card-info`]}
           extra={
@@ -176,7 +228,7 @@ const ApprovalNode: React.FC<IProps> = (props) => {
               onClick={() => {
                 setFormModel('主表');
               }}>
-              添加表单
+              + 添加
             </a>
           }>
           {primaryForms && primaryForms.length > 0 && (
@@ -186,7 +238,18 @@ const ApprovalNode: React.FC<IProps> = (props) => {
                 onClick={formViewer}
                 deleteFuc={(id: string) => {
                   props.current.primaryForms = primaryForms?.filter((a) => a.id != id);
+                  props.current.forms = props.current.forms.filter((a) => {
+                    return !(a.typeName == '主表' && a.id == id);
+                  });
                   setPrimaryForms(props.current.primaryForms);
+                }}
+                tags={(id) => {
+                  const info = props.current.forms.find(
+                    (a) => a.typeName == '主表' && a.id == id,
+                  );
+                  if (info) {
+                    return <FormOption operateRule={info} typeName="主表" />;
+                  }
                 }}
               />
             </span>
@@ -194,53 +257,21 @@ const ApprovalNode: React.FC<IProps> = (props) => {
         </Card>
         <Card
           type="inner"
-          title="执行器配置"
+          title={
+            <div>
+              <Divider type="vertical" className={cls['divider']} />
+              <span>执行器配置</span>
+            </div>
+          }
           className={cls[`card-info`]}
           extra={
             <>
-              <SelectBox
-                width={150}
-                showClearButton
-                value={trigger}
-                style={{ display: 'inline-block' }}
-                dataSource={[
-                  { text: '审批前', value: 'before' },
-                  { text: '审批后', value: 'after' },
-                ]}
-                displayExpr={'text'}
-                valueExpr={'value'}
-                onValueChange={(e) => {
-                  setTrigger(e);
-                }}
-              />
-              <SelectBox
-                width={150}
-                showClearButton
-                style={{ display: 'inline-block' }}
-                dataSource={executorNames.filter(
-                  (a) => executors.find((s) => s.funcName == a) == undefined,
-                )}
-                onValueChange={(e) => {
-                  setFuncName(e);
-                }}
-              />
               <Button
                 type="link"
-                style={{ display: 'inline-block' }}
-                disabled={!funcName || !trigger}
                 onClick={() => {
-                  executors.push({
-                    id: getUuid(),
-                    trigger: trigger,
-                    funcName: funcName,
-                    changes: [],
-                    hookUrl: '',
-                  });
-                  setExecutors([...executors]);
-                  setFuncName('');
-                  props.current.executors = executors;
+                  setExecutorModal(true);
                 }}>
-                添加
+                + 添加
               </Button>
             </>
           }>
@@ -250,7 +281,9 @@ const ApprovalNode: React.FC<IProps> = (props) => {
                 work={props.work}
                 executors={executors}
                 deleteFuc={(id: string) => {
-                  setExecutors(executors.filter((a) => a.id != id));
+                  const exes = executors.filter((a) => a.id != id);
+                  setExecutors(exes);
+                  props.current.executors = exes;
                 }}
               />
             </span>
@@ -293,11 +326,43 @@ const ApprovalNode: React.FC<IProps> = (props) => {
               const forms = (files as unknown[] as IForm[]).map((i) => i.metadata);
               props.current.primaryForms.push(...forms);
               setPrimaryForms(props.current.primaryForms);
+              props.current.forms = [
+                ...props.current.forms,
+                ...forms.map((item) => {
+                  return {
+                    id: item.id,
+                    typeName: formModel,
+                    allowAdd: false,
+                    allowEdit: false,
+                    allowSelect: false,
+                  };
+                }),
+              ];
             }
             setFormModel('');
           }}
         />
       )}
+      {executorModal ? (
+        <ExecutorConfigModal
+          refresh={(param) => {
+            console.log('params', param);
+            if (param) {
+              executors.push({
+                id: getUuid(),
+                trigger: param.trigger,
+                funcName: param.funcName,
+                changes: [],
+                hookUrl: '',
+              });
+              setExecutors([...executors]);
+              props.current.executors = executors;
+            }
+            setExecutorModal(false);
+          }}
+          current={props.current}
+        />
+      ) : null}
     </div>
   );
 };

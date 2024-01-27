@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import CardOrTableComp from '@/components/CardOrTableComp';
 import { ProColumns } from '@ant-design/pro-components';
-import { Card, Typography } from 'antd';
+import { Card, Typography, Divider, Button } from 'antd';
 import CalcRuleModal from './modal/calc';
 import ShowRuleModal from './modal/show';
 import { model, schema } from '@/ts/base';
@@ -12,6 +12,7 @@ import { IWork } from '@/ts/core';
 import useAsyncLoad from '@/hooks/useAsyncLoad';
 import useObjectUpdate from '@/hooks/useObjectUpdate';
 import ExecutorRuleModal from './modal/executor';
+import cls from './index.module.less';
 interface IProps {
   work: IWork;
   current: WorkNodeModel;
@@ -117,34 +118,50 @@ const NodeRule: React.FC<IProps> = (props) => {
         );
       },
     },
+    {
+      title: '操作',
+      dataIndex: 'operate',
+      render: (_: any, record: model.Rule) => {
+        return (
+          <div>
+            <Button
+              type="text"
+              size="small"
+              style={{ marginRight: '4px' }}
+              className={cls['flowDesign-rule-edit']}
+              onClick={() => {
+                setSelect(record);
+                setOpenType(record.type == 'show' ? 1 : 2);
+              }}>
+              编辑
+            </Button>
+            <Button
+              type="text"
+              size="small"
+              className={cls['flowDesign-rule-delete']}
+              onClick={() => {
+                props.current.formRules = props.current.formRules.filter(
+                  (a) => a.id != record.id,
+                );
+                rulesUpdate();
+              }}>
+              删除
+            </Button>
+          </div>
+        );
+      },
+    },
   ];
-  const renderOperate = (rule: model.Rule) => {
-    return [
-      {
-        key: 'edit',
-        label: <span>编辑</span>,
-        onClick: () => {
-          setSelect(rule);
-          setOpenType(rule.type == 'show' ? 1 : 2);
-        },
-      },
-      {
-        key: 'remove',
-        label: <span style={{ color: 'red' }}>删除</span>,
-        onClick: () => {
-          props.current.formRules = props.current.formRules.filter(
-            (a) => a.id != rule.id,
-          );
-          rulesUpdate();
-        },
-      },
-    ];
-  };
   return (
     <>
       <Card
         type="inner"
-        title="渲染规则配置"
+        title={
+          <div>
+            <Divider type="vertical" className={cls['flowDesign-rule-divider']} />
+            <span>规则配置</span>
+          </div>
+        }
         extra={
           <>
             {fields && fields?.length > 0 && (
@@ -155,7 +172,7 @@ const NodeRule: React.FC<IProps> = (props) => {
                     setSelect(undefined);
                     setOpenType(1);
                   }}>
-                  添加渲染规则
+                  + 添加渲染规则
                 </a>
                 <a
                   style={{ padding: 5 }}
@@ -163,7 +180,7 @@ const NodeRule: React.FC<IProps> = (props) => {
                     setSelect(undefined);
                     setOpenType(2);
                   }}>
-                  添加计算规则
+                  + 添加计算规则
                 </a>
               </>
             )}
@@ -175,7 +192,6 @@ const NodeRule: React.FC<IProps> = (props) => {
           dataSource={props.current.formRules}
           scroll={{ y: 'calc(60vh - 150px)' }}
           columns={ruleColumns}
-          operation={renderOperate}
         />
       </Card>
       {openType == 1 && (

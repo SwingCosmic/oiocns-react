@@ -6,6 +6,7 @@ import TreeSelectItem from './customItem/treeItem';
 import SelectFilesItem from './customItem/fileItem';
 import MemberBoxProps from './customItem/memberBox';
 import DepartmentBox from './customItem/departmentBox';
+import DataBox from './customItem/dataBox';
 import CurrentTargetItem from './customItem/currentTarget';
 import SearchTargetItem from './customItem/searchTarget';
 import { getWidget } from '../../Utils';
@@ -34,6 +35,9 @@ export const FormItem: React.FC<{
     if (attribute.property && attribute.property.speciesId) {
       current.loadItems([attribute.property.speciesId]).then((data) => {
         setItems(data);
+        if (data.length == 0) {
+          console.warn(`标准 ${attribute.property!.speciesId} 未查到值！`);
+        }
       });
     }
   }, [attribute.property?.speciesId]);
@@ -74,6 +78,8 @@ export const FormItem: React.FC<{
           valueExpr={'id'}
         />
       );
+    case '引用选择框':
+      return <DataBox {...mixOptions} attributes={current.attributes} field={attr} />;
     case '多级选择框':
       return <TreeSelectItem {...mixOptions} speciesItems={items} />;
     case '操作人':

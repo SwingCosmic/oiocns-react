@@ -212,8 +212,10 @@ export class StoreNode extends Node<model.Store> {
           };
           for (const item of data[key]) {
             if (!item.id) {
-              const thing = await kernel.createThing(apply.belong.id, [], form.name);
-              Object.assign(item, thing.data);
+              const result = await kernel.createThing(apply.belong.id, [], form.name);
+              if (result.data.length > 0) {
+                Object.assign(item, result.data[0]);
+              }
             }
             editForm.after.push(item);
           }

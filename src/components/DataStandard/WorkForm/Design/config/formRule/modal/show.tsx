@@ -1,13 +1,13 @@
 import React, { useEffect, useState } from 'react';
-import { Field } from 'devextreme/ui/filter_builder';
-import { FilterBuilder } from 'devextreme-react/filter-builder';
 import { Modal } from 'antd';
 import { SelectBox, TextArea, TextBox } from 'devextreme-react';
 import { model } from '@/ts/base';
 import { getUuid } from '@/utils/tools';
+import CustomBuilder from '../filter/builder';
+import { FieldInfo } from 'typings/globelType';
 
 interface IProps {
-  fields: Field[];
+  fields: FieldInfo[];
   current?: model.FormShowRule;
   onOk: (rule: model.FormShowRule) => void;
   onCancel: () => void;
@@ -19,7 +19,10 @@ const ShowRuleModal: React.FC<IProps> = (props) => {
   const [target, setTarget] = useState<string>();
   const [showType, setShowType] = useState<string>();
   const [value, setValue] = useState<boolean>();
-  const [condition, setCondition] = useState<any[]>([]);
+  const [condition, setCondition] = useState<string>(props.current?.condition ?? '[]');
+  const [conditionText, setConditionText] = useState<string>(
+    props.current?.conditionText ?? '{}',
+  );
   useEffect(() => {
     if (props.current) {
       setName(props.current.name);
@@ -27,7 +30,6 @@ const ShowRuleModal: React.FC<IProps> = (props) => {
       setTarget(props.current.target);
       setValue(props.current.value);
       setShowType(props.current.showType);
-      setCondition(JSON.parse(props.current?.condition || '[]'));
     }
   }, [props.current]);
   const vaildDisable = () => {
@@ -50,7 +52,7 @@ const ShowRuleModal: React.FC<IProps> = (props) => {
           const ret: string[] = [];
           for (const data of datas) {
             if (typeof data == 'string') {
-              ret.push(data);
+              ret.push(data.replace('T', ''));
             } else if (Array.isArray(data)) {
               ret.push(...getString(data));
             }
@@ -65,9 +67,10 @@ const ShowRuleModal: React.FC<IProps> = (props) => {
             target: target!,
             showType: showType!,
             value: value!,
-            condition: JSON.stringify(condition),
+            condition: condition,
+            conditionText: conditionText,
             type: 'show',
-            trigger: getString(condition),
+            trigger: getString(JSON.parse(condition)),
           },
         ]);
       }}
@@ -76,7 +79,7 @@ const ShowRuleModal: React.FC<IProps> = (props) => {
         disabled: vaildDisable(),
       }}>
       <TextBox
-        label="名称*"
+        label="规则名称*"
         labelMode="floating"
         value={name}
         onValueChange={(e) => {
@@ -89,10 +92,10 @@ const ShowRuleModal: React.FC<IProps> = (props) => {
         value={target}
         showClearButton
         displayExpr="caption"
-        valueExpr="name"
+        valueExpr="id"
         dataSource={props.fields}
         onSelectionChanged={(e) => {
-          setTarget(e.selectedItem['name']);
+          setTarget(e.selectedItem['id']);
         }}
       />
       <div>
@@ -133,12 +136,12 @@ const ShowRuleModal: React.FC<IProps> = (props) => {
       </div>
       <div style={{ padding: 5 }}>
         <span>条件*：</span>
-        <FilterBuilder
+        <CustomBuilder
           fields={props.fields}
-          value={condition}
-          groupOperations={['and', 'or']}
-          onValueChanged={(e) => {
-            setCondition(e.value);
+          displayText={conditionText}
+          onValueChanged={(value, text) => {
+            setCondition(value);
+            setConditionText(text);
           }}
         />
       </div>

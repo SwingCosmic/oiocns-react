@@ -112,10 +112,7 @@ export abstract class Team extends Entity<schema.XTarget> implements ITeam {
       TargetResources.pullMembers(this.id, res.result || []);
       while (res.offset + res.limit < res.total) {
         res.offset += res.limit;
-        console.log(res.offset);
-        var stime = new Date().getTime();
         const part = await this.getPartMembers(res.offset);
-        console.log(new Date().getTime() - stime);
         TargetResources.pullMembers(this.id, part.result || []);
       }
       this.members.forEach((i) => this.updateMetadata(i));

@@ -3,7 +3,12 @@ import { model, schema } from '@/ts/base';
 import { Dropdown } from 'antd';
 import { AiOutlineEllipsis } from 'react-icons/ai';
 import { GenerateColumn } from './columns';
-import { Column, DataGrid, Export, IDataGridOptions } from 'devextreme-react/data-grid';
+import {
+  Column,
+  DataGrid,
+  IDataGridOptions,
+  Selection,
+} from 'devextreme-react/data-grid';
 import { FullThingColumns } from '@/config/column';
 import { ItemType } from 'antd/lib/menu/hooks/useItems';
 
@@ -15,6 +20,7 @@ interface IProps extends IDataGridOptions {
     items: ItemType[];
     onMenuClick: (key: string, data: any) => void;
   };
+  select?: boolean;
 }
 
 /** 使用form生成表单 */
@@ -100,7 +106,7 @@ const GenerateThingTable = (props: IProps) => {
             );
           }}></Column>
       )}
-      <Export enabled formats={['xlsx']} />
+      {props.select && <Selection mode="multiple" showCheckBoxesMode={'always'} />}
     </DataGrid>
   );
 };

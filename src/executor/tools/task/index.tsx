@@ -10,7 +10,7 @@ import {
   Tag,
   Timeline,
 } from 'antd';
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import cls from './index.module.less';
 import { IWorkTask } from '@/ts/core';
 import EntityIcon from '@/components/Common/GlobalComps/entityIcon';
@@ -23,6 +23,8 @@ import TaskApproval from './approval';
 import { getNodeByNodeId } from '@/utils/tools';
 import { model } from '@/ts/base';
 import { IExecutor } from '@/ts/core/work/executor';
+import { generateUuid } from '@/utils/excel';
+import { Controller } from '@/ts/controller';
 
 export interface TaskDetailType {
   current: IWorkTask;
@@ -33,6 +35,7 @@ const TaskContent: React.FC<TaskDetailType> = ({ current, finished }) => {
   const [selectNode, setSelectNode] = useState<NodeModel>();
   const [loaded] = useAsyncLoad(() => current.loadInstance());
   const formData = new Map<string, model.FormEditData>();
+  const command = useRef(new Controller('TaskContent'));
   /** 加载时间条 */
   const loadTimeline = () => {
     if (current.instance) {
@@ -102,6 +105,7 @@ const TaskContent: React.FC<TaskDetailType> = ({ current, finished }) => {
                               />
                             )}
                           </Collapse>
+                          <Executors nodeId={item.nodeId} trigger={'after'} />
                         </Card>
                       </Timeline.Item>
                     );
@@ -124,7 +128,7 @@ const TaskContent: React.FC<TaskDetailType> = ({ current, finished }) => {
                         </div>
                         <div style={{ color: 'red' }}>待审批</div>
                       </div>
-                      <Executors nodeId={item.nodeId} />
+                      <Executors nodeId={item.nodeId} trigger={'before'} />
                     </Card>
                   </Timeline.Item>
                 </div>
@@ -136,7 +140,7 @@ const TaskContent: React.FC<TaskDetailType> = ({ current, finished }) => {
     return <></>;
   };
 
-  const Executors = ({ nodeId }: { nodeId: string }) => {
+  const Executors = ({ nodeId, trigger }: { nodeId: string; trigger: string }) => {
     const node = getNodeByNodeId(nodeId, current.instanceData!.node);
     const executors: IExecutor[] = node ? current.loadExecutors(node) : [];
     return (
@@ -144,9 +148,10 @@ const TaskContent: React.FC<TaskDetailType> = ({ current, finished }) => {
         style={{ paddingLeft: 20, paddingTop: 10, width: '100%' }}
         direction="vertical">
         {executors
-          .filter((item) => item.metadata.trigger == 'before')
+          .filter((item) => item.metadata.trigger == trigger)
           .filter((item) => ['数据申领', 'Webhook'].includes(item.metadata.funcName))
           .map((item, index) => {
+            const [loading, setLoading] = useState(false);
             const [progress, setProgress] = useState(item.progress);
             useEffect(() => {
               const id = item.command.subscribe(() => setProgress(item.progress));
@@ -158,7 +163,16 @@ const TaskContent: React.FC<TaskDetailType> = ({ current, finished }) => {
                 key={index}>
                 <Tag>{item.metadata.funcName}</Tag>
                 <Progress style={{ flex: 1, marginRight: 10 }} percent={progress} />
-                <Button size="small" onClick={() => item.execute(formData)}>
+                <Button
+                  size="small"
+                  loading={loading}
+                  type="primary"
+                  onClick={async () => {
+                    setLoading(true);
+                    await item.execute(formData);
+                    command.current.changCallback();
+                    setLoading(false);
+                  }}>
                   执行
                 </Button>
               </div>
@@ -204,12 +218,18 @@ const TaskContent: React.FC<TaskDetailType> = ({ current, finished }) => {
       },
     ];
     if (existForm) {
-      items.unshift({
-        key: '3',
-        label: `填写表单`,
-        children: (
+      const Center: React.FC = () => {
+        const [key, setKey] = useState(generateUuid());
+        useEffect(() => {
+          const id = command.current.subscribe(() => setKey(generateUuid()));
+          return () => {
+            return command.current.unsubscribe(id);
+          };
+        }, []);
+        return (
           <>
             <WorkForm
+              key={key}
               allowEdit={true}
               belong={current.belong}
               nodeId={current.taskdata.nodeId}
@@ -217,7 +237,12 @@ const TaskContent: React.FC<TaskDetailType> = ({ current, finished }) => {
             />
             <TaskApproval task={current} fromData={formData} finished={finished} />
           </>
-        ),
+        );
+      };
+      items.unshift({
+        key: '3',
+        label: `填写表单`,
+        children: <Center></Center>,
       });
     }
     return items;

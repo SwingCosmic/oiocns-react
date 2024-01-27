@@ -122,9 +122,6 @@ const WorkForm = ({ finished, formType, current }: Iprops) => {
         changeOnSelect: true,
         options: treeData,
         displayRender: (labels: string[]) => labels[labels.length - 1],
-        onSelect: (e) => {
-          console.log(e);
-        },
       },
     },
     {

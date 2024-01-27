@@ -215,14 +215,7 @@ export const convertNode = (
     if (resource.type == AddNodeType.EMPTY) {
       return convertNode(resource.children, validation);
     }
-    const bandingForms = [
-      ...(resource.primaryForms || []).map((a) => {
-        return { id: a.id, typeName: '主表' };
-      }),
-      ...(resource.detailForms || []).map((a) => {
-        return { id: a.id, typeName: '子表' };
-      }),
-    ];
+    const bandingForms = resource.forms;
     switch (resource.type) {
       case AddNodeType.ROOT:
         if (bandingForms.length == 0) {

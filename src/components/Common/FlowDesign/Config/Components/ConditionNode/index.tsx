@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { Button, Form, Input, InputNumber, Select } from 'antd';
+import { Button, Form, Input, InputNumber, Select, Card, Divider } from 'antd';
 import {
   conditiondType,
   dataType,
@@ -52,7 +52,8 @@ const ConditionNode: React.FC<Iprops> = (props) => {
       return (
         <Form.Item name={['allContent', index, 'key']}>
           <Select
-            style={{ width: 80 }}
+            style={{ width: 80, backgroundColor: '#fff' }}
+            bordered={false}
             placeholder="判断条件"
             allowClear
             options={[
@@ -66,7 +67,8 @@ const ConditionNode: React.FC<Iprops> = (props) => {
       return (
         <Form.Item name={['allContent', index, 'key']}>
           <Select
-            style={{ width: 100 }}
+            style={{ width: 100, backgroundColor: '#fff' }}
+            bordered={false}
             placeholder="判断条件"
             allowClear
             options={[
@@ -89,7 +91,8 @@ const ConditionNode: React.FC<Iprops> = (props) => {
         return (
           <Form.Item name={['allContent', index, 'val']}>
             <Select
-              style={{ width: 200 }}
+              style={{ width: 200, backgroundColor: '#fff' }}
+              bordered={false}
               placeholder="请选择"
               allowClear
               fieldNames={{
@@ -103,13 +106,21 @@ const ConditionNode: React.FC<Iprops> = (props) => {
       case 'NUMERIC':
         return (
           <Form.Item name={['allContent', index, 'val']}>
-            <InputNumber style={{ width: 200 }} />
+            <InputNumber
+              bordered={false}
+              style={{ width: 200, backgroundColor: '#fff' }}
+            />
           </Form.Item>
         );
       default:
         return (
           <Form.Item name={['allContent', index, 'val']}>
-            <Input style={{ width: 200 }} placeholder="请输入值" allowClear />
+            <Input
+              style={{ width: 200, backgroundColor: '#fff' }}
+              bordered={false}
+              placeholder="请输入值"
+              allowClear
+            />
           </Form.Item>
         );
     }
@@ -174,17 +185,42 @@ const ConditionNode: React.FC<Iprops> = (props) => {
 
   return (
     <div>
-      <div style={{ marginBottom: '10px' }}>
-        <Button type="primary" onClick={addConditionGroup}>
-          添加条件
-        </Button>
-      </div>{' '}
-      <div>
+      <Card
+        type="inner"
+        style={{ border: 'none' }}
+        headStyle={{
+          backgroundColor: '#FCFCFC',
+          padding: '0px 12px',
+          borderBottom: 'none',
+        }}
+        title={
+          <div>
+            <Divider
+              type="vertical"
+              style={{
+                height: '16px',
+                borderWidth: '4px',
+                borderColor: '#366EF4',
+                marginLeft: '0px',
+              }}
+              className={cls['divider']}
+            />
+            <span>条件分支</span>
+          </div>
+        }
+        className={cls['card-info']}
+        bodyStyle={{ padding: '0px', border: 'none' }}
+        extra={<a onClick={addConditionGroup}>+ 添加</a>}>
         <Form key={key} form={form} onValuesChange={onChange}>
           {(currentNode?.conditions || []).map((condition, index) => (
             <div key={index + '_g'} className={cls['group']}>
               <div className={cls['group-header']}>
                 <div
+                  style={{
+                    verticalAlign: 'middle',
+                    lineHeight: '14px',
+                    cursor: 'pointer',
+                  }}
                   onClick={() => {
                     currentNode!.conditions.splice(index, 1);
                     setCurrentNode(currentNode);
@@ -192,13 +228,14 @@ const ConditionNode: React.FC<Iprops> = (props) => {
                   }}>
                   <AiOutlineDelete />
                 </div>
-                <span className={cls['group-name']}>参数{index + 1}</span>
+                <span className={cls['group-name']}>参数 {index + 1}</span>
                 <div className={cls['group-operation']}></div>
               </div>
               <div className={cls['group-content']}>
                 <Form.Item name={['allContent', index, 'paramKey']}>
                   <Select
-                    style={{ width: 130 }}
+                    style={{ width: 130, backgroundColor: '#fff' }}
+                    bordered={false}
                     placeholder="请选择参数"
                     allowClear
                     options={(props.conditions || []).map((i) => {
@@ -226,7 +263,7 @@ const ConditionNode: React.FC<Iprops> = (props) => {
             </div>
           ))}
         </Form>
-      </div>
+      </Card>
     </div>
   );
 };

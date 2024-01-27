@@ -4,7 +4,7 @@ import { IGroup, Group } from '../outTeam/group';
 import { IDepartment, Department } from '../innerTeam/department';
 import { IStation, Station } from '../innerTeam/station';
 import { IPerson } from '../person';
-import { PageAll } from '../../public/consts';
+import { PageAll, departmentTypes } from '../../public/consts';
 import { TargetType } from '../../public/enums';
 import { ITarget } from '../base/target';
 import { ITeam } from '../base/team';
@@ -13,7 +13,6 @@ import { Storage } from '../outTeam/storage';
 import { Cohort } from '../outTeam/cohort';
 import { ISession } from '../../chat/session';
 import { IFile } from '../../thing/fileinfo';
-import { XObject } from '../../public/object';
 
 /** 单位类型接口 */
 export interface ICompany extends IBelong {
@@ -23,10 +22,6 @@ export interface ICompany extends IBelong {
   stations: IStation[];
   /** 设立的部门 */
   departments: IDepartment[];
-  /** 支持的内设机构类型 */
-  departmentTypes: string[];
-  /** 单位缓存对象 */
-  cacheObj: XObject<schema.Xbase>;
   /** 退出单位 */
   exit(): Promise<boolean>;
   /** 加载组织集群 */
@@ -45,21 +40,10 @@ export interface ICompany extends IBelong {
 export class Company extends Belong implements ICompany {
   constructor(_metadata: schema.XTarget, _user: IPerson) {
     super(_metadata, [_metadata.id], _user);
-    this.departmentTypes = [
-      TargetType.Department,
-      TargetType.Office,
-      TargetType.Working,
-      TargetType.Research,
-      TargetType.Laboratory,
-    ];
-    this.cacheObj = new XObject(_metadata, 'target-cache', [], [this.key]);
   }
   groups: IGroup[] = [];
   stations: IStation[] = [];
   departments: IDepartment[] = [];
-  departmentTypes: string[] = [];
-  cacheObj: XObject<schema.Xbase>;
-  initPeriod: string | undefined;
   private _groupLoaded: boolean = false;
   private _departmentLoaded: boolean = false;
   async loadGroups(reload: boolean = false): Promise<IGroup[]> {
@@ -90,7 +74,7 @@ export class Company extends Belong implements ICompany {
     if (!this._departmentLoaded || reload) {
       const res = await kernel.querySubTargetById({
         id: this.id,
-        subTypeNames: [...this.departmentTypes, TargetType.Cohort, TargetType.Station],
+        subTypeNames: [...departmentTypes, TargetType.Cohort, TargetType.Station],
         page: PageAll,
       });
       if (res.success) {
@@ -126,7 +110,7 @@ export class Company extends Belong implements ICompany {
     }
   }
   async createDepartment(data: model.TargetModel): Promise<IDepartment | undefined> {
-    if (!this.departmentTypes.includes(data.typeName as TargetType)) {
+    if (!departmentTypes.includes(data.typeName as TargetType)) {
       data.typeName = TargetType.Department;
     }
     data.public = false;
@@ -181,6 +165,7 @@ export class Company extends Belong implements ICompany {
   async exit(): Promise<boolean> {
     if (await this.removeMembers([this.user.metadata])) {
       this.user.companys = this.user.companys.filter((i) => i.key != this.key);
+      this.user.changCallback();
       return true;
     }
     return false;
@@ -189,6 +174,7 @@ export class Company extends Belong implements ICompany {
     const success = await super.delete(notity);
     if (success) {
       this.user.companys = this.user.companys.filter((i) => i.key != this.key);
+      this.user.changCallback();
     }
     return success;
   }
@@ -237,39 +223,19 @@ export class Company extends Belong implements ICompany {
     await this.cacheObj.all();
     await this.financial.loadFinancial();
     await Promise.all([
-      await this.loadGroups(reload),
-      await this.loadDepartments(reload),
-      await this.loadMembers(reload),
-      await this.loadSuperAuth(reload),
-      await this.loadIdentitys(reload),
-      await this.directory.loadDirectoryResource(reload),
+      this.loadGroups(reload),
+      this.loadDepartments(reload),
+      this.loadMembers(reload),
+      this.loadSuperAuth(reload),
+      this.loadIdentitys(reload),
     ]);
-    await Promise.all(
-      this.groups.map(async (group) => {
-        await group.deepLoad(reload);
-      }),
-    );
-    await Promise.all(
-      this.departments.map(async (department) => {
-        await department.deepLoad(reload);
-      }),
-    );
-    await Promise.all(
-      this.stations.map(async (station) => {
-        await station.deepLoad(reload);
-      }),
-    );
-    await Promise.all(
-      this.cohorts.map(async (cohort) => {
-        await cohort.deepLoad(reload);
-      }),
-    );
-    await Promise.all(
-      this.storages.map(async (storage) => {
-        await storage.deepLoad(reload);
-      }),
-    );
+    await Promise.all(this.groups.map((group) => group.deepLoad(reload)));
+    await Promise.all(this.departments.map((department) => department.deepLoad(reload)));
+    await Promise.all(this.stations.map((station) => station.deepLoad(reload)));
+    await Promise.all(this.cohorts.map((cohort) => cohort.deepLoad(reload)));
+    await Promise.all(this.storages.map((storage) => storage.deepLoad(reload)));
     this.superAuth?.deepLoad(reload);
+    this.directory.loadDirectoryResource(reload);
   }
 
   override operates(): model.OperateModel[] {
@@ -280,14 +246,18 @@ export class Company extends Belong implements ICompany {
         targetOperates.JoinStorage,
         targetOperates.NewGroup,
         targetOperates.NewDepartment,
-        targetOperates.GenSpecies
       );
     }
     return operates;
   }
 
   content(): IFile[] {
-    return [...this.groups, ...this.departments, ...this.cohorts, ...this.storages];
+    return [
+      ...this.groups,
+      ...this.departments,
+      ...this.cohorts,
+      ...this.storages,
+    ].filter((i) => i.isMyTeam);
   }
 
   override async removeMembers(
@@ -351,7 +321,7 @@ export class Company extends Belong implements ICompany {
         }
         break;
       default:
-        if (this.departmentTypes.includes(target.typeName as TargetType)) {
+        if (departmentTypes.includes(target.typeName as TargetType)) {
           if (this.departments.every((i) => i.id != target.id)) {
             const department = new Department([this.key], target, this);
             await department.deepLoad();

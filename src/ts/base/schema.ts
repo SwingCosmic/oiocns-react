@@ -191,10 +191,6 @@ export type XDirectory = {
 export type XForm = {
   // 表单布局
   rule: model.Rule[];
-  // 表单查看数据规则
-  searchRule: string;
-  // 操作规则（允许新增、允许选择、允许删除）
-  operateRule: string;
   // 配置参数
   options: XFormProps | undefined;
   // 表单的特性
@@ -203,7 +199,24 @@ export type XForm = {
   bindNodes: XWorkNode[] | undefined;
   // 表单的目录
   directory: XDirectory | undefined;
+  // 报表的填报周期
+  cycle: string;
+  // 报表的内容
+  reportDatas: string;
 } & XStandard;
+
+export type XFormFilter = {
+  filterExp?: string;
+  filterDisplay?: string;
+  labels: XTagFilter[];
+};
+export type XTagFilter = {
+  id: string;
+  typeName: string;
+  name: string;
+  code: string;
+  value: string;
+};
 
 // 表单规则
 export type XFormRule1 = {
@@ -231,8 +244,10 @@ export type FormCalcRule = {
 export type XFormProps = {
   // 常规项宽度
   itemWidth: number;
-  // 表单根标签集
-  labels: string[];
+  // 数据范围限制
+  dataRange?: XFormFilter;
+  // 办事数据范围限制
+  workDataRange?: XFormFilter;
 };
 
 /* 表单规则类型 */
@@ -347,6 +362,8 @@ export type XProperty = {
   unit: string;
   // 标签ID
   speciesId: string;
+  // 表单id
+  formId?: string;
   // 来源用户ID
   sourceId: string;
   // 给物的度量标准
@@ -363,6 +380,8 @@ export type XProperty = {
   directory: XDirectory | undefined;
   // 字典类型
   species: XSpecies | undefined;
+  //TODO 记录属性变更
+  // record
 } & XStandard;
 
 //用户关系
@@ -519,6 +538,8 @@ export type XThing = {
   givenPropertys: XProperty[] | undefined;
   // 物的归属
   belong: XTarget | undefined;
+  // 标签
+  labels: string[];
 } & Xbase;
 
 //物的属性值
@@ -555,6 +576,8 @@ export type XWorkDefine = {
   application: XApplication | undefined;
   // 归属用户
   target: XTarget | undefined;
+  // 办事打开类型
+  applyType: string;
 } & XStandard;
 
 //节点网关
@@ -724,7 +747,7 @@ export interface XFinancial {
   /** 当前账期 */
   current?: string;
   /** 折旧配置 */
-  depreciation: {
+  depreciation?: {
     // 折旧方法
     method: XProperty;
     // 原值
@@ -737,7 +760,7 @@ export interface XFinancial {
     netWorth: XProperty;
     // 使用年限
     useLife: XProperty;
-  }
+  };
 }
 
 // 账期
@@ -759,29 +782,29 @@ export type XPeriod = {
 export enum ReportTreeNodeTypes {
   // 单户（本级）类节点 0
   /** 实体本级节点 */
-  Normal = "单户表",
+  Normal = '单户表',
   /** 虚拟单户节点 */
-  VirtualUnit = "虚拟单位表",
+  VirtualUnit = '虚拟单位表',
   /** 外部单位节点，境外企业，在系统中不存在或者已注销 */
-  ExternalUnit = "外部单位表",
+  ExternalUnit = '外部单位表',
 
   // 汇总（合并）类节点 1
   /** 集团合并（汇总）节点 */
-  Merge = "集团合并表",
+  Merge = '集团合并表',
   /** 完全（虚拟）汇总节点 */
-  FullSummary = "完全汇总表",
+  FullSummary = '完全汇总表',
   /** 针对涉密或其他因素，对一家单位单独开设的可填写汇总表 */
-  SingleSummary = "单独汇总表",
+  SingleSummary = '单独汇总表',
 
   // 调整（差额）类节点 2
-  /** 集团差额节点 */ 
-  Balance = "集团差额表",
-  /** 汇总调整节点 */ 
-  SummaryAdjust = "汇总调整表",
+  /** 集团差额节点 */
+  Balance = '集团差额表',
+  /** 汇总调整节点 */
+  SummaryAdjust = '汇总调整表',
 }
 
 export interface XReportTreeNode extends XEntity {
-  typeName: "报表树节点";
+  typeName: '报表树节点';
   /** 生成报表树节点的分类项 */
   speciesItemId: string;
   /** 节点类型 */
@@ -791,19 +814,19 @@ export interface XReportTreeNode extends XEntity {
   parentId?: string;
   /** 子节点 */
   children: XReportTreeNode[];
-} 
+}
 
 export enum ReportTreeTypes {
   /** 普通树形 */
   Normal = 1,
   /** 汇总树形 */
   Summary = 2,
-  /** 财务合并树形，带差额表 */ 
+  /** 财务合并树形，带差额表 */
   Financial = 3,
 }
 
 export interface XReportTree extends XStandard {
-  typeName: "报表树";
+  typeName: '报表树';
   /** 生成报表树所用的组织分类 */
   speciesId: string;
   /** 报表树根节点 */

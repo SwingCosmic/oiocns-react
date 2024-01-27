@@ -9,6 +9,7 @@ import { targetOperates } from '../../public';
 import { IStorage } from '../outTeam/storage';
 import { IPerson } from '../person';
 import { IFile } from '../../thing/fileinfo';
+import { XCollection } from '../../public/collection';
 import { Financial, IFinancial } from '../../financial';
 import { XObject } from '../../public/object';
 
@@ -26,6 +27,8 @@ export interface IBelong extends ITarget {
   cohortChats: ISession[];
   /** 共享组织 */
   shareTarget: ITarget[];
+  /** 草稿箱集合 */
+  draftsColl: XCollection<model.DraftsType>;
   /** 用户缓存对象 */
   cacheObj: XObject<schema.Xbase>;
   /** 财务接口 */
@@ -53,6 +56,12 @@ export abstract class Belong extends Target implements IBelong {
     super([], _metadata, _relations, undefined, _user, _memberTypes);
     this.cacheObj = new XObject(_metadata, 'target-cache', [], [this.key]);
     this.financial = new Financial(this);
+    this.draftsColl = new XCollection<model.DraftsType>(
+      _metadata,
+      'resource-drafts',
+      [_metadata.id],
+      [this.key],
+    );
     kernel.subscribe(
       `${_metadata.belongId}-${_metadata.id}-authority`,
       [this.key],
@@ -61,6 +70,7 @@ export abstract class Belong extends Target implements IBelong {
   }
   financial: IFinancial;
   cacheObj: XObject<schema.Xbase>;
+  draftsColl: XCollection<model.DraftsType>;
   cohorts: ICohort[] = [];
   storages: IStorage[] = [];
   superAuth: IAuthority | undefined;
