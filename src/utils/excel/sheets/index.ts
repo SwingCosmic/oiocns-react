@@ -9,7 +9,6 @@ import {
   DictItemSheet,
 } from './standard/speciesitem';
 import { AnyHandler, AnySheet } from './anything';
-import { SheetHandler } from '../impl';
 import { schema, model, IDirectory } from '..';
 
 export const getStandardSheets = (directory: IDirectory) => {
@@ -34,7 +33,7 @@ export const getBusinessSheets = (directory: IDirectory) => {
 export const getAnythingSheets = (
   form: schema.XForm,
   fields: model.FieldModel[],
-): SheetHandler[] => {
+): AnyHandler[] => {
   return [
     new AnyHandler(
       new AnySheet(
