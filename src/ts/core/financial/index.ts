@@ -29,7 +29,7 @@ export interface IFinancial extends common.Emitter {
   /** 清空结账日期 */
   clear(): Promise<void>;
   /** 加载财务数据 */
-  loadFinancial(): Promise<void>;
+  loadContent(): Promise<void>;
   /** 加载账期 */
   loadPeriods(reload?: boolean): Promise<IPeriod[]>;
   /** 生成账期 */
@@ -78,7 +78,7 @@ export class Financial extends common.Emitter implements IFinancial {
   get cache(): XObject<schema.Xbase> {
     return this.space.cacheObj;
   }
-  async loadFinancial(): Promise<void> {
+  async loadContent(): Promise<void> {
     const data = await this.cache.get<schema.XFinancial>('financial');
     if (data) {
       this.metadata = data;

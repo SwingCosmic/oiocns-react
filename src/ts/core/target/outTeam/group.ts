@@ -197,7 +197,6 @@ export class Group extends Target implements IGroup {
         onItemProgress(counter);
       });
     }
-    onItemProgress(counter);
     return result;
   }
 }

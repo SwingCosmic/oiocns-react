@@ -886,6 +886,24 @@ export default class KernelApi {
     return { ...res, ...res.data };
   }
   /**
+   * 查询所有数据集
+   * @param  过滤参数
+   * @returns {model.ResultType<T>} 移除异步结果
+   */
+  public async collectionList<T>(
+    belongId: string,
+    relations: string[],
+  ): Promise<model.ResultType<T>> {
+    return await this.dataProxy({
+      module: 'Collection',
+      action: 'List',
+      belongId,
+      params: {},
+      relations,
+      flag: `-list`,
+    });
+  }
+  /**
    * 从数据集查询数据
    * @param {string} collName 数据集名称（eg: history-message）
    * @param {any} options 聚合管道(eg: {match:{a:1},skip:10,limit:10})

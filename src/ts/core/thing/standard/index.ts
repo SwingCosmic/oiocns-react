@@ -149,7 +149,6 @@ export class StandardFiles {
       });
       this.reportTrees = data.map((i) => new ReportTree(i, this.directory));
     }
-    console.log(this.reportTrees)
     return this.reportTrees;
   }
   async createForm(data: schema.XForm): Promise<schema.XForm | undefined> {

@@ -203,7 +203,17 @@ export type XForm = {
   cycle: string;
   // 报表的内容
   reportDatas: string;
+  // 存储的集合名称
+  collName: string | undefined;
 } & XStandard;
+
+// 用户自定义集合
+export type XCollection = {
+  // 集合代码
+  code: string;
+  // 中文名称
+  name: string;
+};
 
 export type XFormFilter = {
   filterExp?: string;
