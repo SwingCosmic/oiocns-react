@@ -1,7 +1,8 @@
 import { Modal } from 'antd';
-import React from 'react';
+import React, { useState } from 'react';
 import { model, schema } from '@/ts/base';
 import { IBelong } from '@/ts/core';
+import { Form } from '@/ts/core/thing/standard/form';
 import GenerateThingTable from '../generate/thingTable';
 import CustomStore from 'devextreme/data/custom_store';
 import EntityIcon from '@/components/Common/GlobalComps/entityIcon';
@@ -25,6 +26,7 @@ const FormSelectModal = ({
   const dataRange = form.options?.workDataRange;
   const filterExp: any[] = JSON.parse(dataRange?.filterExp ?? '[]');
   const labels = dataRange?.labels ?? [];
+  const [xForm] = useState(new Form(form, belong.directory));
   const modal = Modal.confirm({
     icon: <EntityIcon entityId={form.id} showName />,
     width: '80vw',
@@ -56,7 +58,7 @@ const FormSelectModal = ({
             async load(loadOptions) {
               loadOptions.userData = labels.map((a) => a.value);
               let request: any = { ...loadOptions };
-              const res = await belong.resource.thingColl.loadResult(request);
+              const res = await xForm.loadThing(request);
               if (res.success && !Array.isArray(res.data)) {
                 res.data = [];
               }

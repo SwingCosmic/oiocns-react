@@ -1,36 +1,35 @@
-import { RangePicker } from '@/components/Common/StringDatePickers/RangePicker';
-import { ExistTypeMeta } from '@/executor/design/pageBuilder/core/ElementMeta';
-import { SEntity } from '@/executor/design/pageBuilder/design/config/FileProp';
-import { XSpeciesItem } from '@/ts/base/schema';
-import { IForm } from '@/ts/core';
-import { formatDate, formatNumber } from '@/utils';
 import { Breadcrumb, Button, Spin, Table } from 'antd';
 import { ColumnType } from 'antd/lib/table';
 import _ from 'lodash';
 import React, { useCallback, useEffect, useState } from 'react';
 import { useEffectOnce } from 'react-use';
-import { Context } from '../../../render/PageContext';
-import { defineElement } from '../../defineElement';
 import { AssetLedgerModal } from './AssetLedgerModal';
-import { AssetLedgerSummary, postfixMap, prefixMap } from './ledger';
+import { IFile, IFinancial, IForm } from '@/ts/core';
+import { IPeriod } from '@/ts/core/financial/period';
+import { AssetLedgerSummary, postfixMap, prefixMap } from './config';
+import { formatDate, formatNumber } from '@/utils';
+import { XSpeciesItem } from '@/ts/base/schema';
+import { RangePicker } from '@/components/Common/StringDatePickers/RangePicker';
 import cls from './ledger.module.less';
 import testdata from './testdata';
+import OpenFileDialog from '@/components/OpenFileDialog';
+import { schema } from '@/ts/base';
 
 type BreadcrumbItemType = Pick<AssetLedgerSummary, 'assetTypeId' | 'assetTypeName'>;
 
 interface IProps {
-  props: { species: SEntity; form: SEntity };
-  ctx: Context;
+  financial: IFinancial;
+  period: IPeriod;
 }
 
-export const AssetLedger: React.FC<IProps> = ({ props, ctx }) => {
+const AssetLedger: React.FC<IProps> = ({ financial, period }) => {
   const [loading, setLoading] = useState(false);
   const [ready, setReady] = useState(false);
 
-  const [month, setMonth] = useState<[string, string]>(['', '']);
+  const [month, setMonth] = useState<[string, string]>([period.period, period.period]);
 
   const [data, setData] = useState<AssetLedgerSummary[]>([]);
-  const [species, setSpecies] = useState<XSpeciesItem[]>([]);
+  const [speciesItems, setSpeciesItems] = useState<XSpeciesItem[]>([]);
   const [parentId, setParentId] = useState('');
   const [parentPath, setParentPath] = useState<BreadcrumbItemType[]>([]);
 
@@ -39,28 +38,11 @@ export const AssetLedger: React.FC<IProps> = ({ props, ctx }) => {
   const [currentField, setCurrentField] = useState('');
   const [currentType, setCurrentType] = useState('');
   const [form, setForm] = useState<IForm>(null!);
+  const [species, setSpecies] = useState(financial.metadata?.species);
+  const [fields, setFields] = useState(financial.metadata?.fields ?? []);
+  const [center, setCenter] = useState(<></>);
 
   async function init() {
-    const now = new Date();
-    let date = formatDate(now, 'yyyy-MM');
-    setMonth([date, date]);
-
-    if (!props.species || !props.species.id) {
-      console.warn('资产分类id必填');
-      return;
-    }
-    if (!props.form || !props.form.id) {
-      console.warn('表单id必填');
-      return;
-    }
-
-    const data = await ctx.view.pageInfo.loadSpecies([props.species.id]);
-    console.log(data);
-    setSpecies(data[0].items);
-
-    const f = await ctx.view.pageInfo.loadForm(props.form.id);
-    setForm(f);
-
     setReady(true);
   }
 
@@ -74,13 +56,13 @@ export const AssetLedger: React.FC<IProps> = ({ props, ctx }) => {
 
       await new Promise<void>((s) => setTimeout(() => s(), 2000));
 
-      let roots: AssetLedgerSummary[] = species
+      let roots: AssetLedgerSummary[] = speciesItems
         .filter((s) => (parentId ? s.parentId == parentId : !s.parentId))
         .map((s) => {
           const ret = _.cloneDeep(testdata[_.random(0, testdata.length - 1)]);
           ret.assetTypeId = s.id;
           ret.assetTypeName = s.name;
-          ret.belongId = ctx.view.pageInfo.directory.belongId;
+          ret.belongId = financial.space.id;
 
           ret.canClick = false;
           ret.isParent = true;
@@ -89,15 +71,14 @@ export const AssetLedger: React.FC<IProps> = ({ props, ctx }) => {
         });
 
       for (const root of [...roots]) {
-        const children = species
+        const children = speciesItems
           .filter((s) => s.parentId == root.assetTypeId)
           .map((s) => {
             const ret = _.cloneDeep(testdata[_.random(0, testdata.length - 1)]);
             ret.assetTypeId = s.id;
             ret.assetTypeName = s.name;
-            ret.belongId = ctx.view.pageInfo.directory.belongId;
 
-            ret.canClick = species.filter((c) => c.parentId == s.id).length > 0;
+            ret.canClick = speciesItems.filter((c) => c.parentId == s.id).length > 0;
             ret.isParent = false;
 
             return ret;
@@ -124,9 +105,6 @@ export const AssetLedger: React.FC<IProps> = ({ props, ctx }) => {
   );
 
   function handleExpand(row: AssetLedgerSummary) {
-    if (ctx.view.mode == 'design') {
-      return;
-    }
     setCurrentRow(row);
     setParentId(row.assetTypeId);
 
@@ -135,10 +113,6 @@ export const AssetLedger: React.FC<IProps> = ({ props, ctx }) => {
   }
 
   function handleBack(item?: BreadcrumbItemType) {
-    if (ctx.view.mode == 'design') {
-      return;
-    }
-
     if (!item) {
       setCurrentRow(null);
       setParentId('');
@@ -160,7 +134,15 @@ export const AssetLedger: React.FC<IProps> = ({ props, ctx }) => {
   });
   useEffect(() => {
     loadData();
-  }, [month, ready, parentId]);
+    financial.loadSpecies(true).then((res) => setSpeciesItems(res));
+    const id = financial.subscribe(() => {
+      setSpecies(financial.metadata?.species);
+      setFields(financial.metadata?.fields ?? []);
+    });
+    return () => {
+      financial.unsubscribe(id);
+    };
+  }, [month, ready, parentId, species]);
 
   return (
     <div className={cls.assetLedger + ' asset-page-element'}>
@@ -188,6 +170,7 @@ export const AssetLedger: React.FC<IProps> = ({ props, ctx }) => {
               })}
             </Breadcrumb>
             <div className="flex-auto"></div>
+
             <div>月份范围</div>
             <RangePicker
               picker="month"
@@ -206,7 +189,29 @@ export const AssetLedger: React.FC<IProps> = ({ props, ctx }) => {
               dataSource={data}
               scroll={{ y: 'calc(100%)' }}>
               <Table.Column
-                title="资产类别名称"
+                title={
+                  <a
+                    onClick={() => {
+                      setCenter(
+                        <OpenFileDialog
+                          accepts={['分类型', '选择型']}
+                          rootKey={financial.space.spaceId}
+                          onOk={async (files) => {
+                            if (files.length > 0) {
+                              const metadata = files[0].metadata as schema.XProperty;
+                              financial.setSpecies(metadata);
+                            }
+                            setCenter(<></>);
+                          }}
+                          onCancel={function (): void {
+                            setCenter(<></>);
+                          }}
+                        />,
+                      );
+                    }}>
+                    {species?.name ?? '选择统计维度'}
+                  </a>
+                }
                 dataIndex="assetTypeName"
                 width="240px"
                 render={(_, row: AssetLedgerSummary) => {
@@ -226,13 +231,13 @@ export const AssetLedger: React.FC<IProps> = ({ props, ctx }) => {
                   }
                 }}
               />
-              {postfixMap.map((group) => (
-                <Table.ColumnGroup key={group.postfix} title={group.label}>
+              {fields.map((field) => (
+                <Table.ColumnGroup key={field.id} title={field.name}>
                   {prefixMap.map((item) => {
-                    const prop = item.prefix + group.postfix;
+                    const prop = item.prefix + field.postfix;
                     const column: ColumnType<any> = {
                       title: item.label,
-                      dataIndex: item.prefix + group.postfix,
+                      dataIndex: item.prefix + field.postfix,
                       align: 'right',
                       key: item.prefix,
                     };
@@ -242,7 +247,7 @@ export const AssetLedger: React.FC<IProps> = ({ props, ctx }) => {
                           <div
                             className="cell-link"
                             onClick={() =>
-                              handleViewDetail(row, group.postfix, item.prefix)
+                              handleViewDetail(row, field.postfix, item.prefix)
                             }>
                             {formatNumber(row[prop], 2, true)}
                           </div>
@@ -274,31 +279,9 @@ export const AssetLedger: React.FC<IProps> = ({ props, ctx }) => {
       ) : (
         <></>
       )}
+      {center}
     </div>
   );
 };
 
-export default defineElement({
-  render(props, ctx) {
-    return <AssetLedger ctx={ctx} props={props} />;
-  },
-  displayName: 'AssetLedger',
-  meta: {
-    props: {
-      species: {
-        type: 'type',
-        label: '资产类别的分类',
-        typeName: 'speciesFile',
-        required: true,
-      } as ExistTypeMeta<SEntity>,
-      form: {
-        type: 'type',
-        label: '资产的表单',
-        typeName: 'formFile',
-        required: true,
-      } as ExistTypeMeta<SEntity>,
-    },
-    type: 'Element',
-    label: '资产总账',
-  },
-});
+export default AssetLedger;
