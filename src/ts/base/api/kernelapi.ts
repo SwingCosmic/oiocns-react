@@ -969,6 +969,31 @@ export default class KernelApi {
     }
     return result;
   }
+
+  /**
+   * 物的快照
+   * @param  过滤参数
+   */
+  public async snapshotThing(
+    belongId: string,
+    relations: string[],
+    options: {
+      collName: string,
+      dataPeriod: string,
+    },
+  ): Promise<model.LoadResult<void>> {
+    const res = await this.dataProxy({
+      module: 'Thing',
+      action: 'Snapshot',
+      belongId,
+      relations,
+      flag: 'snapshotThing',
+      params: options,
+    });
+    const result: model.LoadResult<void> = { ...res, ...res.data };
+    return result;
+  }
+
   /**
    * 创建物
    * @param name 物的名称
