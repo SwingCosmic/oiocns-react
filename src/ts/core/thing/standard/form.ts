@@ -5,6 +5,7 @@ import { IDirectory } from '../directory';
 import { IStandardFileInfo, StandardFileInfo } from '../fileinfo';
 import { formatDate } from '@/utils';
 import { ITemporaryStorage, TemporaryStorage } from '../../work/storage';
+import { XCollection } from '../../public/collection';
 
 /** 表单类接口 */
 export interface IForm extends IStandardFileInfo<schema.XForm> {
@@ -41,7 +42,13 @@ export class Form extends StandardFileInfo<schema.XForm> implements IForm {
     this.canDesign = !_metadata.id.includes('_');
     this.setEntity();
     this.storage = new TemporaryStorage(this);
+    if (this.metadata.collName) {
+      this.thingColl = this.directory.resource.genColl<schema.XThing>("formdata-" + this.metadata.collName);
+    } else {
+      this.thingColl = this.directory.resource.thingColl;
+    }
   }
+  thingColl: XCollection<schema.XThing>;
   storage: ITemporaryStorage;
   canDesign: boolean;
   private _fieldsLoaded: boolean = false;
@@ -97,6 +104,7 @@ export class Form extends StandardFileInfo<schema.XForm> implements IForm {
               .map((i) => {
                 return {
                   id: i.id,
+                  code: i.code,
                   text: i.name,
                   value: `S${i.id}`,
                   icon: i.icon,
@@ -207,7 +215,7 @@ export class Form extends StandardFileInfo<schema.XForm> implements IForm {
     return [fileOperates.Copy, entityOperates.Remark];
   }
   async loadThing(loadOptions: any): Promise<LoadResult<any>> {
-    const res = await this.directory.resource.thingColl.loadResult(loadOptions);
+    const res = await this.thingColl.loadResult(loadOptions);
     if (res.success && !Array.isArray(res.data)) {
       res.data = [];
     }

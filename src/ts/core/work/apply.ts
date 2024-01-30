@@ -74,9 +74,9 @@ export class WorkApply implements IWorkApply {
               }
             }
           }
-          if (isRequired && valueIsNull(data[item.id])) {
-            return false;
-          }
+        }
+        if (isRequired && valueIsNull(data[item.id])) {
+          return false;
         }
       }
     }

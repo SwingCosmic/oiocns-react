@@ -2,7 +2,11 @@ import { IBelong, IFinancial, TargetType } from '@/ts/core';
 import { IPeriod } from '@/ts/core/financial/period';
 import { ProTable } from '@ant-design/pro-components';
 import { Button, Card, DatePicker, Space, Tag, message } from 'antd';
-import React, { useEffect, useMemo, useRef, useState } from 'react';
+import React, { ReactNode, useEffect, useMemo, useRef, useState } from 'react';
+import AssetDepreciation from './widgets/AssetDepreciation';
+import { AssetMonthlyClosing } from './widgets/AssetMonthlyClosing';
+import FullScreenModal from '@/components/Common/fullScreen';
+import AssetLedger from './widgets/ledger';
 
 interface IProps {
   financial: IFinancial;
@@ -10,7 +14,6 @@ interface IProps {
 
 const Financial: React.FC<IProps> = ({ financial }) => {
   const [metadata, setMetadata] = useState(financial.metadata);
-  console.log(financial)
   const month = useRef<string>();
   const initialized = useMemo(() => {
     return metadata && Object.keys(metadata).length > 0;
@@ -70,8 +73,31 @@ const Financial: React.FC<IProps> = ({ financial }) => {
   );
 };
 
+interface FullProps {
+  title: string;
+  onFinished: () => void;
+  children: ReactNode;
+}
+
+const FullScreen: React.FC<FullProps> = (props) => {
+  return (
+    <FullScreenModal
+      open
+      centered
+      fullScreen
+      destroyOnClose
+      width={'80vw'}
+      bodyHeight={'80vh'}
+      title={props.title}
+      onCancel={props.onFinished}>
+      {props.children}
+    </FullScreenModal>
+  );
+};
+
 const Periods: React.FC<IProps> = ({ financial }) => {
   const [periods, setPeriods] = useState<IPeriod[]>([]);
+  const [center, setCenter] = useState(<></>);
   useEffect(() => {
     const id = financial.subscribe(() => {
       financial.loadPeriods().then((data) => setPeriods([...data]));
@@ -79,119 +105,127 @@ const Periods: React.FC<IProps> = ({ financial }) => {
     return () => financial.unsubscribe(id);
   }, []);
   return (
-    <Card>
-      <ProTable<IPeriod>
-        search={false}
-        options={false}
-        pagination={{ pageSize: 10 }}
-        dataSource={periods}
-        columns={[
-          {
-            title: '序号',
-            valueType: 'index',
-          },
-          {
-            title: '期间',
-            valueType: 'text',
-            dataIndex: 'period',
-          },
-          {
-            title: '是否已折旧',
-            valueType: 'text',
-            dataIndex: 'deprecated',
-            render(_, entity) {
-              if (entity.deprecated) {
-                return <Tag color="green">已折旧</Tag>;
-              }
-              return <Tag color="red">未折旧</Tag>;
+    <>
+      <Card title={'结账记录'}>
+        <ProTable<IPeriod>
+          search={false}
+          options={false}
+          pagination={{ pageSize: 10 }}
+          dataSource={periods}
+          columns={[
+            {
+              title: '序号',
+              valueType: 'index',
             },
-          },
-          {
-            title: '账目平衡',
-            valueType: 'text',
-            dataIndex: 'closed',
-            render(_, entity) {
-              if (entity.balanced) {
-                return <Tag color="green">已平衡</Tag>;
-              }
-              return <Tag color="red">未平衡</Tag>;
+            {
+              title: '期间',
+              valueType: 'text',
+              dataIndex: 'period',
             },
-          },
-          {
-            title: '是否已结账',
-            valueType: 'text',
-            dataIndex: 'closed',
-            render(_, entity) {
-              if (entity.closed) {
-                return <Tag color="green">已结账</Tag>;
-              }
-              return <Tag color="red">未结账</Tag>;
+            {
+              title: '是否已折旧',
+              valueType: 'text',
+              dataIndex: 'deprecated',
+              render(_, entity) {
+                if (entity.deprecated) {
+                  return <Tag color="green">已折旧</Tag>;
+                }
+                return <Tag color="red">未折旧</Tag>;
+              },
             },
-          },
-          {
-            title: '月快照',
-            valueType: 'text',
-            dataIndex: 'closed',
-            render(_) {
-              return <a>查看</a>;
+            {
+              title: '是否已结账',
+              valueType: 'text',
+              dataIndex: 'closed',
+              render(_, entity) {
+                if (entity.closed) {
+                  return <Tag color="green">已结账</Tag>;
+                }
+                return <Tag color="red">未结账</Tag>;
+              },
             },
-          },
-          {
-            title: '月总账',
-            valueType: 'text',
-            dataIndex: 'closed',
-            render(_) {
-              return <a>查看</a>;
+            {
+              title: '资产负债表',
+              valueType: 'text',
+              render(_) {
+                return <a>查看</a>;
+              },
             },
-          },
-          {
-            title: '操作',
-            valueType: 'option',
-            width: 300,
-            render: (_, item) => {
-              return (
-                <Space>
-                  {!item.deprecated && (
-                    <Button
-                      type="primary"
-                      size="small"
-                      onClick={async () => {
-                        await item.calculateDepreciation();
-                      }}>
-                      发起折旧
-                    </Button>
-                  )}
-                  {!item.closed && (
-                    <Button
-                      type="primary"
-                      size="small"
-                      onClick={async () => {
-                        await item.trialBalance();
-                      }}>
-                      试算平衡
-                    </Button>
-                  )}
-                  {!item.closed && (
-                    <Button
-                      type="primary"
-                      size="small"
-                      onClick={async () => {
-                        try {
-                          await item.monthlySettlement();
-                        } catch (error) {
-                          message.error((error as Error).message);
-                        }
-                      }}>
-                      发起结账
-                    </Button>
-                  )}
-                </Space>
-              );
+            {
+              title: '快照',
+              valueType: 'text',
+              render(_) {
+                return <a>查看</a>;
+              },
             },
-          },
-        ]}
-      />
-    </Card>
+            {
+              title: '总账',
+              valueType: 'text',
+              render(_, entity) {
+                return (
+                  <a
+                    onClick={() => {
+                      setCenter(
+                        <FullScreen
+                          title={entity.period + ' 资产总账'}
+                          onFinished={() => setCenter(<></>)}>
+                          <AssetLedger financial={financial} period={entity} />
+                        </FullScreen>,
+                      );
+                    }}>
+                    查看
+                  </a>
+                );
+              },
+            },
+            {
+              title: '操作',
+              valueType: 'option',
+              width: 300,
+              render: (_, item) => {
+                return (
+                  <Space>
+                    {!item.deprecated && (
+                      <Button
+                        type="primary"
+                        size="small"
+                        onClick={async () =>
+                          setCenter(
+                            <FullScreen
+                              title={'资产折旧'}
+                              onFinished={() => setCenter(<></>)}>
+                              <AssetDepreciation financial={financial} />
+                            </FullScreen>,
+                          )
+                        }>
+                        发起折旧
+                      </Button>
+                    )}
+                    {!item.closed && (
+                      <Button
+                        type="primary"
+                        size="small"
+                        onClick={async () =>
+                          setCenter(
+                            <FullScreen
+                              title={'月结账'}
+                              onFinished={() => setCenter(<></>)}>
+                              <AssetMonthlyClosing financial={financial} />
+                            </FullScreen>,
+                          )
+                        }>
+                        发起结账
+                      </Button>
+                    )}
+                  </Space>
+                );
+              },
+            },
+          ]}
+        />
+      </Card>
+      {center}
+    </>
   );
 };
 

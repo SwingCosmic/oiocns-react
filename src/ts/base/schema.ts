@@ -771,6 +771,10 @@ export interface XFinancial {
     // 使用年限
     useLife: XProperty;
   };
+  // 分类树
+  species?: XProperty;
+  // 统计字段
+  fields?: XProperty[];
 }
 
 // 账期

@@ -1478,3 +1478,11 @@ export type DraftsType = {
   // 节点信息
   data: model.InstanceDataModel;
 } & Xbase;
+
+// 集合列表
+export type CollData = {
+  // 集合名称 
+  [collName: string] : {
+    
+  };
+}

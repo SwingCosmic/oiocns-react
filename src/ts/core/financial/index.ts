@@ -1,3 +1,4 @@
+import { XProperty, XSpecies, XSpeciesItem } from '@/ts/base/schema';
 import { IBelong, XCollection, XObject } from '..';
 import { common, schema } from './../../base';
 import { IPeriod, Period } from './period';
@@ -18,6 +19,8 @@ export interface IFinancial extends common.Emitter {
   initialized: string | undefined;
   /** 当前账期 */
   current: string | undefined;
+  /** 缓存 */
+  cache: XObject<schema.Xbase>;
   /** 账期集合 */
   coll: XCollection<schema.XPeriod>;
   /** 缓存对象 */
@@ -28,12 +31,16 @@ export interface IFinancial extends common.Emitter {
   setCurrent(period: string): Promise<void>;
   /** 清空结账日期 */
   clear(): Promise<void>;
+  /** 设置总账统计维度 */
+  setSpecies(species: schema.XProperty): Promise<void>;
   /** 加载财务数据 */
   loadContent(): Promise<void>;
   /** 加载账期 */
   loadPeriods(reload?: boolean): Promise<IPeriod[]>;
   /** 生成账期 */
   generatePeriod(period: string): Promise<void>;
+  /** 加载分类树 */
+  loadSpecies(reload?: boolean): Promise<XSpeciesItem[]>;
 }
 
 export class Financial extends common.Emitter implements IFinancial {
@@ -62,10 +69,12 @@ export class Financial extends common.Emitter implements IFinancial {
     });
   }
   metadata: schema.XFinancial | undefined;
+  speciesLoaded: boolean = false;
   space: IBelong;
   periods: IPeriod[] = [];
   loaded: boolean = false;
   coll: XCollection<schema.XPeriod>;
+  speciesItems: XSpeciesItem[] = [];
   get key() {
     return this.space.key + '-financial';
   }
@@ -99,6 +108,17 @@ export class Financial extends common.Emitter implements IFinancial {
         this.changCallback();
       }
     });
+    this.cache.subscribe('financial.species', (res: schema.XProperty) => {
+      if (this.metadata) {
+        this.metadata.species = res;
+        this.changCallback();
+      }
+    });
+  }
+  async setSpecies(species: XProperty): Promise<void> {
+    if (await this.cache.set('financial.species', species)) {
+      await this.cache.notity('financial.species', species, true, false);
+    }
   }
   async initialize(period: string): Promise<void> {
     if (await this.cache.set('financial.initialized', period)) {
@@ -159,5 +179,19 @@ export class Financial extends common.Emitter implements IFinancial {
     if (result) {
       await this.coll.notity({ data: result, operate: 'insert' });
     }
+  }
+  async loadSpecies(reload?: boolean | undefined): Promise<XSpeciesItem[]> {
+    const species = this.metadata?.species;
+    if (!species || species.speciesId.length == 0) {
+      return [];
+    }
+    if (!this.speciesLoaded || reload) {
+      this.speciesLoaded = true;
+      this.speciesItems = await this.space.resource.speciesItemColl.loadSpace({
+        options: { match: { speciesId: species.speciesId } },
+      });
+    }
+    console.log(this.speciesItems);
+    return this.speciesItems;
   }
 }

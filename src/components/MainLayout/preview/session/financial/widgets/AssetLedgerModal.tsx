@@ -1,15 +1,15 @@
-import { Button, Col, Form, Input, Modal, Row } from "antd";
-import React, { useEffect, useState } from "react";
-import { AssetLedgerSummary, postfixMap, prefixMap } from "./ledger";
-import cls from "./ledger.module.less";
-import GenerateThingTable from "@/executor/tools/generate/thingTable";
-import CustomStore from "devextreme/data/custom_store";
-import { kernel } from "@/ts/base";
-import { XForm, XThing } from "@/ts/base/schema";
-import { IForm } from "@/ts/core";
+import GenerateThingTable from '@/executor/tools/generate/thingTable';
+import { kernel } from '@/ts/base';
+import { XThing } from '@/ts/base/schema';
+import { IForm } from '@/ts/core';
+import { Button, Col, Form, Input, Modal, Row } from 'antd';
+import CustomStore from 'devextreme/data/custom_store';
+import React, { useEffect, useState } from 'react';
+import cls from './ledger.module.less';
+import { AssetLedgerSummary } from './ledger';
 
 interface Props {
-  summary: AssetLedgerSummary | null,
+  summary: AssetLedgerSummary | null;
   field: string;
   type: string;
   visible: boolean;
@@ -27,7 +27,7 @@ export function AssetLedgerModal(props: Props) {
 
   const [queryForm, setQueryForm] = useState({
     code: '',
-    name: ''
+    name: '',
   });
 
   async function loadData() {
@@ -35,8 +35,8 @@ export function AssetLedgerModal(props: Props) {
       return;
     }
 
-    const fieldName = postfixMap.find(p => props.field == p.postfix)?.label ?? "";
-    const typeName = prefixMap.find(p => props.type == p.prefix)?.label ?? "";
+    const fieldName = postfixMap.find((p) => props.field == p.postfix)?.label ?? '';
+    const typeName = prefixMap.find((p) => props.type == p.prefix)?.label ?? '';
 
     setTitle(() => fieldName + typeName);
 
@@ -99,7 +99,9 @@ export function AssetLedgerModal(props: Props) {
                 })
               }
             />
-          ) : <></>}
+          ) : (
+            <></>
+          )}
         </div>
       </div>
     </Modal>
