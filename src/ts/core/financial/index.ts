@@ -1,4 +1,4 @@
-import { XProperty, XSpecies, XSpeciesItem } from '@/ts/base/schema';
+import { XProperty, XSpeciesItem } from '@/ts/base/schema';
 import { IBelong, XCollection, XObject } from '..';
 import { common, schema } from './../../base';
 import { IPeriod, Period } from './period';

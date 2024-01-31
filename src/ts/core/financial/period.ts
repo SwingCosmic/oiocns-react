@@ -112,15 +112,18 @@ export class Period extends Entity<schema.XPeriod> implements IPeriod {
     let group: any = {
       key: 'species',
     };
-    // this.financial.fields.map((item) => {
-    //   group[item.id] = `${}`;
-    // });
+    this.financial.fields.map((item) => {
+      group[item.id] = {
+        _sum_: `$${item.id}`,
+      };
+    });
     let options = {
       match: {
         belongId: this.space.id,
       },
       group,
     };
+    console.log("options", options);
     const res = await kernel.collectionAggregate(
       this.space.id,
       [this.space.id],

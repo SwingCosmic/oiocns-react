@@ -1,7 +1,6 @@
 import { RangePicker } from '@/components/Common/StringDatePickers/RangePicker';
 import OpenFileDialog from '@/components/OpenFileDialog';
 import { schema } from '@/ts/base';
-import { XSpeciesItem } from '@/ts/base/schema';
 import { IFinancial } from '@/ts/core';
 import { IPeriod } from '@/ts/core/financial/period';
 import { formatNumber } from '@/utils';
@@ -49,7 +48,7 @@ const AssetLedger: React.FC<IProps> = ({ financial, period }) => {
     try {
       setLoading(true);
 
-      // period.summary();
+      period.summary();
       const res = await financial.loadSpecies(true);
 
       await new Promise<void>((s) => setTimeout(() => s(), 2000));
