@@ -390,8 +390,10 @@ export type XProperty = {
   directory: XDirectory | undefined;
   // 字典类型
   species: XSpecies | undefined;
-  //TODO 记录属性变更
-  // record
+  // 变更目标
+  isChangeTarget: boolean;
+  // 变更源
+  isChangeSource: boolean;
 } & XStandard;
 
 //用户关系
@@ -848,3 +850,35 @@ export interface XReportTree extends XStandard {
   /** 树类型 */
   treeType: ReportTreeTypes;
 }
+
+/** 变动记录 */
+export interface XChange extends Xbase {
+  // 事件 ID
+  defineId: string;
+  // 事件名称
+  defineName: string;
+  // 变更时间（业务时间）
+  changeTime: string;
+  // 物 ID
+  thingId: string;
+  // 变更
+  changes: Record<string, XChangeInfo<any>>;
+  // 触发
+  triggers: Record<string, XChangeInfo<any>>;
+  // 属性
+  [key: string]: any;
+}
+
+/** 变更详情 */
+export type XChangeInfo<T> = {
+  // 字段类型
+  typeName: string;
+  // 变动前
+  before: T;
+  // 变动后
+  after: T;
+  // 变更值
+  value: T extends number ? number : never;
+  // 符号
+  symbol: T extends number ? number : never;
+};
