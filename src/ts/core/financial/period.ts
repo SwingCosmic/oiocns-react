@@ -2,6 +2,9 @@ import { IBelong, IEntity, IFinancial } from '..';
 import { Entity } from '../public';
 import { common, kernel, schema } from './../../base';
 
+/**
+ * 账期
+ */
 export interface IPeriod extends IEntity<schema.XPeriod> {
   /** 归属空间 */
   space: IBelong;
@@ -30,7 +33,9 @@ export interface IPeriod extends IEntity<schema.XPeriod> {
   /** 试算平衡 */
   trialBalance(): Promise<void>;
   /** 生成快照 */
-  generatingNextSnapshot(): Promise<void>;
+  generatingSnapshot(): Promise<void>;
+  /** 统计总账 */
+  summary(): Promise<void>;
 }
 
 export class Period extends Entity<schema.XPeriod> implements IPeriod {
@@ -96,11 +101,32 @@ export class Period extends Entity<schema.XPeriod> implements IPeriod {
       await this.financial.coll.notity({ operate: 'update', data: metadata });
     }
   }
-  async generatingNextSnapshot(): Promise<void> {
+  async generatingSnapshot(): Promise<void> {
     await kernel.snapshotThing(this.space.id, [this.space.id], {
       collName: '_system-things',
       dataPeriod: this.metadata.period,
     });
     await this.update({ ...this.metadata, snapshot: true });
+  }
+  async summary(): Promise<void> {
+    let group: any = {
+      key: 'species',
+    };
+    // this.financial.fields.map((item) => {
+    //   group[item.id] = `${}`;
+    // });
+    let options = {
+      match: {
+        belongId: this.space.id,
+      },
+      group,
+    };
+    const res = await kernel.collectionAggregate(
+      this.space.id,
+      [this.space.id],
+      '_system_things',
+      options,
+    );
+    console.log(res);
   }
 }

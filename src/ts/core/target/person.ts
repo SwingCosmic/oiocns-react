@@ -271,7 +271,7 @@ export class Person extends Belong implements IPerson {
   async deepLoad(reload: boolean = false): Promise<void> {
     await this.cacheObj.all();
     await this.financial.loadContent();
-    await this.dataManager.loadContent();
+    await this.collManager.loadContent();
     await this._loadCommons();
     await Promise.all([
       this.loadTeams(reload),

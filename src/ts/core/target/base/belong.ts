@@ -12,7 +12,7 @@ import { IFile } from '../../thing/fileinfo';
 import { XCollection } from '../../public/collection';
 import { Financial, IFinancial } from '../../financial';
 import { XObject } from '../../public/object';
-import { DataManager, IDataManager } from '../../data/dataManager';
+import { CollManager, ICollManager } from '../../data/collManager';
 
 /** 自归属用户接口类 */
 export interface IBelong extends ITarget {
@@ -34,8 +34,8 @@ export interface IBelong extends ITarget {
   cacheObj: XObject<schema.Xbase>;
   /** 财务接口 */
   financial: IFinancial;
-  /** DBA 接口 */
-  dataManager: IDataManager;
+  /** 集合管理器 */
+  collManager: ICollManager;
   /** 获取存储占用情况 */
   getDiskInfo(): Promise<model.DiskInfoType | undefined>;
   /** 加载超管权限 */
@@ -59,7 +59,7 @@ export abstract class Belong extends Target implements IBelong {
     super([], _metadata, _relations, undefined, _user, _memberTypes);
     this.cacheObj = new XObject(_metadata, 'target-cache', [], [this.key]);
     this.financial = new Financial(this);
-    this.dataManager = new DataManager(this);
+    this.collManager = new CollManager(this);
     this.draftsColl = new XCollection<model.DraftsType>(
       _metadata,
       'resource-drafts',
@@ -72,7 +72,7 @@ export abstract class Belong extends Target implements IBelong {
       (data: any) => this.superAuth?.receiveAuthority(data),
     );
   }
-  dataManager: IDataManager;
+  collManager: ICollManager;
   financial: IFinancial;
   cacheObj: XObject<schema.Xbase>;
   draftsColl: XCollection<model.DraftsType>;

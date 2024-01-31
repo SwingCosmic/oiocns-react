@@ -208,7 +208,7 @@ export type XForm = {
 } & XStandard;
 
 // 用户自定义集合
-export type XCollection = {
+export type XColl = {
   // 集合代码
   code: string;
   // 中文名称

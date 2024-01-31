@@ -30,7 +30,6 @@ const AssetLedger: React.FC<IProps> = ({ financial, period }) => {
   const [month, setMonth] = useState<[string, string]>([period.period, period.period]);
 
   const [data, setData] = useState<AssetLedgerSummary[]>([]);
-  const [speciesItems, setSpeciesItems] = useState<XSpeciesItem[]>([]);
   const [parentId, setParentId] = useState('');
   const [parentPath, setParentPath] = useState<BreadcrumbItemType[]>([]);
 
@@ -50,9 +49,12 @@ const AssetLedger: React.FC<IProps> = ({ financial, period }) => {
     try {
       setLoading(true);
 
+      // period.summary();
+      const res = await financial.loadSpecies(true);
+
       await new Promise<void>((s) => setTimeout(() => s(), 2000));
 
-      let roots: AssetLedgerSummary[] = speciesItems
+      let roots: AssetLedgerSummary[] = res
         .filter((s) => (parentId ? s.parentId == parentId : !s.parentId))
         .map((s) => {
           const ret = _.cloneDeep(testdata[_.random(0, testdata.length - 1)]);
@@ -67,14 +69,14 @@ const AssetLedger: React.FC<IProps> = ({ financial, period }) => {
         });
 
       for (const root of [...roots]) {
-        const children = speciesItems
+        const children = res
           .filter((s) => s.parentId == root.assetTypeId)
           .map((s) => {
             const ret = _.cloneDeep(testdata[_.random(0, testdata.length - 1)]);
             ret.assetTypeId = s.id;
             ret.assetTypeName = s.name;
 
-            ret.canClick = speciesItems.filter((c) => c.parentId == s.id).length > 0;
+            ret.canClick = res.filter((c) => c.parentId == s.id).length > 0;
             ret.isParent = false;
 
             return ret;
@@ -130,7 +132,6 @@ const AssetLedger: React.FC<IProps> = ({ financial, period }) => {
   });
   useEffect(() => {
     loadData();
-    financial.loadSpecies(true).then((res) => setSpeciesItems(res));
     const id = financial.subscribe(() => {
       setSpecies(financial.metadata?.species);
       setFields(financial.metadata?.fields ?? []);
@@ -286,13 +287,13 @@ const AssetLedger: React.FC<IProps> = ({ financial, period }) => {
                           <div
                             className="cell-link"
                             onClick={() => handleViewDetail(row, field.id, item.prefix)}>
-                            {formatNumber(row[prop], 2, true)}
+                            {formatNumber(row[prop] ?? 0, 2, true)}
                           </div>
                         );
                       };
                     } else {
                       column.render = (_, row) => {
-                        return <div>{formatNumber(row[prop], 2, true)}</div>;
+                        return <div>{formatNumber(row[prop] ?? 0, 2, true)}</div>;
                       };
                     }
                     return <Table.Column {...column} />;

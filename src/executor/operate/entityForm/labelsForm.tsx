@@ -25,7 +25,7 @@ const CollectionForm: React.FC<{ space: IBelong; finished: () => void }> = (prop
         const value = await form.validateFields();
         try {
           const code = 'formdata-' + value.code;
-          await props.space.dataManager.addCustomCollection({ ...value, code });
+          await props.space.collManager.createCollection({ ...value, code });
           props.finished();
         } catch (error) {
           message.error((error as Error).message);
@@ -60,14 +60,14 @@ const LabelsForm = (props: Iprops) => {
   } else {
     space = (props.current as IForm).directory.target.space;
   }
-  const [collections, setCollections] = useState(space.dataManager.collections);
+  const [collections, setCollections] = useState(space.collManager.collections);
   const [collectionForm, setCollectionForm] = useState(<></>);
   useEffect(() => {
-    const id = space.dataManager.subscribe(() => {
-      setCollections(space.dataManager.customCollections);
+    const id = space.collManager.subscribe(() => {
+      setCollections(space.collManager.collections);
     });
     return () => {
-      space.dataManager.unsubscribe(id);
+      space.collManager.unsubscribe(id);
     };
   }, []);
   let title = '';

@@ -246,7 +246,7 @@ const Periods: React.FC<IProps> = ({ financial }) => {
                         size="small"
                         onClick={async () => {
                           setLoading(true);
-                          await item.generatingNextSnapshot();
+                          await item.generatingSnapshot();
                           setLoading(false);
                         }}>
                         生成快照

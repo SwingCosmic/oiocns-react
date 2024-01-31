@@ -222,7 +222,7 @@ export class Company extends Belong implements ICompany {
   async deepLoad(reload: boolean = false): Promise<void> {
     await this.cacheObj.all();
     await this.financial.loadContent();
-    await this.dataManager.loadContent();
+    await this.collManager.loadContent();
     await Promise.all([
       this.loadGroups(reload),
       this.loadDepartments(reload),
