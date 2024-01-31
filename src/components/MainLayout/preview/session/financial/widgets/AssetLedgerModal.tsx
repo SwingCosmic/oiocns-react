@@ -6,7 +6,7 @@ import { Button, Col, Form, Input, Modal, Row } from 'antd';
 import CustomStore from 'devextreme/data/custom_store';
 import React, { useEffect, useState } from 'react';
 import cls from './ledger.module.less';
-import { AssetLedgerSummary } from './ledger';
+import { AssetLedgerSummary, postfixMap, prefixMap } from './config';
 
 interface Props {
   summary: AssetLedgerSummary | null;

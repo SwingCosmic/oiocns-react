@@ -1,6 +1,6 @@
 import { IBelong, IEntity, IFinancial } from '..';
 import { Entity } from '../public';
-import { common, schema } from './../../base';
+import { common, kernel, schema } from './../../base';
 
 export interface IPeriod extends IEntity<schema.XPeriod> {
   /** 归属空间 */
@@ -21,12 +21,16 @@ export interface IPeriod extends IEntity<schema.XPeriod> {
   closed: boolean;
   /** 是否平衡 */
   balanced: boolean;
+  /** 是否已生成快照 */
+  snapshot: boolean;
   /** 计提折旧 */
   calculateDepreciation(): Promise<void>;
   /** 月结账 */
   monthlySettlement(): Promise<void>;
   /** 试算平衡 */
   trialBalance(): Promise<void>;
+  /** 生成快照 */
+  generatingNextSnapshot(): Promise<void>;
 }
 
 export class Period extends Entity<schema.XPeriod> implements IPeriod {
@@ -55,6 +59,9 @@ export class Period extends Entity<schema.XPeriod> implements IPeriod {
   get balanced() {
     return this.metadata.balanced;
   }
+  get snapshot() {
+    return this.metadata.snapshot;
+  }
   async calculateDepreciation(): Promise<void> {
     if (this.closed) {
       throw new Error('已结账，无法计提折旧！');
@@ -75,15 +82,25 @@ export class Period extends Entity<schema.XPeriod> implements IPeriod {
   async trialBalance(): Promise<void> {
     await this.update({ ...this.metadata, balanced: true });
   }
-  async toNextPeriod(): Promise<void> {
+  private getNextPeriod(): string {
     const currentMonth = new Date(this.period);
     const nextMonth = new Date(currentMonth);
     nextMonth.setMonth(currentMonth.getMonth() + 1);
-    await this.financial.generatePeriod(common.formatDate(nextMonth, 'yyyy-MM'));
+    return common.formatDate(nextMonth, 'yyyy-MM');
+  }
+  async toNextPeriod(): Promise<void> {
+    await this.financial.generatePeriod(this.getNextPeriod());
   }
   async update(metadata: schema.XPeriod): Promise<void> {
     if (await this.financial.coll.replace(metadata)) {
       await this.financial.coll.notity({ operate: 'update', data: metadata });
     }
+  }
+  async generatingNextSnapshot(): Promise<void> {
+    await kernel.snapshotThing(this.space.id, [this.space.id], {
+      collName: '_system-things',
+      dataPeriod: this.metadata.period,
+    });
+    await this.update({ ...this.metadata, snapshot: true });
   }
 }

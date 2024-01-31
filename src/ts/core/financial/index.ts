@@ -19,11 +19,15 @@ export interface IFinancial extends common.Emitter {
   initialized: string | undefined;
   /** 当前账期 */
   current: string | undefined;
+  /** 统计维度 */
+  species: XProperty | undefined;
+  /** 统计字段 */
+  fields: XProperty[];
   /** 缓存 */
   cache: XObject<schema.Xbase>;
   /** 账期集合 */
   coll: XCollection<schema.XPeriod>;
-  /** 缓存对象 */
+  /** 期数集合 */
   periods: IPeriod[];
   /** 初始化账期 */
   initialize(period: string): Promise<void>;
@@ -31,8 +35,10 @@ export interface IFinancial extends common.Emitter {
   setCurrent(period: string): Promise<void>;
   /** 清空结账日期 */
   clear(): Promise<void>;
-  /** 设置总账统计维度 */
+  /** 设置总账统计维度（分类型、字典型） */
   setSpecies(species: schema.XProperty): Promise<void>;
+  /** 设置总账统计字段（数值型） */
+  setFields(fields: schema.XProperty[]): Promise<void>;
   /** 加载财务数据 */
   loadContent(): Promise<void>;
   /** 加载账期 */
@@ -84,6 +90,12 @@ export class Financial extends common.Emitter implements IFinancial {
   get current(): string | undefined {
     return this.metadata?.current;
   }
+  get species(): XProperty | undefined {
+    return this.metadata?.species;
+  }
+  get fields(): XProperty[] {
+    return this.metadata?.fields ?? [];
+  }
   get cache(): XObject<schema.Xbase> {
     return this.space.cacheObj;
   }
@@ -114,10 +126,21 @@ export class Financial extends common.Emitter implements IFinancial {
         this.changCallback();
       }
     });
+    this.cache.subscribe('financial.fields', (res: schema.XProperty[]) => {
+      if (this.metadata) {
+        this.metadata.fields = res;
+        this.changCallback();
+      }
+    });
   }
   async setSpecies(species: XProperty): Promise<void> {
     if (await this.cache.set('financial.species', species)) {
       await this.cache.notity('financial.species', species, true, false);
+    }
+  }
+  async setFields(fields: XProperty[]): Promise<void> {
+    if (await this.cache.set('financial.fields', fields)) {
+      await this.cache.notity('financial.fields', fields, true, false);
     }
   }
   async initialize(period: string): Promise<void> {
@@ -140,6 +163,7 @@ export class Financial extends common.Emitter implements IFinancial {
   }
   async loadPeriods(reload: boolean = false, skip: number = 0): Promise<IPeriod[]> {
     if (!this.loaded || reload) {
+      this.loaded = true;
       if (skip == 0) {
         this.periods = [];
       }
@@ -191,7 +215,6 @@ export class Financial extends common.Emitter implements IFinancial {
         options: { match: { speciesId: species.speciesId } },
       });
     }
-    console.log(this.speciesItems);
     return this.speciesItems;
   }
 }

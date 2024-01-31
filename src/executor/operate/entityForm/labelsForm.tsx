@@ -24,7 +24,8 @@ const CollectionForm: React.FC<{ space: IBelong; finished: () => void }> = (prop
         await form.validateFields();
         const value = await form.validateFields();
         try {
-          await props.space.dataManager.addCustomCollection(value);
+          const code = 'formdata-' + value.code;
+          await props.space.dataManager.addCustomCollection({ ...value, code });
           props.finished();
         } catch (error) {
           message.error((error as Error).message);
@@ -33,7 +34,7 @@ const CollectionForm: React.FC<{ space: IBelong; finished: () => void }> = (prop
       onCancel={props.finished}>
       <Form form={form} preserve>
         <Form.Item
-          label="集合代码"
+          label="集合代码（前缀 formdata-）"
           name="code"
           rules={[{ required: true, message: '集合代码为必填项!' }]}>
           <Input />

@@ -981,8 +981,8 @@ export default class KernelApi {
       collName: string,
       dataPeriod: string,
     },
-  ): Promise<model.LoadResult<void>> {
-    const res = await this.dataProxy({
+  ): Promise<model.ResultType<void>> {
+    return await this.dataProxy({
       module: 'Thing',
       action: 'Snapshot',
       belongId,
@@ -990,8 +990,6 @@ export default class KernelApi {
       flag: 'snapshotThing',
       params: options,
     });
-    const result: model.LoadResult<void> = { ...res, ...res.data };
-    return result;
   }
 
   /**

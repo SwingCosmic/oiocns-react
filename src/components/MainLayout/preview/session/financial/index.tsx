@@ -1,12 +1,17 @@
+import FullScreenModal from '@/components/Common/fullScreen';
+import OpenFileDialog from '@/components/OpenFileDialog';
+import FormView from '@/executor/open/form';
+import { schema } from '@/ts/base';
+import { deepClone } from '@/ts/base/common';
 import { IBelong, IFinancial, TargetType } from '@/ts/core';
 import { IPeriod } from '@/ts/core/financial/period';
 import { ProTable } from '@ant-design/pro-components';
-import { Button, Card, DatePicker, Space, Tag, message } from 'antd';
+import { Button, Card, DatePicker, Space, Tag } from 'antd';
 import React, { ReactNode, useEffect, useMemo, useRef, useState } from 'react';
 import AssetDepreciation from './widgets/AssetDepreciation';
 import { AssetMonthlyClosing } from './widgets/AssetMonthlyClosing';
-import FullScreenModal from '@/components/Common/fullScreen';
 import AssetLedger from './widgets/ledger';
+import { Form } from '@/ts/core/thing/standard/form';
 
 interface IProps {
   financial: IFinancial;
@@ -98,6 +103,7 @@ const FullScreen: React.FC<FullProps> = (props) => {
 const Periods: React.FC<IProps> = ({ financial }) => {
   const [periods, setPeriods] = useState<IPeriod[]>([]);
   const [center, setCenter] = useState(<></>);
+  const [loading, setLoading] = useState(false);
   useEffect(() => {
     const id = financial.subscribe(() => {
       financial.loadPeriods().then((data) => setPeriods([...data]));
@@ -154,8 +160,40 @@ const Periods: React.FC<IProps> = ({ financial }) => {
             {
               title: '快照',
               valueType: 'text',
-              render(_) {
-                return <a>查看</a>;
+              render(_, item) {
+                if (item.snapshot) {
+                  return (
+                    <Space>
+                      <a
+                        onClick={() => {
+                          setCenter(
+                            <OpenFileDialog
+                              accepts={['表单']}
+                              rootKey={financial.space.key}
+                              onOk={(files) => {
+                                if (files.length > 0) {
+                                  const file = files[0];
+                                  const form = deepClone(file.metadata as schema.XForm);
+                                  form.collName = '_system-things_' + item.period;
+                                  setCenter(
+                                    <FormView
+                                      form={new Form(form, file.directory)}
+                                      finished={() => setCenter(<></>)}
+                                    />,
+                                  );
+                                }
+                              }}
+                              onCancel={() => setCenter(<></>)}
+                            />,
+                          );
+                        }}>
+                        查看
+                      </a>
+                      <Tag color="green">已生成</Tag>
+                    </Space>
+                  );
+                }
+                return <Tag color="red">未生成</Tag>;
               },
             },
             {
@@ -199,6 +237,19 @@ const Periods: React.FC<IProps> = ({ financial }) => {
                           )
                         }>
                         发起折旧
+                      </Button>
+                    )}
+                    {!item.snapshot && (
+                      <Button
+                        loading={loading}
+                        type="primary"
+                        size="small"
+                        onClick={async () => {
+                          setLoading(true);
+                          await item.generatingNextSnapshot();
+                          setLoading(false);
+                        }}>
+                        生成快照
                       </Button>
                     )}
                     {!item.closed && (

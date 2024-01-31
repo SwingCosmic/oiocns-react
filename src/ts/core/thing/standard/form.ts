@@ -42,10 +42,11 @@ export class Form extends StandardFileInfo<schema.XForm> implements IForm {
     this.canDesign = !_metadata.id.includes('_');
     this.setEntity();
     this.storage = new TemporaryStorage(this);
+    const resource = this.directory.resource;
     if (this.metadata.collName) {
-      this.thingColl = this.directory.resource.genColl<schema.XThing>("formdata-" + this.metadata.collName);
+      this.thingColl = resource.genColl<schema.XThing>(this.metadata.collName);
     } else {
-      this.thingColl = this.directory.resource.thingColl;
+      this.thingColl = resource.thingColl;
     }
   }
   thingColl: XCollection<schema.XThing>;

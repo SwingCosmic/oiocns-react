@@ -1,19 +1,20 @@
-import { Breadcrumb, Button, Spin, Table } from 'antd';
+import { RangePicker } from '@/components/Common/StringDatePickers/RangePicker';
+import OpenFileDialog from '@/components/OpenFileDialog';
+import { schema } from '@/ts/base';
+import { XSpeciesItem } from '@/ts/base/schema';
+import { IFinancial } from '@/ts/core';
+import { IPeriod } from '@/ts/core/financial/period';
+import { formatNumber } from '@/utils';
+import { CloseCircleOutlined, PlusCircleOutlined } from '@ant-design/icons';
+import { Breadcrumb, Button, Space, Spin, Table } from 'antd';
 import { ColumnType } from 'antd/lib/table';
 import _ from 'lodash';
 import React, { useCallback, useEffect, useState } from 'react';
 import { useEffectOnce } from 'react-use';
 import { AssetLedgerModal } from './AssetLedgerModal';
-import { IFile, IFinancial, IForm } from '@/ts/core';
-import { IPeriod } from '@/ts/core/financial/period';
-import { AssetLedgerSummary, postfixMap, prefixMap } from './config';
-import { formatDate, formatNumber } from '@/utils';
-import { XSpeciesItem } from '@/ts/base/schema';
-import { RangePicker } from '@/components/Common/StringDatePickers/RangePicker';
+import { AssetLedgerSummary, prefixMap } from './config';
 import cls from './ledger.module.less';
 import testdata from './testdata';
-import OpenFileDialog from '@/components/OpenFileDialog';
-import { schema } from '@/ts/base';
 
 type BreadcrumbItemType = Pick<AssetLedgerSummary, 'assetTypeId' | 'assetTypeName'>;
 
@@ -37,9 +38,8 @@ const AssetLedger: React.FC<IProps> = ({ financial, period }) => {
   const [currentRow, setCurrentRow] = useState<AssetLedgerSummary | null>(null);
   const [currentField, setCurrentField] = useState('');
   const [currentType, setCurrentType] = useState('');
-  const [form, setForm] = useState<IForm>(null!);
   const [species, setSpecies] = useState(financial.metadata?.species);
-  const [fields, setFields] = useState(financial.metadata?.fields ?? []);
+  const [fields, setFields] = useState(financial.fields);
   const [center, setCenter] = useState(<></>);
 
   async function init() {
@@ -47,10 +47,6 @@ const AssetLedger: React.FC<IProps> = ({ financial, period }) => {
   }
 
   async function loadData() {
-    if (!month[0] || !month[1] || !ready) {
-      return;
-    }
-
     try {
       setLoading(true);
 
@@ -189,31 +185,63 @@ const AssetLedger: React.FC<IProps> = ({ financial, period }) => {
               dataSource={data}
               scroll={{ y: 'calc(100%)' }}>
               <Table.Column
+                width={320}
                 title={
-                  <a
-                    onClick={() => {
-                      setCenter(
-                        <OpenFileDialog
-                          accepts={['分类型', '选择型']}
-                          rootKey={financial.space.spaceId}
-                          onOk={async (files) => {
-                            if (files.length > 0) {
-                              const metadata = files[0].metadata as schema.XProperty;
-                              financial.setSpecies(metadata);
-                            }
-                            setCenter(<></>);
-                          }}
-                          onCancel={function (): void {
-                            setCenter(<></>);
-                          }}
-                        />,
-                      );
-                    }}>
-                    {species?.name ?? '选择统计维度'}
-                  </a>
+                  <Space>
+                    <a
+                      onClick={() => {
+                        setCenter(
+                          <OpenFileDialog
+                            accepts={['分类型']}
+                            rootKey={financial.space.spaceId}
+                            onOk={async (files) => {
+                              if (files.length > 0) {
+                                const metadata = files[0].metadata as schema.XProperty;
+                                financial.setSpecies(metadata);
+                              }
+                              setCenter(<></>);
+                            }}
+                            onCancel={() => {
+                              setCenter(<></>);
+                            }}
+                          />,
+                        );
+                      }}>
+                      {species?.name ?? '选择统计维度'}
+                    </a>
+                    <Button
+                      icon={<PlusCircleOutlined />}
+                      size="small"
+                      onClick={() => {
+                        setCenter(
+                          <OpenFileDialog
+                            accepts={['数值型']}
+                            rootKey={financial.space.spaceId}
+                            excludeIds={fields.map((f) => f.id)}
+                            multiple
+                            onOk={async (files) => {
+                              if (files.length > 0) {
+                                const items = [
+                                  ...fields,
+                                  ...files.map(
+                                    (item) => item.metadata as schema.XProperty,
+                                  ),
+                                ];
+                                financial.setFields(items);
+                              }
+                              setCenter(<></>);
+                            }}
+                            onCancel={function (): void {
+                              setCenter(<></>);
+                            }}
+                          />,
+                        );
+                      }}>
+                      添加统计字段
+                    </Button>
+                  </Space>
                 }
                 dataIndex="assetTypeName"
-                width="240px"
                 render={(_, row: AssetLedgerSummary) => {
                   if (row.isParent) {
                     return <div className="is-bold">{row.assetTypeName}</div>;
@@ -232,12 +260,23 @@ const AssetLedger: React.FC<IProps> = ({ financial, period }) => {
                 }}
               />
               {fields.map((field) => (
-                <Table.ColumnGroup key={field.id} title={field.name}>
+                <Table.ColumnGroup
+                  key={field.id}
+                  title={
+                    <Space>
+                      <span>{field.name}</span>{' '}
+                      <CloseCircleOutlined
+                        onClick={() => {
+                          financial.setFields(fields.filter((f) => f.id != field.id));
+                        }}
+                      />
+                    </Space>
+                  }>
                   {prefixMap.map((item) => {
-                    const prop = item.prefix + field.postfix;
+                    const prop = item.prefix + field.id;
                     const column: ColumnType<any> = {
                       title: item.label,
-                      dataIndex: item.prefix + field.postfix,
+                      dataIndex: item.prefix + field.id,
                       align: 'right',
                       key: item.prefix,
                     };
@@ -246,9 +285,7 @@ const AssetLedger: React.FC<IProps> = ({ financial, period }) => {
                         return (
                           <div
                             className="cell-link"
-                            onClick={() =>
-                              handleViewDetail(row, field.postfix, item.prefix)
-                            }>
+                            onClick={() => handleViewDetail(row, field.id, item.prefix)}>
                             {formatNumber(row[prop], 2, true)}
                           </div>
                         );
@@ -271,10 +308,10 @@ const AssetLedger: React.FC<IProps> = ({ financial, period }) => {
         <AssetLedgerModal
           summary={currentRow}
           field={currentField}
-          form={form}
           type={currentType}
           visible={detailVisible}
           onVisibleChange={setDetailVisible}
+          form={null!}
         />
       ) : (
         <></>
