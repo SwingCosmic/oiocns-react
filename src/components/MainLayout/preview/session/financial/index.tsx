@@ -4,7 +4,7 @@ import FormView from '@/executor/open/form';
 import { schema } from '@/ts/base';
 import { deepClone } from '@/ts/base/common';
 import { IBelong, IFinancial, TargetType } from '@/ts/core';
-import { IPeriod } from '@/ts/core/financial/period';
+import { IPeriod } from '@/ts/core/work/financial/period';
 import { ProTable } from '@ant-design/pro-components';
 import { Button, Card, DatePicker, Space, Tag } from 'antd';
 import React, { ReactNode, useEffect, useMemo, useRef, useState } from 'react';

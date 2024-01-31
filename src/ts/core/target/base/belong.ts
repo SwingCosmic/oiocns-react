@@ -10,9 +10,9 @@ import { IStorage } from '../outTeam/storage';
 import { IPerson } from '../person';
 import { IFile } from '../../thing/fileinfo';
 import { XCollection } from '../../public/collection';
-import { Financial, IFinancial } from '../../financial';
+import { Financial, IFinancial } from '../../work/financial';
 import { XObject } from '../../public/object';
-import { CollManager, ICollManager } from '../../data/collManager';
+import { CollManager, ICollManager } from '../../thing/collManager';
 
 /** 自归属用户接口类 */
 export interface IBelong extends ITarget {
