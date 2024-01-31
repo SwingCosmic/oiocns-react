@@ -1,21 +1,20 @@
 import { RangePicker } from '@/components/Common/StringDatePickers/RangePicker';
 import OpenFileDialog from '@/components/OpenFileDialog';
 import { schema } from '@/ts/base';
+import { Node } from '@/ts/base/common';
+import { AggregateTree } from '@/ts/base/common/tree';
 import { IFinancial } from '@/ts/core';
+import { ItemSummary } from '@/ts/core/work/financial';
 import { IPeriod } from '@/ts/core/work/financial/period';
 import { formatNumber } from '@/utils';
 import { CloseCircleOutlined, PlusCircleOutlined } from '@ant-design/icons';
-import { Breadcrumb, Button, Space, Spin, Table } from 'antd';
+import { Button, Space, Spin, Table } from 'antd';
 import { ColumnType } from 'antd/lib/table';
-import _ from 'lodash';
 import React, { useCallback, useEffect, useState } from 'react';
 import { useEffectOnce } from 'react-use';
 import { AssetLedgerModal } from './AssetLedgerModal';
-import { AssetLedgerSummary, prefixMap } from './config';
+import { prefixMap } from './config';
 import cls from './ledger.module.less';
-import testdata from './testdata';
-
-type BreadcrumbItemType = Pick<AssetLedgerSummary, 'assetTypeId' | 'assetTypeName'>;
 
 interface IProps {
   financial: IFinancial;
@@ -25,15 +24,10 @@ interface IProps {
 const AssetLedger: React.FC<IProps> = ({ financial, period }) => {
   const [loading, setLoading] = useState(false);
   const [ready, setReady] = useState(false);
-
   const [month, setMonth] = useState<[string, string]>([period.period, period.period]);
-
-  const [data, setData] = useState<AssetLedgerSummary[]>([]);
-  const [parentId, setParentId] = useState('');
-  const [parentPath, setParentPath] = useState<BreadcrumbItemType[]>([]);
-
+  const [data, setData] = useState<Node<schema.XSpeciesItem>[]>([]);
   const [detailVisible, setDetailVisible] = useState(false);
-  const [currentRow, setCurrentRow] = useState<AssetLedgerSummary | null>(null);
+  const [currentRow, setCurrentRow] = useState<Node<ItemSummary> | null>(null);
   const [currentField, setCurrentField] = useState('');
   const [currentType, setCurrentType] = useState('');
   const [species, setSpecies] = useState(financial.metadata?.species);
@@ -45,86 +39,56 @@ const AssetLedger: React.FC<IProps> = ({ financial, period }) => {
   }
 
   async function loadData() {
+    if (!species) {
+      return;
+    }
     try {
       setLoading(true);
 
-      financial.summary();
       const res = await financial.loadSpecies(true);
 
-      await new Promise<void>((s) => setTimeout(() => s(), 2000));
+      const beforeMap = await financial.summary(financial.getOffsetPeriod(month[0], -1));
+      const afterMap = await financial.summary(month[1]);
 
-      let roots: AssetLedgerSummary[] = res
-        .filter((s) => (parentId ? s.parentId == parentId : !s.parentId))
-        .map((s) => {
-          const ret = _.cloneDeep(testdata[_.random(0, testdata.length - 1)]);
-          ret.assetTypeId = s.id;
-          ret.assetTypeName = s.name;
-          ret.belongId = financial.space.id;
-
-          ret.canClick = false;
-          ret.isParent = true;
-
-          return ret;
-        });
-
-      for (const root of [...roots]) {
-        const children = res
-          .filter((s) => s.parentId == root.assetTypeId)
-          .map((s) => {
-            const ret = _.cloneDeep(testdata[_.random(0, testdata.length - 1)]);
-            ret.assetTypeId = s.id;
-            ret.assetTypeName = s.name;
-
-            ret.canClick = res.filter((c) => c.parentId == s.id).length > 0;
-            ret.isParent = false;
-
-            return ret;
-          });
-        const index = roots.indexOf(root);
-        roots.splice(index + 1, 0, ...children);
+      const nodes: ItemSummary[] = [];
+      for (const item of res) {
+        const one: ItemSummary = { ...item };
+        const before = beforeMap.get('S' + item.id);
+        const after = afterMap.get('S' + item.id);
+        for (const field of fields) {
+          one['before-' + field.id] = before?.[field.id] ?? 0;
+          one['after-' + field.id] = after?.[field.id] ?? 0;
+        }
+        nodes.push(one);
       }
+      const tree = new AggregateTree(
+        nodes,
+        (item) => item.id,
+        (item) => item.parentId,
+      );
+      tree.summary((pre, cur, _, __) => {
+        for (const field of fields) {
+          pre['before-' + field.id] += cur['before-' + field.id];
+          pre['after-' + field.id] += cur['after-' + field.id];
+        }
+        return pre;
+      });
 
-      setData(roots);
+      setData(tree.root.children);
     } finally {
       setLoading(false);
     }
   }
 
   const handleViewDetail = useCallback(
-    async (row: AssetLedgerSummary, field: string, type: string) => {
+    async (row: Node<ItemSummary>, field: string, type: string) => {
       setCurrentRow(row);
       setCurrentField(field);
       setCurrentType(type);
-
       setDetailVisible(true);
     },
     [],
   );
-
-  function handleExpand(row: AssetLedgerSummary) {
-    setCurrentRow(row);
-    setParentId(row.assetTypeId);
-
-    parentPath.push(_.pick(row, ['assetTypeId', 'assetTypeName']));
-    setParentPath(parentPath);
-  }
-
-  function handleBack(item?: BreadcrumbItemType) {
-    if (!item) {
-      setCurrentRow(null);
-      setParentId('');
-      setParentPath([]);
-      return;
-    }
-
-    const row = data.find((d) => d.assetTypeId == item.assetTypeId)!;
-
-    setCurrentRow(row);
-    setParentId(row.assetTypeId);
-
-    parentPath.splice(parentPath.indexOf(item));
-    setParentPath(parentPath);
-  }
 
   useEffectOnce(() => {
     init();
@@ -138,35 +102,15 @@ const AssetLedger: React.FC<IProps> = ({ financial, period }) => {
     return () => {
       financial.unsubscribe(id);
     };
-  }, [month, ready, parentId, species]);
+  }, [month, ready, species]);
 
   return (
     <div className={cls.assetLedger + ' asset-page-element'}>
       <Spin spinning={loading}>
         <div className="flex flex-col gap-2" style={{ height: '100%' }}>
           <div className="asset-page-element__topbar">
-            <Breadcrumb>
-              <Breadcrumb.Item className={cls.title}>
-                {parentPath.length > 0 ? (
-                  <a onClick={() => handleBack()}>全部资产</a>
-                ) : (
-                  <span>全部资产</span>
-                )}
-              </Breadcrumb.Item>
-              {parentPath.map((p) => {
-                return (
-                  <Breadcrumb.Item key={p.assetTypeId}>
-                    {parentId == p.assetTypeId ? (
-                      <span>{p.assetTypeName}</span>
-                    ) : (
-                      <a onClick={() => handleBack(p)}>{p.assetTypeName}</a>
-                    )}
-                  </Breadcrumb.Item>
-                );
-              })}
-            </Breadcrumb>
+            <span className={cls.title}>全部资产</span>
             <div className="flex-auto"></div>
-
             <div>月份范围</div>
             <RangePicker
               picker="month"
@@ -177,14 +121,15 @@ const AssetLedger: React.FC<IProps> = ({ financial, period }) => {
             <Button onClick={loadData}>刷新</Button>
           </div>
           <div className={cls.content}>
-            <Table
+            <Table<Node<ItemSummary>>
+              rowKey={'id'}
               sticky
               pagination={false}
               bordered
               size="small"
               dataSource={data}
               scroll={{ y: 'calc(100%)' }}>
-              <Table.Column
+              <Table.Column<Node<ItemSummary>>
                 width={320}
                 title={
                   <Space>
@@ -241,22 +186,8 @@ const AssetLedger: React.FC<IProps> = ({ financial, period }) => {
                     </Button>
                   </Space>
                 }
-                dataIndex="assetTypeName"
-                render={(_, row: AssetLedgerSummary) => {
-                  if (row.isParent) {
-                    return <div className="is-bold">{row.assetTypeName}</div>;
-                  } else if (row.canClick) {
-                    return (
-                      <div
-                        className="cell-link"
-                        style={{ marginLeft: '8px' }}
-                        onClick={() => handleExpand(row)}>
-                        {row.assetTypeName}
-                      </div>
-                    );
-                  } else {
-                    return <div style={{ marginLeft: '8px' }}>{row.assetTypeName}</div>;
-                  }
+                render={(_, row) => {
+                  return row.data.name;
                 }}
               />
               {fields.map((field) => (
@@ -264,7 +195,7 @@ const AssetLedger: React.FC<IProps> = ({ financial, period }) => {
                   key={field.id}
                   title={
                     <Space>
-                      <span>{field.name}</span>{' '}
+                      <span>{field.name}</span>
                       <CloseCircleOutlined
                         onClick={() => {
                           financial.setFields(fields.filter((f) => f.id != field.id));
@@ -273,8 +204,8 @@ const AssetLedger: React.FC<IProps> = ({ financial, period }) => {
                     </Space>
                   }>
                   {prefixMap.map((item) => {
-                    const prop = item.prefix + field.id;
-                    const column: ColumnType<any> = {
+                    const prop = item.prefix + '-' + field.id;
+                    const column: ColumnType<Node<ItemSummary>> = {
                       title: item.label,
                       dataIndex: item.prefix + field.id,
                       align: 'right',
@@ -286,16 +217,16 @@ const AssetLedger: React.FC<IProps> = ({ financial, period }) => {
                           <div
                             className="cell-link"
                             onClick={() => handleViewDetail(row, field.id, item.prefix)}>
-                            {formatNumber(row[prop] ?? 0, 2, true)}
+                            {formatNumber(row.data[prop] ?? 0, 2, true)}
                           </div>
                         );
                       };
                     } else {
                       column.render = (_, row) => {
-                        return <div>{formatNumber(row[prop] ?? 0, 2, true)}</div>;
+                        return <div>{formatNumber(row.data[prop] ?? 0, 2, true)}</div>;
                       };
                     }
-                    return <Table.Column {...column} />;
+                    return <Table.Column<Node<ItemSummary>> {...column} />;
                   })}
                 </Table.ColumnGroup>
               ))}

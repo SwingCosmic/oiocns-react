@@ -26,6 +26,10 @@ export interface IPeriod extends IEntity<schema.XPeriod> {
   balanced: boolean;
   /** 是否已生成快照 */
   snapshot: boolean;
+  /** 获取上一个月日期 */
+  getPrePeriod(): string;
+  /** 获取下一个月日期 */
+  getNextPeriod(): string;
   /** 计提折旧 */
   calculateDepreciation(): Promise<void>;
   /** 月结账 */
@@ -85,11 +89,11 @@ export class Period extends Entity<schema.XPeriod> implements IPeriod {
   async trialBalance(): Promise<void> {
     await this.update({ ...this.metadata, balanced: true });
   }
-  private getNextPeriod(): string {
-    const currentMonth = new Date(this.period);
-    const nextMonth = new Date(currentMonth);
-    nextMonth.setMonth(currentMonth.getMonth() + 1);
-    return common.formatDate(nextMonth, 'yyyy-MM');
+  getPrePeriod(): string {
+    return this.financial.getOffsetPeriod(this.period, -1);
+  }
+  getNextPeriod(): string {
+    return this.financial.getOffsetPeriod(this.period, 1);
   }
   async toNextPeriod(): Promise<void> {
     await this.financial.generatePeriod(this.getNextPeriod());

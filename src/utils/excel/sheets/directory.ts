@@ -48,8 +48,9 @@ export class DirectoryHandler extends i.SheetHandler<DirectorySheet> {
       );
       tree.freeMap.forEach((item) => {
         const parentCode = item.data.directoryCode;
+        const index = tree.indexMap.get(item.id) ?? -1;
         allErrors.push(
-          ...this.assert(item.index, [
+          ...this.assert(index, [
             { res: tree.freeMap.size != 0, error: '未找到上级目录代码：' + parentCode },
           ]),
         );

@@ -1,3 +1,5 @@
+import { List } from './linq';
+
 /**
  * 树
  */
@@ -11,8 +13,7 @@ export class Tree<T extends { [key: string]: any }> {
   readonly root: Node<T>;
   readonly nodeMap: Map<string, Node<T>>;
   readonly freeMap: Map<string, Node<T>>;
-  private seed: number;
-
+  readonly indexMap: Map<string, number>;
   constructor(
     nodeData: T[],
     id: (node: T) => string,
@@ -21,16 +22,17 @@ export class Tree<T extends { [key: string]: any }> {
   ) {
     this.nodeMap = new Map();
     this.freeMap = new Map();
-    this.seed = 0;
+    this.indexMap = new Map();
     if (root) {
-      this.root = new Node(id(root), root, -1, undefined);
+      this.root = new Node(id(root), root);
     } else {
-      this.root = new Node('root_', {} as T, -1, undefined);
+      this.root = new Node('root_', {} as T);
     }
     this.nodeMap.set(this.root.id, this.root);
-    nodeData.forEach((item, index) =>
-      this.addNode(id(item), item, index, parentId(item)),
-    );
+    nodeData.forEach((item, index) => {
+      this.addNode(id(item), item, parentId(item));
+      this.indexMap.set(id(item), index);
+    });
   }
 
   /**
@@ -39,10 +41,14 @@ export class Tree<T extends { [key: string]: any }> {
    * @param parentId 父节点 ID
    * @param data 节点数据
    */
-  addNode(id: string, data: T, index?: number, parentId?: string) {
-    if (id == null) return;
-    if (this.nodeMap.has(id)) return;
-    let node: Node<T> = new Node<T>(id, data, index ?? this.seed++, parentId);
+  addNode(id: string, data: T, parentId?: string): Node<T> | undefined {
+    if (id == null) {
+      return;
+    }
+    if (this.nodeMap.has(id)) {
+      return this.nodeMap.get(id);
+    }
+    let node: Node<T> = new Node<T>(id, data, parentId);
     if (!parentId) this.root.addChild(node);
     else {
       let parentNode: Node<T> | undefined = this.nodeMap.get(parentId);
@@ -53,6 +59,7 @@ export class Tree<T extends { [key: string]: any }> {
       }
     }
     this.nodeMap.set(id, node);
+    return node;
   }
 
   /**
@@ -74,22 +81,58 @@ export class Tree<T extends { [key: string]: any }> {
   }
 }
 
+/**
+ * 可聚合的树
+ */
+export class AggregateTree<T extends { [key: string]: any }> extends Tree<T> {
+  /**
+   * 从低向上汇总一棵树数据
+   * @param binaryOperator 
+   */
+  summary(binaryOperator: (pre: T, cur: T, index: number, arr: T[]) => T) {
+    let levels: Node<T>[][] = [];
+    let queue: Node<T>[] = [];
+    queue = queue.concat(this.root.children);
+
+    while (queue.length !== 0) {
+      let currentLevel: Node<T>[] = [];
+      let children: Node<T>[] = [];
+      while (queue.length !== 0) {
+        let first: Node<T> = queue.shift()!;
+        currentLevel.push(first);
+        children = children.concat(first.children);
+      }
+      queue = children;
+      levels.push(currentLevel);
+    }
+
+    for (let index = levels.length - 1; index >= 1; index--) {
+      let level = levels[index].filter((item) => item.parentId);
+      let group = new List(level).GroupBy((node) => node.parentId!);
+      for (let parentId of Object.keys(group)) {
+        let nodes: Node<T>[] = group[parentId];
+        let parentNode = this.nodeMap.get(parentId)!;
+        parentNode.data = nodes
+          .map((node) => node.data)
+          .reduce(binaryOperator, parentNode.data);
+      }
+    }
+  }
+}
 
 /**
  * 节点
  */
 export class Node<T extends { [key: string]: any }> {
-  id: string;
-  parentId?: string;
-  index: number;
+  readonly id: string;
+  readonly parentId?: string;
   readonly children: Node<T>[];
   public data: T;
 
-  constructor(id: string, data: T, index: number, parentId?: string) {
+  constructor(id: string, data: T, parentId?: string) {
     this.id = id;
     this.parentId = parentId;
     this.data = data;
-    this.index = index;
     this.children = [];
   }
 

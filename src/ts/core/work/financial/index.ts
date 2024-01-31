@@ -1,11 +1,10 @@
 import { IBelong, XCollection, XObject } from '../..';
-import { common, kernel, model, schema } from '../../../base';
+import { common, kernel, schema } from '../../../base';
 import { IPeriod, Period } from './period';
 
-export interface PeriodResult {
-  data: IPeriod[];
-  success: boolean;
-  total: number;
+/** 汇总数据 */
+export interface ItemSummary extends schema.XSpeciesItem {
+  [field: string]: any;
 }
 
 /** 财务接口 */
@@ -28,6 +27,8 @@ export interface IFinancial extends common.Emitter {
   coll: XCollection<schema.XPeriod>;
   /** 期数集合 */
   periods: IPeriod[];
+  /** 获取偏移的期数 */
+  getOffsetPeriod(period: string, offset: number): string;
   /** 初始化账期 */
   initialize(period: string): Promise<void>;
   /** 设置当前账期 */
@@ -47,7 +48,7 @@ export interface IFinancial extends common.Emitter {
   /** 加载分类树 */
   loadSpecies(reload?: boolean): Promise<schema.XSpeciesItem[]>;
   /** 统计某一时刻快照按统计维度的汇总值 */
-  summary(period: string): Promise<any[]>;
+  summary(period: string): Promise<Map<string, any>>;
 }
 
 export class Financial extends common.Emitter implements IFinancial {
@@ -135,11 +136,15 @@ export class Financial extends common.Emitter implements IFinancial {
     });
   }
   async setSpecies(species: schema.XProperty): Promise<void> {
+    species = common.deepClone(species);
+    species.id = 'T' + species.id;
     if (await this.cache.set('financial.species', species)) {
       await this.cache.notity('financial.species', species, true, false);
     }
   }
   async setFields(fields: schema.XProperty[]): Promise<void> {
+    fields = common.deepClone(fields);
+    fields.forEach((item) => (item.id = 'T' + item.id));
     if (await this.cache.set('financial.fields', fields)) {
       await this.cache.notity('financial.fields', fields, true, false);
     }
@@ -218,24 +223,23 @@ export class Financial extends common.Emitter implements IFinancial {
     }
     return this.speciesItems;
   }
-  async summary(period: string): Promise<any[]> {
+  async summary(period: string): Promise<Map<string, any[]>> {
+    const map = new Map<string, any[]>();
     const speciesItems = await this.loadSpecies();
     if (!this.species) {
-      return [];
+      return map;
     }
-    const _id = `T${this.species.id}`;
     let group: any = {
-      key: _id,
+      key: this.species.id,
     };
     this.fields.map((item) => {
-      const key = `T${item.id}`;
-      group[key] = { _sum_: '$' + key };
+      group[item.id] = { _sum_: '$' + item.id };
     });
     let options = [
       {
         match: {
           belongId: this.space.id,
-          [_id]: { _ne_: null },
+          [this.species.id]: { _ne_: null },
         },
       },
       {
@@ -249,6 +253,17 @@ export class Financial extends common.Emitter implements IFinancial {
       '_system-things_' + period,
       options,
     );
-    return result.data;
+    if (result.success && Array.isArray(result.data)) {
+      for (const item of result.data) {
+        map.set(item[this.species.id], item);
+      }
+    }
+    return map;
+  }
+  getOffsetPeriod(period: string, offsetMonth: number): string {
+    const currentMonth = new Date(period);
+    const preMonth = new Date(currentMonth);
+    preMonth.setMonth(currentMonth.getMonth() + offsetMonth);
+    return common.formatDate(preMonth, 'yyyy-MM');
   }
 }
