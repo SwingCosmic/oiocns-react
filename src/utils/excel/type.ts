@@ -1,5 +1,6 @@
 import { schema, model } from '@/ts/base';
 import { IDirectory } from '@/ts/core';
+export { Node, Tree } from '@/ts/base/common';
 export * as XLSX from 'xlsx';
 
 /**

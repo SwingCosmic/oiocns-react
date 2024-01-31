@@ -1,27 +1,4 @@
 /**
- * 节点
- */
-export class Node<T extends { [key: string]: any }> {
-  id: string;
-  parentId?: string;
-  index: number;
-  readonly children: Node<T>[];
-  public data: T;
-
-  constructor(id: string, data: T, index: number, parentId?: string) {
-    this.id = id;
-    this.parentId = parentId;
-    this.data = data;
-    this.index = index;
-    this.children = [];
-  }
-
-  public addChild(node: Node<T>) {
-    this.children.push(node);
-  }
-}
-
-/**
  * 树
  */
 export class Tree<T extends { [key: string]: any }> {
@@ -94,5 +71,29 @@ export class Tree<T extends { [key: string]: any }> {
       });
       hasParent.forEach((nodeKey) => this.freeMap.delete(nodeKey));
     }
+  }
+}
+
+
+/**
+ * 节点
+ */
+export class Node<T extends { [key: string]: any }> {
+  id: string;
+  parentId?: string;
+  index: number;
+  readonly children: Node<T>[];
+  public data: T;
+
+  constructor(id: string, data: T, index: number, parentId?: string) {
+    this.id = id;
+    this.parentId = parentId;
+    this.data = data;
+    this.index = index;
+    this.children = [];
+  }
+
+  public addChild(node: Node<T>) {
+    this.children.push(node);
   }
 }
