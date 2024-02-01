@@ -1,4 +1,5 @@
-import { IBelong, XCollection, XObject } from '../..';
+import { IBelong, XCollection } from '../..';
+import { XObject } from '../../public/object';
 import { common, kernel, schema } from '../../../base';
 import { IPeriod, Period } from './period';
 
@@ -55,6 +56,7 @@ export class Financial extends common.Emitter implements IFinancial {
   constructor(belong: IBelong) {
     super();
     this.space = belong;
+    this.cache = new XObject(belong.metadata, 'target-financial', [], [this.key]);
     this.coll = this.space.resource.periodColl;
     this.coll.subscribe([this.key], (result) => {
       switch (result.operate) {
@@ -76,6 +78,7 @@ export class Financial extends common.Emitter implements IFinancial {
       this.changCallback();
     });
   }
+  cache: XObject<schema.Xbase>;
   metadata: schema.XFinancial | undefined;
   speciesLoaded: boolean = false;
   space: IBelong;
@@ -98,9 +101,6 @@ export class Financial extends common.Emitter implements IFinancial {
   get fields(): schema.XProperty[] {
     return this.metadata?.fields ?? [];
   }
-  get cache(): XObject<schema.Xbase> {
-    return this.space.cacheObj;
-  }
   async loadContent(): Promise<void> {
     const data = await this.cache.get<schema.XFinancial>('financial');
     if (data) {
@@ -109,12 +109,6 @@ export class Financial extends common.Emitter implements IFinancial {
     this.cache.subscribe('financial', (res: schema.XFinancial) => {
       this.metadata = res;
       this.changCallback();
-    });
-    this.cache.subscribe('financial.initialized', (res: string) => {
-      if (this.metadata) {
-        this.metadata.initialized = res;
-        this.changCallback();
-      }
     });
     this.cache.subscribe('financial.current', (res: string) => {
       if (this.metadata) {
@@ -150,8 +144,8 @@ export class Financial extends common.Emitter implements IFinancial {
     }
   }
   async initialize(period: string): Promise<void> {
-    if (await this.cache.set('financial.initialized', period)) {
-      await this.cache.notity('financial.initialized', period, true, false);
+    if (await this.cache.set('financial', { initialized: period })) {
+      await this.cache.notity('financial', { initialized: period }, true, false);
     }
   }
   async setCurrent(period: string) {
