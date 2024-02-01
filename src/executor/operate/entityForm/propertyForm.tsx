@@ -148,7 +148,7 @@ const PropertyForm = (props: Iprops) => {
         },
       });
     }
-
+    
     if (selectType === '数值型') {
       columns.push({
         title: '单位',
@@ -161,6 +161,18 @@ const PropertyForm = (props: Iprops) => {
       valueType: 'textarea',
       readonly: readonly,
       colProps: { span: 24 },
+    });
+    columns.push({
+      title: "是否记录变更值",
+      dataIndex: "isChangeTarget",
+      valueType: "switch",
+      colProps: { span: 12 },
+    });
+    columns.push({
+      title: "是否记录变更源",
+      dataIndex: "isChangeSource",
+      valueType: "switch",
+      colProps: { span: 12 },
     });
     if (readonly) {
       columns.push(...EntityColumns(props.current!.metadata));
