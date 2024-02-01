@@ -1,7 +1,7 @@
 import { RangePicker } from '@/components/Common/StringDatePickers/RangePicker';
 import OpenFileDialog from '@/components/OpenFileDialog';
 import { schema } from '@/ts/base';
-import { Node } from '@/ts/base/common';
+import { Node, deepClone } from '@/ts/base/common';
 import { IFinancial } from '@/ts/core';
 import { ItemSummary } from '@/ts/core/work/financial';
 import { IPeriod } from '@/ts/core/work/financial/period';
@@ -102,7 +102,9 @@ const AssetLedger: React.FC<IProps> = ({ financial, period }) => {
                             onOk={async (files) => {
                               if (files.length > 0) {
                                 const metadata = files[0].metadata as schema.XProperty;
-                                financial.setSpecies(metadata);
+                                const result = deepClone(metadata);
+                                result.id = "T" + result.id;
+                                financial.setSpecies(result);
                               }
                               setCenter(<></>);
                             }}
@@ -128,9 +130,13 @@ const AssetLedger: React.FC<IProps> = ({ financial, period }) => {
                               if (files.length > 0) {
                                 const items = [
                                   ...fields,
-                                  ...files.map(
-                                    (item) => item.metadata as schema.XProperty,
-                                  ),
+                                  ...files.map((item) => {
+                                    const metadata = deepClone(
+                                      item.metadata as schema.XProperty,
+                                    );
+                                    metadata.id = 'T' + metadata.id;
+                                    return metadata;
+                                  }),
                                 ];
                                 financial.setFields(items);
                               }

@@ -878,7 +878,7 @@ export type XChangeInfo<T> = {
   // 变动后
   after: T;
   // 变更值
-  value: T extends number ? number : never;
+  change: T extends number ? number : never;
   // 符号
   symbol: T extends number ? number : never;
 };

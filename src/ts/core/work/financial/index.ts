@@ -132,15 +132,11 @@ export class Financial extends common.Emitter implements IFinancial {
     });
   }
   async setSpecies(species: schema.XProperty): Promise<void> {
-    species = common.deepClone(species);
-    species.id = 'T' + species.id;
     if (await this.cache.set('financial.species', species)) {
       await this.cache.notity('financial.species', species, true, false);
     }
   }
   async setFields(fields: schema.XProperty[]): Promise<void> {
-    fields = common.deepClone(fields);
-    fields.forEach((item) => (item.id = 'T' + item.id));
     if (await this.cache.set('financial.fields', fields)) {
       await this.cache.notity('financial.fields', fields, true, false);
     }
