@@ -50,6 +50,8 @@ export interface IFinancial extends common.Emitter {
   loadSpecies(reload?: boolean): Promise<schema.XSpeciesItem[]>;
   /** 统计某一时刻快照按统计维度的汇总值 */
   summary(period: string): Promise<Map<string, any>>;
+  /** 统计区间的汇总至 */
+  summaryRange(start: string, end: string): Promise<common.Node<ItemSummary>[]>;
 }
 
 export class Financial extends common.Emitter implements IFinancial {
@@ -217,7 +219,7 @@ export class Financial extends common.Emitter implements IFinancial {
     }
     return this.speciesItems;
   }
-  async summary(period: string): Promise<Map<string, any[]>> {
+  async summary(period: string): Promise<Map<string, any>> {
     const map = new Map<string, any[]>();
     const speciesItems = await this.loadSpecies();
     if (!this.species) {
@@ -253,6 +255,37 @@ export class Financial extends common.Emitter implements IFinancial {
       }
     }
     return map;
+  }
+  async summaryRange(start: string, end: string): Promise<common.Node<ItemSummary>[]> {
+    const res = await this.loadSpecies(true);
+
+    const beforeMap = await this.summary(this.getOffsetPeriod(start, -1));
+    const afterMap = await this.summary(end);
+
+    const nodes: ItemSummary[] = [];
+    for (const item of res) {
+      const one: ItemSummary = { ...item };
+      const before = beforeMap.get('S' + item.id);
+      const after = afterMap.get('S' + item.id);
+      for (const field of this.fields) {
+        one['before-' + field.id] = before?.[field.id] ?? 0;
+        one['after-' + field.id] = after?.[field.id] ?? 0;
+      }
+      nodes.push(one);
+    }
+    const tree = new common.AggregateTree(
+      nodes,
+      (item) => item.id,
+      (item) => item.parentId,
+    );
+    tree.summary((pre, cur, _, __) => {
+      for (const field of this.fields) {
+        pre['before-' + field.id] += cur['before-' + field.id];
+        pre['after-' + field.id] += cur['after-' + field.id];
+      }
+      return pre;
+    });
+    return tree.root.children;
   }
   getOffsetPeriod(period: string, offsetMonth: number): string {
     const currentMonth = new Date(period);

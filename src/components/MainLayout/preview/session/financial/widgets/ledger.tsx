@@ -2,7 +2,6 @@ import { RangePicker } from '@/components/Common/StringDatePickers/RangePicker';
 import OpenFileDialog from '@/components/OpenFileDialog';
 import { schema } from '@/ts/base';
 import { Node } from '@/ts/base/common';
-import { AggregateTree } from '@/ts/base/common/tree';
 import { IFinancial } from '@/ts/core';
 import { ItemSummary } from '@/ts/core/work/financial';
 import { IPeriod } from '@/ts/core/work/financial/period';
@@ -11,7 +10,6 @@ import { CloseCircleOutlined, PlusCircleOutlined } from '@ant-design/icons';
 import { Button, Space, Spin, Table } from 'antd';
 import { ColumnType } from 'antd/lib/table';
 import React, { useCallback, useEffect, useState } from 'react';
-import { useEffectOnce } from 'react-use';
 import { AssetLedgerModal } from './AssetLedgerModal';
 import { prefixMap } from './config';
 import cls from './ledger.module.less';
@@ -23,7 +21,6 @@ interface IProps {
 
 const AssetLedger: React.FC<IProps> = ({ financial, period }) => {
   const [loading, setLoading] = useState(false);
-  const [ready, setReady] = useState(false);
   const [month, setMonth] = useState<[string, string]>([period.period, period.period]);
   const [data, setData] = useState<Node<schema.XSpeciesItem>[]>([]);
   const [detailVisible, setDetailVisible] = useState(false);
@@ -34,47 +31,13 @@ const AssetLedger: React.FC<IProps> = ({ financial, period }) => {
   const [fields, setFields] = useState(financial.fields);
   const [center, setCenter] = useState(<></>);
 
-  async function init() {
-    setReady(true);
-  }
-
   async function loadData() {
     if (!species) {
       return;
     }
     try {
       setLoading(true);
-
-      const res = await financial.loadSpecies(true);
-
-      const beforeMap = await financial.summary(financial.getOffsetPeriod(month[0], -1));
-      const afterMap = await financial.summary(month[1]);
-
-      const nodes: ItemSummary[] = [];
-      for (const item of res) {
-        const one: ItemSummary = { ...item };
-        const before = beforeMap.get('S' + item.id);
-        const after = afterMap.get('S' + item.id);
-        for (const field of fields) {
-          one['before-' + field.id] = before?.[field.id] ?? 0;
-          one['after-' + field.id] = after?.[field.id] ?? 0;
-        }
-        nodes.push(one);
-      }
-      const tree = new AggregateTree(
-        nodes,
-        (item) => item.id,
-        (item) => item.parentId,
-      );
-      tree.summary((pre, cur, _, __) => {
-        for (const field of fields) {
-          pre['before-' + field.id] += cur['before-' + field.id];
-          pre['after-' + field.id] += cur['after-' + field.id];
-        }
-        return pre;
-      });
-
-      setData(tree.root.children);
+      setData(await financial.summaryRange(month[0], month[1]));
     } finally {
       setLoading(false);
     }
@@ -90,19 +53,16 @@ const AssetLedger: React.FC<IProps> = ({ financial, period }) => {
     [],
   );
 
-  useEffectOnce(() => {
-    init();
-  });
   useEffect(() => {
-    loadData();
     const id = financial.subscribe(() => {
       setSpecies(financial.metadata?.species);
       setFields(financial.metadata?.fields ?? []);
+      loadData();
     });
     return () => {
       financial.unsubscribe(id);
     };
-  }, [month, ready, species]);
+  }, [month, species]);
 
   return (
     <div className={cls.assetLedger + ' asset-page-element'}>
@@ -162,7 +122,7 @@ const AssetLedger: React.FC<IProps> = ({ financial, period }) => {
                           <OpenFileDialog
                             accepts={['数值型']}
                             rootKey={financial.space.spaceId}
-                            excludeIds={fields.map((f) => f.id)}
+                            excludeIds={fields.map((f) => f.id.replace('T', ''))}
                             multiple
                             onOk={async (files) => {
                               if (files.length > 0) {
