@@ -853,10 +853,10 @@ export interface XReportTree extends XStandard {
 
 /** 变动记录 */
 export interface XChange extends Xbase {
-  // 事件 ID
-  defineId: string;
+  // 流程实例 ID
+  instanceId: string;
   // 事件名称
-  defineName: string;
+  title: string;
   // 变更时间（业务时间）
   changeTime: string;
   // 物 ID
