@@ -129,17 +129,19 @@ export class WorkApply implements IWorkApply {
       if (data && fields) {
         for (const field of fields.filter((a) => a.options && a.options.showToRemark)) {
           var value = data.at(-1)?.after[0][field.id];
-          switch (field.valueType) {
-            case '用户型':
-              value = (await this.belong.user.findEntityAsync(value))?.name;
-              break;
-            case '选择型':
-              value = field.lookups?.find(
-                (a) => a.id === (value as string).substring(1),
-              )?.text;
-              break;
-            default:
-              break;
+          if (value) {
+            switch (field.valueType) {
+              case '用户型':
+                value = (await this.belong.user.findEntityAsync(value))?.name;
+                break;
+              case '选择型':
+                value = field.lookups?.find(
+                  (a) => a.id === (value as string).substring(1),
+                )?.text;
+                break;
+              default:
+                break;
+            }
           }
           remarks.push(`${field.name}:${value}  `);
         }
