@@ -26,7 +26,7 @@ const FormSelectModal = ({
   const dataRange = form.options?.workDataRange;
   const filterExp: any[] = JSON.parse(dataRange?.filterExp ?? '[]');
   const labels = dataRange?.labels ?? [];
-  const [xForm] = useState(new Form(form, belong.directory));
+  const xForm = new Form(form, belong.directory);
   const modal = Modal.confirm({
     icon: <EntityIcon entityId={form.id} showName />,
     width: '80vw',

@@ -851,52 +851,34 @@ export interface XReportTree extends XStandard {
   treeType: ReportTreeTypes;
 }
 
-/** 变动记录 */
-export interface XChange extends Xbase {
-  // 流程实例 ID
+/** 卡片快照 */
+export interface XSnapshot extends XThing {
+  // 办事实例 ID
   instanceId: string;
   // 事件名称
   title: string;
-  // 变更时间（业务时间）
-  changeTime: string;
   // 物 ID
   thingId: string;
-  // 增加
-  increase: {
-    // 变更
-    changes: Record<string, XNumberChangeInfo>;
-    // 触发
-    triggers: Record<string, XChangeInfo<any>>;
-  };
-  // 减少
-  decrease: {
-    // 变更
-    changes: Record<string, XNumberChangeInfo>;
-    // 触发
-    triggers: Record<string, XChangeInfo<any>>;
-  };
-  changes: {
-    // 变更
-    changes: Record<string, XChangeInfo<any>>;
-    // 触发
-    triggers: Record<string, XChangeInfo<any>>;
-  };
-  // 属性
-  data: {
-    [key: string]: any;
-  };
 }
 
 /** 变更详情 */
-export type XChangeInfo<T> = {
+export interface XChange extends Xbase {
+  // 业务时间
+  changeTime: string;
+  // 物 ID
+  thingId: string;
+  // 变动属性
+  propId: string;
   // 变动前
-  before: T;
+  before: number;
   // 变动后
-  after: T;
-};
-
-/** 数值变更 */
-export interface XNumberChangeInfo extends XChangeInfo<number> {
+  after: number;
   // 变更值
   change: number;
+  // 符号
+  symbol: number;
+  // 快照 ID
+  snapshotId: string;
+  // 维度 ID
+  [dimension: string]: any;
 }

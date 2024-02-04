@@ -239,7 +239,7 @@ const Periods: React.FC<IProps> = ({ financial }) => {
                         发起折旧
                       </Button>
                     )}
-                    {!item.snapshot && (
+                    {
                       <Button
                         loading={loading}
                         type="primary"
@@ -251,7 +251,7 @@ const Periods: React.FC<IProps> = ({ financial }) => {
                         }}>
                         生成快照
                       </Button>
-                    )}
+                    }
                     {!item.closed && (
                       <Button
                         type="primary"

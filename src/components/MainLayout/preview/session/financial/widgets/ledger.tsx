@@ -37,7 +37,8 @@ const AssetLedger: React.FC<IProps> = ({ financial, period }) => {
     }
     try {
       setLoading(true);
-      setData(await financial.summaryRange(month[0], month[1]));
+      const data = await financial.summaryRange(month[0], month[1]);
+      setData(data);
     } finally {
       setLoading(false);
     }

@@ -20,16 +20,6 @@ export interface AssetLedgerSummary {
   [key: string]: any;
 }
 
-export const postfixMap = [
-  {
-    label: '原值',
-    postfix: 'OriginalValue',
-  },
-  {
-    label: '累计折旧',
-    postfix: 'AccumulatedDepreciation',
-  },
-];
 export const prefixMap = [
   {
     label: '期初',

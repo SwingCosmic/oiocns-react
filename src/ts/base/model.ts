@@ -704,6 +704,10 @@ export type FieldModel = {
   lookups?: FiledLookup[];
   /** 计量单位 */
   unit?: string;
+  /** 是否可记录 */
+  isChangeTarget?: boolean;
+  /** 是否变更源 */
+  isChangeSource?: boolean;
 };
 
 export type FiledLookup = {

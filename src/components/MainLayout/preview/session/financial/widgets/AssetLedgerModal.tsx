@@ -1,5 +1,4 @@
 import GenerateThingTable from '@/executor/tools/generate/thingTable';
-import { kernel } from '@/ts/base';
 import { Node } from '@/ts/base/common';
 import { XThing } from '@/ts/base/schema';
 import { IForm } from '@/ts/core';
@@ -7,7 +6,7 @@ import { ItemSummary } from '@/ts/core/work/financial';
 import { Button, Col, Form, Input, Modal, Row } from 'antd';
 import CustomStore from 'devextreme/data/custom_store';
 import React, { useEffect, useState } from 'react';
-import { postfixMap, prefixMap } from './config';
+import { prefixMap } from './config';
 import cls from './ledger.module.less';
 
 interface Props {
@@ -37,10 +36,10 @@ export function AssetLedgerModal(props: Props) {
       return;
     }
 
-    const fieldName = postfixMap.find((p) => props.field == p.postfix)?.label ?? '';
-    const typeName = prefixMap.find((p) => props.type == p.prefix)?.label ?? '';
+    // const fieldName = postfixMap.find((p) => props.field == p.postfix)?.label ?? '';
+    // const typeName = prefixMap.find((p) => props.type == p.prefix)?.label ?? '';
 
-    setTitle(() => fieldName + typeName);
+    // setTitle(() => fieldName + typeName);
 
     // const loadOptions = {
     //   take: 100,

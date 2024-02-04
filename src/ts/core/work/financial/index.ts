@@ -50,6 +50,8 @@ export interface IFinancial extends common.Emitter {
   loadSpecies(reload?: boolean): Promise<schema.XSpeciesItem[]>;
   /** 统计某一时刻快照按统计维度的汇总值 */
   summary(period: string): Promise<Map<string, any>>;
+  /** 统计变动的汇总值 */
+  summaryChange(period: string): Promise<Map<string, any>>;
   /** 统计区间的汇总至 */
   summaryRange(start: string, end: string): Promise<common.Node<ItemSummary>[]>;
 }
@@ -216,8 +218,7 @@ export class Financial extends common.Emitter implements IFinancial {
     return this.speciesItems;
   }
   async summary(period: string): Promise<Map<string, any>> {
-    const map = new Map<string, any[]>();
-    const speciesItems = await this.loadSpecies();
+    const map = new Map<string, any>();
     if (!this.species) {
       return map;
     }
@@ -237,12 +238,12 @@ export class Financial extends common.Emitter implements IFinancial {
       {
         group: group,
       },
-      { limit: speciesItems.length },
+      { limit: this.speciesItems.length },
     ];
     const result = await kernel.collectionAggregate(
       this.space.id,
       [this.space.id],
-      '_system-things_' + period,
+      period == this.current ? '_system-things' : '_system-things-' + period,
       options,
     );
     if (result.success && Array.isArray(result.data)) {
@@ -252,20 +253,69 @@ export class Financial extends common.Emitter implements IFinancial {
     }
     return map;
   }
+  async summaryChange(
+    period: string,
+  ): Promise<Map<string, Map<string, Map<number, any>>>> {
+    const map = new Map<string, Map<string, Map<number, any>>>();
+    if (!this.species) {
+      return map;
+    }
+    let options = [
+      {
+        match: {
+          belongId: this.space.id,
+          changeTime: period,
+          [this.species.id]: { _ne_: null },
+        },
+      },
+      {
+        group: {
+          key: [this.species.id, 'propId', 'symbol'],
+          change: { _sum_: '$change' },
+        },
+      },
+      { limit: this.speciesItems.length },
+    ];
+    const result = await kernel.collectionAggregate(
+      this.space.id,
+      [this.space.id],
+      '_system-things-changed',
+      options,
+    );
+    if (result.success && Array.isArray(result.data)) {
+      for (const item of result.data) {
+        if (!map.has(item[this.species.id])) {
+          map.set(item[this.species.id], new Map<string, Map<number, any>>());
+        }
+        const species = map.get(item[this.species.id])!;
+        if (!species.has(item.propId)) {
+          species.set(item.propId, new Map<number, any>());
+        }
+        const prop = species.get(item.propId)!;
+        prop.set(item.symbol, item.change);
+      }
+    }
+    return map;
+  }
   async summaryRange(start: string, end: string): Promise<common.Node<ItemSummary>[]> {
-    const res = await this.loadSpecies(true);
+    const res = await this.loadSpecies();
 
     const beforeMap = await this.summary(this.getOffsetPeriod(start, -1));
+    const changeMap = await this.summaryChange(end);
     const afterMap = await this.summary(end);
 
     const nodes: ItemSummary[] = [];
     for (const item of res) {
+      const dimension = 'S' + item.id;
       const one: ItemSummary = { ...item };
-      const before = beforeMap.get('S' + item.id);
-      const after = afterMap.get('S' + item.id);
+      const before = beforeMap.get(dimension);
+      const after = afterMap.get(dimension);
+      const change = changeMap.get(dimension);
       for (const field of this.fields) {
-        one['before-' + field.id] = before?.[field.id] ?? 0;
-        one['after-' + field.id] = after?.[field.id] ?? 0;
+        one['before-' + field.id] = Number(before?.[field.id] ?? 0);
+        one['after-' + field.id] = Number(after?.[field.id] ?? 0);
+        one['plus-' + field.id] = Number(change?.get(field.id)?.get(1) ?? 0);
+        one['minus-' + field.id] = Number(change?.get(field.id)?.get(-1) ?? 0);
       }
       nodes.push(one);
     }
@@ -278,6 +328,8 @@ export class Financial extends common.Emitter implements IFinancial {
       for (const field of this.fields) {
         pre['before-' + field.id] += cur['before-' + field.id];
         pre['after-' + field.id] += cur['after-' + field.id];
+        pre['plus-' + field.id] += cur['plus-' + field.id];
+        pre['minus-' + field.id] += cur['minus-' + field.id];
       }
       return pre;
     });
