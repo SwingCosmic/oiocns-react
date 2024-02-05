@@ -1,6 +1,7 @@
 import { schema } from '@/ts/base';
 import { IForm, IProperty, orgAuth } from '@/ts/core';
 import { List } from 'devextreme-react';
+import { Button } from 'antd';
 import React from 'react';
 import OpenFileDialog from '@/components/OpenFileDialog';
 import Toolbar, { Item } from 'devextreme-react/toolbar';
@@ -30,67 +31,74 @@ const FormRender: React.FC<{
           locateInMenu="never"
           render={() => (
             <div className="toolbar-label">
-              <b style={{ fontSize: 28 }}>{current.name}</b>
+              <b style={{ fontSize: 20 }}>{current.name}</b>
             </div>
           )}
         />
         <Item
           location="after"
           locateInMenu="never"
-          widget="dxButton"
-          options={{
-            icon: 'plus',
-            text: '添加属性',
-            type: 'default',
-            stylingMode: 'outlined',
-            onClick: showDialog,
-          }}
+          render={() => (
+            <Button type="primary" onClick={showDialog}>
+              + 添加属性
+            </Button>
+          )}
         />
       </Toolbar>
-      <List<schema.XAttribute, string>
-        itemKeyFn={(attr: schema.XAttribute) => attr.id}
-        dataSource={current.metadata.attributes}
-        height={'calc(100vh - 190px)'}
-        width={'100%'}
-        searchEnabled
-        scrollingEnabled
-        searchMode="contains"
-        focusStateEnabled={false}
-        activeStateEnabled={false}
-        pageLoadMode="scrollBottom"
-        searchExpr={['name', 'remark']}
-        scrollByContent={false}
-        allowItemDeleting
-        onItemClick={(e) => {
-          e.event?.stopPropagation();
-          if (e.itemData) {
-            const index = current.metadata.attributes.findIndex(
-              (i) => i.id === e.itemData?.id,
-            );
-            if (index > -1) {
-              onItemSelected(index);
-              return;
+      <div
+        style={{
+          width: '100%',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+        }}>
+        <List<schema.XAttribute, string>
+          itemKeyFn={(attr: schema.XAttribute) => attr.id}
+          dataSource={current.metadata.attributes}
+          height={'calc(100vh - 190px)'}
+          width={'72%'}
+          searchEnabled
+          scrollingEnabled
+          searchMode="contains"
+          focusStateEnabled={false}
+          activeStateEnabled={false}
+          pageLoadMode="scrollBottom"
+          searchExpr={['name', 'remark']}
+          scrollByContent={false}
+          allowItemDeleting
+          onItemClick={(e) => {
+            e.event?.stopPropagation();
+            if (e.itemData) {
+              const index = current.metadata.attributes.findIndex(
+                (i) => i.id === e.itemData?.id,
+              );
+              if (index > -1) {
+                onItemSelected(index);
+                return;
+              }
             }
-          }
-          onItemSelected(e.itemIndex as number);
-        }}
-        onItemReordered={onReorder}
-        onItemDeleted={() => onItemSelected(-1)}
-        itemRender={(attr: schema.XAttribute) => {
-          return <FormItem attr={attr} current={current} notityEmitter={notityEmitter} />;
-        }}
-        itemDeleteMode="static">
-        <ItemDragging
-          data={current.metadata.attributes}
-          autoScroll
-          allowReordering
-          dropFeedbackMode="push"
-          dragDirection="vertical"
-          bindingOptions={{
-            location: 'before',
+            onItemSelected(e.itemIndex as number);
           }}
-        />
-      </List>
+          onItemReordered={onReorder}
+          onItemDeleted={() => onItemSelected(-1)}
+          itemRender={(attr: schema.XAttribute) => {
+            return (
+              <FormItem attr={attr} current={current} notityEmitter={notityEmitter} />
+            );
+          }}
+          itemDeleteMode="static">
+          <ItemDragging
+            data={current.metadata.attributes}
+            autoScroll
+            allowReordering
+            dropFeedbackMode="push"
+            dragDirection="vertical"
+            bindingOptions={{
+              location: 'before',
+            }}
+          />
+        </List>
+      </div>
       {openDialog && (
         <OpenFileDialog
           multiple

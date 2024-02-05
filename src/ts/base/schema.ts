@@ -128,10 +128,16 @@ export type XAttributeProps = {
   /** 表单参数 */
   // 是否只读
   readOnly?: boolean;
+  // 是否只读条件
+  readOnlyConditions?: model.conditionConfig;
   // 是否必填
   isRequired?: boolean;
+  // 是否必填条件
+  isRequiredConditions?: model.conditionConfig;
   // 隐藏特性
   hideField?: boolean;
+  // 隐藏条件
+  hideFieldConditions?: model.conditionConfig;
   // 默认值
   defaultValue?: any;
   // 成员的上级组织
@@ -219,6 +225,7 @@ export type XFormFilter = {
   filterExp?: string;
   filterDisplay?: string;
   labels: XTagFilter[];
+  species?: XSpeciesFilter[] | undefined;
 };
 export type XTagFilter = {
   id: string;
@@ -226,6 +233,14 @@ export type XTagFilter = {
   name: string;
   code: string;
   value: string;
+};
+
+export type XSpeciesFilter = {
+  id: string;
+  name: string;
+  remark: string;
+  speciesList: model.speciesListItem[] | undefined;
+  speciesName: string;
 };
 
 // 表单规则
@@ -258,6 +273,8 @@ export type XFormProps = {
   dataRange?: XFormFilter;
   // 办事数据范围限制
   workDataRange?: XFormFilter;
+  // // 属性过滤
+  // attributeFilter?: string
 };
 
 /* 表单规则类型 */
@@ -630,6 +647,8 @@ export type XWorkInstance = {
   belongId: string;
   // 备注
   remark: string;
+  // 网关信息
+  gateways: string;
   // 办事任务
   tasks: XWorkTask[] | undefined;
   // 办事的定义

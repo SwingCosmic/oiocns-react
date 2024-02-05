@@ -4,7 +4,7 @@ import { Badge, Button, Empty, Tabs } from 'antd';
 import CustomStore from 'devextreme/data/custom_store';
 import React, { useEffect, useRef, useState } from 'react';
 import GenerateThingTable from '../../../generate/thingTable';
-import { Command, model, schema } from '@/ts/base';
+import { Command, schema } from '@/ts/base';
 import { generateUuid } from '@/utils/excel';
 import { formatDate } from '@/ts/base/common';
 import DefaultWayStart from '../default';
@@ -18,15 +18,12 @@ interface IProps {
 const WorkSelection: React.FC<IProps> = ({ apply, target, finished }) => {
   const [selected, setSelected] = useState(false);
   const [command] = useState(new Command());
-  const instance = useRef<model.InstanceDataModel>({
-    data: {},
-  } as model.InstanceDataModel);
   useEffect(() => {
     const id = command.subscribe((type, cmd, args) => {
       if (type == 'select' && cmd == 'insert') {
         const { form, data } = args;
         if (apply.instanceData.node) {
-          instance.current.data[form.id] = [
+          apply.instanceData.data[form.id] = [
             {
               before: [],
               after: data,
@@ -55,14 +52,7 @@ const WorkSelection: React.FC<IProps> = ({ apply, target, finished }) => {
       return <Empty></Empty>;
     }
     if (selected) {
-      return (
-        <DefaultWayStart
-          apply={apply}
-          target={target}
-          finished={finished}
-          data={instance.current}
-        />
-      );
+      return <DefaultWayStart apply={apply} target={target} finished={finished} />;
     }
     const allForms = apply.detailForms.flatMap((item) => [
       { form: item, type: '原始' },

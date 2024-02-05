@@ -46,7 +46,7 @@ const PreviewLayout: React.FC<IProps> = (props) => {
                 {nameNumber > 0 && <span className={css.number}>({nameNumber})</span>}
               </>
             }
-            avatar={<EntityIcon entity={props.entity.metadata} size={50} />}
+            avatar={<EntityIcon entity={props.entity.metadata} size={48} />}
             description={props.entity.groupTags
               .filter((i) => i.length > 0)
               .map((label) => {
@@ -60,8 +60,8 @@ const PreviewLayout: React.FC<IProps> = (props) => {
         </List.Item>
         <div
           style={{
-            height: 'calc(100vh - 155px)',
-            overflow: 'scroll',
+            height: 'calc(100vh - 89px)',
+            overflowY: 'scroll',
           }}
           className={css.groupDetailContent}>
           {props.children && props.children}

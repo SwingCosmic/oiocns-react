@@ -11,7 +11,7 @@ import { IExecutor } from './executor';
 import { FieldsChange } from './executor/change';
 import { Webhook } from './executor/webhook';
 import message from '@/utils/message';
-export type TaskTypeName = '待办' | '已办' | '抄送' | '已发起' | '草稿';
+export type TaskTypeName = '待办' | '已办' | '抄送' | '已发起' | '已完结' | '草稿';
 
 export interface IWorkTask extends IFile {
   /** 内容 */
@@ -134,6 +134,7 @@ export class WorkTask extends FileInfo<schema.XEntity> implements IWorkTask {
       case '已办':
         return this.taskdata.status >= TaskStatus.ApprovalStart;
       case '已发起':
+      case '已完结':
         return this.taskdata.createUser == this.userId;
       case '待办':
         return this.taskdata.status < TaskStatus.ApprovalStart;
@@ -170,19 +171,21 @@ export class WorkTask extends FileInfo<schema.XEntity> implements IWorkTask {
   }
   loadExecutors(node: model.WorkNodeModel) {
     let executors: IExecutor[] = [];
-    for (const item of node.executors) {
-      switch (item.funcName) {
-        case '数据申领':
-          executors.push(new Acquire(item, this));
-          break;
-        case '归属权变更':
-          break;
-        case '字段变更':
-          executors.push(new FieldsChange(item, this));
-          break;
-        case 'Webhook':
-          executors.push(new Webhook(item, this));
-          break;
+    if (node.executors) {
+      for (const item of node.executors) {
+        switch (item.funcName) {
+          case '数据申领':
+            executors.push(new Acquire(item, this));
+            break;
+          case '归属权变更':
+            break;
+          case '字段变更':
+            executors.push(new FieldsChange(item, this));
+            break;
+          case 'Webhook':
+            executors.push(new Webhook(item, this));
+            break;
+        }
       }
     }
     return executors;

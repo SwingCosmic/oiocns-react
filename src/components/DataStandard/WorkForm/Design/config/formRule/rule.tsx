@@ -11,6 +11,7 @@ import { model } from '@/ts/base';
 import { PlusOutlined } from '@ant-design/icons';
 import type { MenuProps } from 'antd';
 import { FieldInfo } from 'typings/globelType';
+import message from '@/utils/message';
 
 interface IProps {
   form: IForm;
@@ -88,6 +89,11 @@ const FormRule: React.FC<IProps> = (props) => {
       label: (
         <div
           onClick={() => {
+            const isHasAttribute = data.findIndex((it) => it.type == 'attribute');
+            if (isHasAttribute != -1) {
+              message.warn('属性筛选规则只能存在一条');
+              return;
+            }
             setSelect(undefined);
             setOpenType(3);
           }}>

@@ -1,4 +1,4 @@
-import { common, kernel, schema } from '../../base';
+import { common, kernel, model, schema } from '../../base';
 import { TaskStatus } from '../public/enums';
 import { UserProvider } from '../user';
 import { IWorkTask, TaskTypeName, WorkTask } from './task';
@@ -26,6 +26,8 @@ export interface IWorkProvider {
   loadTaskCount(typeName: TaskTypeName): Promise<number>;
   /** 加载任务事项 */
   loadContent(typeName: TaskTypeName, reload?: boolean): Promise<IWorkTask[]>;
+  /** 加载任务记录 */
+  loadTasks(options: any): Promise<model.LoadResult<schema.XWorkTask[]>>;
 }
 
 export class WorkProvider implements IWorkProvider {
@@ -67,7 +69,25 @@ export class WorkProvider implements IWorkProvider {
     if (typeName === '待办') {
       return await this.loadTodos(reload);
     }
-    return await this.loadTasks(typeName, 0);
+    const tasks: IWorkTask[] = [];
+    const result = await this.loadTasks({
+      options: {
+        match: this._typeMatch(typeName),
+        sort: {
+          createTime: -1,
+        },
+      },
+      skip: 0,
+      take: 30,
+    });
+    if (result.success && result.data && result.data.length > 0) {
+      result.data.forEach((item) => {
+        if (tasks.every((i) => i.id != item.id)) {
+          tasks.push(new WorkTask(item, this.user, true));
+        }
+      });
+    }
+    return tasks.filter((i) => i.isTaskType(typeName));
   }
   async loadTodos(reload: boolean = false): Promise<IWorkTask[]> {
     if (!this._todoLoaded || reload) {
@@ -80,31 +100,13 @@ export class WorkProvider implements IWorkProvider {
     }
     return this.todos;
   }
-  async loadTasks(typeName: TaskTypeName, skip: number = 0): Promise<IWorkTask[]> {
-    const tasks: IWorkTask[] = [];
-    const result = await kernel.collectionLoad<schema.XWorkTask[]>(
+  async loadTasks(options: any): Promise<model.LoadResult<schema.XWorkTask[]>> {
+    return await kernel.collectionLoad<schema.XWorkTask[]>(
       this.userId,
       [],
       TaskCollName,
-      {
-        options: {
-          match: this._typeMatch(typeName),
-          sort: {
-            createTime: -1,
-          },
-        },
-        skip: skip,
-        take: 30,
-      },
+      options,
     );
-    if (result.success && result.data && result.data.length > 0) {
-      result.data.forEach((item) => {
-        if (tasks.every((i) => i.id != item.id)) {
-          tasks.push(new WorkTask(item, this.user, true));
-        }
-      });
-    }
-    return tasks.filter((i) => i.isTaskType(typeName));
   }
   async loadTaskCount(typeName: TaskTypeName): Promise<number> {
     const res = await kernel.collectionLoad(this.userId, [], TaskCollName, {
@@ -138,6 +140,19 @@ export class WorkProvider implements IWorkProvider {
       case '已发起':
         return {
           createUser: this.userId,
+          status: {
+            _lt_: 100,
+          },
+          nodeId: {
+            _exists_: false,
+          },
+        };
+      case '已完结':
+        return {
+          createUser: this.userId,
+          status: {
+            _gte_: 100,
+          },
           nodeId: {
             _exists_: false,
           },

@@ -8,8 +8,8 @@ import { IPeriod } from '@/ts/core/work/financial/period';
 import { ProTable } from '@ant-design/pro-components';
 import { Button, Card, DatePicker, Space, Tag } from 'antd';
 import React, { ReactNode, useEffect, useMemo, useRef, useState } from 'react';
-import AssetDepreciation from './widgets/AssetDepreciation';
-import { AssetMonthlyClosing } from './widgets/AssetMonthlyClosing';
+import Depreciation from './widgets/depreciation';
+import { Closing } from './widgets/closing';
 import AssetLedger from './widgets/ledger';
 import { Form } from '@/ts/core/thing/standard/form';
 
@@ -238,7 +238,7 @@ const Periods: React.FC<IProps> = ({ financial }) => {
                             <FullScreen
                               title={'资产折旧'}
                               onFinished={() => setCenter(<></>)}>
-                              <AssetDepreciation financial={financial} />
+                              <Depreciation financial={financial} />
                             </FullScreen>,
                           )
                         }>
@@ -268,7 +268,7 @@ const Periods: React.FC<IProps> = ({ financial }) => {
                             <FullScreen
                               title={'月结账'}
                               onFinished={() => setCenter(<></>)}>
-                              <AssetMonthlyClosing financial={financial} />
+                              <Closing financial={financial} />
                             </FullScreen>,
                           )
                         }>

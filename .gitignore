@@ -15,11 +15,11 @@ dist-ssr
 *.icloud
 
 # yarn
-# yarn.lock
+yarn.lock
 yarn-error.log
 
 # package-lock.json
-# package-lock.json
+package-lock.json
 
 # .pnpm-debug.log
 .pnpm-debug.log

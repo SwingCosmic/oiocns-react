@@ -7,6 +7,13 @@ import { getWidget, loadwidgetOptions } from '../../Utils';
 import { schema } from '@/ts/base';
 import TreeSelectItem from '../../Viewer/customItem/treeItem';
 import OpenFileDialog from '@/components/OpenFileDialog';
+import AttributeSetting from './formRule/setting/attributeSetting';
+import { Button, Popconfirm } from 'antd';
+import { EditOutlined, DeleteOutlined } from '@ant-design/icons';
+import CalcRuleModal from './formRule/modal/calcRule';
+import { model } from '@/ts/base';
+import { FieldInfo } from 'typings/globelType';
+import useAsyncLoad from '@/hooks/useAsyncLoad';
 
 interface IAttributeProps {
   index: number;
@@ -26,10 +33,110 @@ const AttributeConfig: React.FC<IAttributeProps> = ({
   notifyEmitter,
   index,
 }) => {
+  const [fields, setFields] = useState<FieldInfo[]>([]);
+  const [loaded] = useAsyncLoad(async () => {
+    const resultFields = await current.loadFields();
+    const ss = resultFields.map((a) => {
+      switch (a.valueType) {
+        case '数值型':
+          return {
+            id: a.id,
+            name: a.code,
+            dataField: a.code,
+            caption: a.name,
+            dataType: 'number',
+            fieldType: '数值型',
+          };
+        case '日期型':
+          return {
+            id: a.id,
+            name: a.code,
+            dataField: a.code,
+            caption: a.name,
+            dataType: 'date',
+            fieldType: '日期型',
+          };
+        case '时间型':
+          return {
+            id: a.id,
+            name: a.code,
+            dataField: a.code,
+            caption: a.name,
+            dataType: 'datetime',
+            fieldType: '时间型',
+          };
+        case '选择型':
+          return {
+            id: a.id,
+            name: a.code,
+            dataField: a.code,
+            caption: a.name,
+            fieldType: '选择型',
+            dataType: 'string',
+            lookup: {
+              displayExpr: 'text',
+              valueExpr: 'value',
+              allowClearing: true,
+              dataSource: a.lookups,
+            },
+          };
+        case '分类型':
+          return {
+            id: a.id,
+            name: a.code,
+            dataField: a.code,
+            caption: a.name,
+            fieldType: '分类型',
+            dataType: 'string',
+            filterOperations: ['sequal', 'snotequal'],
+            lookup: {
+              displayExpr: 'text',
+              valueExpr: 'value',
+              allowClearing: true,
+              dataSource: a.lookups,
+            },
+          };
+        default:
+          return {
+            id: a.id,
+            name: a.code,
+            dataField: a.code,
+            caption: a.name,
+            dataType: 'string',
+            fieldType: '未知',
+          };
+      }
+    });
+    ss.unshift();
+    setFields([
+      {
+        id: 'name',
+        name: 'name',
+        dataField: 'name',
+        caption: '名称',
+        dataType: 'string',
+      },
+      ...(ss as FieldInfo[]),
+    ]);
+  }, [current]);
+
   const [openDialog, setOpenDialog] = useState(false);
-  const [attribute, setAttribute] = React.useState(current.metadata.attributes[index]);
+  const [attribute, setAttribute] = useState(current.metadata.attributes[index]);
   const [items, setItems] = useState<schema.XSpeciesItem[]>([]);
   const [refForm, setRefForm] = useState<schema.XForm | null>(null);
+  const [openType, setOpenType] = useState(0);
+  const [select, setSelect] = useState<model.Rule>();
+
+  const [readOnlyConditions, setReadOnlyConditions] = useState(
+    current.metadata.attributes[index].options!['readOnlyConditions'],
+  );
+  const [hideFieldConditions, setHideFieldConditions] = useState(
+    current.metadata.attributes[index].options!['hideFieldConditions'],
+  );
+  const [isRequiredConditions, setIsRequiredConditions] = useState(
+    current.metadata.attributes[index].options!['isRequiredConditions'],
+  );
+
   const notityAttrChanged = () => {
     current.metadata.attributes[index] = attribute;
     notifyEmitter.changCallback('attr', attribute);
@@ -58,9 +165,21 @@ const AttributeConfig: React.FC<IAttributeProps> = ({
       }
     }
   }
+
+  const updateAttribute = (value: any, field: string | number) => {
+    const _attribute: any = { ...attribute };
+    _attribute['options'][field] = value;
+    setAttribute(_attribute);
+  };
+
   useEffect(() => {
     loadAttributeResource();
+    setSelect(JSON.parse(attribute.rule));
+    setReadOnlyConditions(attribute.options!['readOnlyConditions']);
+    setHideFieldConditions(attribute.options!['hideFieldConditions']);
+    setIsRequiredConditions(attribute.options!['isRequiredConditions']);
   }, [attribute]);
+
   useEffect(() => {
     setAttribute({
       ...current.metadata.attributes[index],
@@ -70,6 +189,7 @@ const AttributeConfig: React.FC<IAttributeProps> = ({
       ),
     });
   }, [index]);
+
   const loadItemConfig = () => {
     const options = [];
     switch (attribute.widget) {
@@ -90,6 +210,46 @@ const AttributeConfig: React.FC<IAttributeProps> = ({
             dataField="options.defaultValue"
             editorType="dxNumberBox"
             label={{ text: '默认值' }}
+          />,
+          <SimpleItem
+            // dataField="options.defaultValue"
+            // editorType="dxNumberBox"
+            label={{ text: '计算规则', visible: true }}
+            render={() =>
+              select?.id ? (
+                <span>
+                  <Button
+                    type="link"
+                    icon={<EditOutlined />}
+                    onClick={() => {
+                      setSelect(JSON.parse(attribute.rule));
+                      setOpenType(1);
+                    }}>
+                    编辑计算规则
+                  </Button>
+                  <Popconfirm
+                    key={'delete'}
+                    title="确定删除吗？"
+                    onConfirm={() => {
+                      setSelect(undefined);
+                      current.metadata.attributes[index].rule = '{}';
+                    }}>
+                    <Button type="link" icon={<DeleteOutlined />} danger>
+                      删除计算规则
+                    </Button>
+                  </Popconfirm>
+                </span>
+              ) : (
+                <Button
+                  type="link"
+                  onClick={() => {
+                    setSelect(undefined);
+                    setOpenType(1);
+                  }}>
+                  添加计算规则
+                </Button>
+              )
+            }
           />,
         );
         break;
@@ -308,6 +468,7 @@ const AttributeConfig: React.FC<IAttributeProps> = ({
     }
     return options;
   };
+
   return (
     <Form
       key={index}
@@ -359,18 +520,87 @@ const AttributeConfig: React.FC<IAttributeProps> = ({
       <GroupItem>
         <SimpleItem
           dataField="options.readOnly"
-          editorType="dxCheckBox"
-          label={{ text: '只读特性' }}
+          // editorType="dxCheckBox"
+          label={{ text: '只读特性', visible: true }}
+          render={() =>
+            loaded && (
+              <AttributeSetting
+                fields={fields}
+                fieldName="readOnly"
+                value={attribute.options!['readOnly']}
+                // conditionConfig={attribute.options!['readOnlyConditions']}
+                conditionConfig={readOnlyConditions}
+                current={current}
+                onValueChanged={(value: any, field: string) => {
+                  updateAttribute(value, field);
+                }}
+                onConditionsChanged={(value: any, field: string) => {
+                  updateAttribute(value, field);
+                  setReadOnlyConditions(value);
+                }}
+                onConditionsDelete={(field: string) => {
+                  updateAttribute(undefined, field);
+                  setReadOnlyConditions(undefined);
+                }}
+              />
+            )
+          }
         />
         <SimpleItem
           dataField="options.hideField"
-          editorType="dxCheckBox"
-          label={{ text: '隐藏特性' }}
+          // editorType="dxCheckBox"
+          label={{ text: '隐藏特性', visible: true }}
+          render={() =>
+            loaded && (
+              <AttributeSetting
+                fields={fields}
+                fieldName="hideField"
+                value={attribute.options!['hideField']}
+                // conditionConfig={attribute.options!['hideFieldConditions']}
+                conditionConfig={hideFieldConditions}
+                current={current}
+                onValueChanged={(value: any, field: string) => {
+                  updateAttribute(value, field);
+                }}
+                onConditionsChanged={(value: any, field: string) => {
+                  updateAttribute(value, field);
+                  setHideFieldConditions(value);
+                }}
+                onConditionsDelete={(field: string) => {
+                  updateAttribute(undefined, field);
+                  setHideFieldConditions(undefined);
+                }}
+              />
+            )
+          }
         />
         <SimpleItem
           dataField="options.isRequired"
-          editorType="dxCheckBox"
-          label={{ text: '必填特性' }}
+          // editorType="dxCheckBox"
+          label={{ text: '必填特性', visible: true }}
+          render={() =>
+            loaded && (
+              <AttributeSetting
+                fields={fields}
+                fieldName="isRequired"
+                value={attribute.options!['isRequired']}
+                // conditionConfig={attribute.options!['isRequiredConditions']}
+                conditionConfig={isRequiredConditions}
+                current={current}
+                onValueChanged={(value: any, field: string) => {
+                  updateAttribute(value, field);
+                }}
+                onConditionsChanged={(value: any, field: string) => {
+                  updateAttribute(value, field);
+                  setIsRequiredConditions(value);
+                }}
+                onConditionsDelete={(field: string) => {
+                  updateAttribute(undefined, field);
+                  setIsRequiredConditions(undefined);
+                }}
+              />
+            )
+          }
         />
         <SimpleItem
           dataField="options.showToRemark"
@@ -379,7 +609,7 @@ const AttributeConfig: React.FC<IAttributeProps> = ({
         />
         {loadItemConfig()}
       </GroupItem>
-      <GroupItem>
+      <GroupItem caption="查看设置">
         <SimpleItem
           dataField="options.fixed"
           editorType="dxCheckBox"
@@ -407,6 +637,23 @@ const AttributeConfig: React.FC<IAttributeProps> = ({
           maxCount={1}
           onCancel={() => setOpenDialog(false)}
           onOk={() => {}}
+        />
+      )}
+      {openType == 1 && loaded && (
+        <CalcRuleModal
+          fields={fields}
+          onCancel={() => setOpenType(0)}
+          current={select as model.FormCalcRule}
+          targetId={attribute.id}
+          onOk={(rule) => {
+            setSelect(rule);
+            setAttribute({
+              ...attribute,
+              rule: JSON.stringify(rule),
+            });
+            current.metadata.attributes[index].rule = JSON.stringify(rule);
+            setOpenType(0);
+          }}
         />
       )}
     </Form>

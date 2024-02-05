@@ -85,6 +85,13 @@ const FormItem: React.FC<IFormItemProps> = (props) => {
 
   for (const rule of props.rules) {
     mixOptions[rule.typeName] = rule.value;
+    let typeNameArr = ['readOnly', 'isRequired'];
+    if (typeNameArr.includes(rule.typeName)) {
+      mixOptions[rule.typeName] = mixOptions[rule.typeName] || rule.value;
+    }
+    if (rule.typeName == 'visible') {
+      mixOptions[rule.typeName] = !(props.field.options?.hideField || rule.value);
+    }
   }
 
   if (mixOptions.isRequired) {

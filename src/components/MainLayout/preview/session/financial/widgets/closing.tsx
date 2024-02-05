@@ -31,7 +31,7 @@ interface IProps {
   financial: IFinancial;
 }
 
-export const AssetMonthlyClosing: React.FC<IProps> = ({ financial }) => {
+export const Closing: React.FC<IProps> = ({ financial }) => {
   const [loading, setLoading] = useState(false);
   const [ready, setReady] = useState(false);
 

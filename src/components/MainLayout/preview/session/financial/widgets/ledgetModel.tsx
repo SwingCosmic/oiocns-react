@@ -6,7 +6,6 @@ import { ItemSummary } from '@/ts/core/work/financial';
 import { Button, Col, Form, Input, Modal, Row } from 'antd';
 import CustomStore from 'devextreme/data/custom_store';
 import React, { useEffect, useState } from 'react';
-import { prefixMap } from './config';
 import cls from './ledger.module.less';
 
 interface Props {

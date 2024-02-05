@@ -12,6 +12,7 @@ import {
   XStandard,
   XTarget,
   XThing,
+  XTagFilter
 } from './schema';
 // 请求类型定义
 export type ReqestType = {
@@ -818,11 +819,24 @@ export type Rule = {
   // 规则名称
   name: string;
   // 规则类型
-  type: 'show' | 'calc' | 'executor' | 'attribute';
+  type: 'show' | 'calc' | 'executor' | 'attribute' | 'condition';
   // 触发对象
   trigger: string[];
   // 备注
   remark: string;
+};
+
+export type speciesListItem = {
+  // 筛选分类Id
+  id: string;
+  // 筛选名称
+  name: string;
+  // 分类名称
+  typeName: string
+  // 编码
+  code: string;
+  // 值
+  value: string;
 };
 
 // 表单展示规则
@@ -885,6 +899,28 @@ export type AttributeFilterRule = {
   // 条件文本
   conditionText: string;
 } & Rule;
+
+// 条件
+export type conditionConfig = {
+  // 条件Id
+  id: string;
+  // 条件
+  condition: string;
+  // 条件文本
+  conditionText: string;
+};
+
+// 条件
+export type speciesFilter = {
+  // Id
+  id: string;
+  // 名称
+  name: string;
+  // 条件文本
+  remark: string;
+  // 分类数据
+  speciesList: XTagFilter[]
+};
 
 export type MappingData = {
   key: string;
@@ -1466,27 +1502,3 @@ export type DiskInfoType = {
   // 查询时间
   getTime: string;
 };
-
-// 草稿
-export type DraftsType = {
-  // 数据
-  typeName: string;
-  // 关系
-  relations: string;
-  // 办事id
-  workId: string;
-  // 备注信息
-  contentText: string;
-  // 办事名称
-  name?: string;
-  // 节点信息
-  data: model.InstanceDataModel;
-} & Xbase;
-
-// 集合列表
-export type CollData = {
-  // 集合名称 
-  [collName: string] : {
-    
-  };
-}

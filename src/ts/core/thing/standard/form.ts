@@ -36,9 +36,76 @@ export interface IForm extends IStandardFileInfo<schema.XForm> {
   loadThing(loadOptions: any): Promise<LoadResult<any>>;
 }
 
+const getString = (datas: any[]) => {
+  const ret: string[] = [];
+  if (!datas) {
+    return ret;
+  }
+  for (const data of datas) {
+    if (typeof data == 'string') {
+      ret.push(data.replace('T', ''));
+    } else if (Array.isArray(data)) {
+      ret.push(...getString(data));
+    }
+  }
+  return ret;
+};
+
+// 提取属性内的规则汇总到表单规则，统一解析
+export const resetFormRule = (data: schema.XForm) => {
+  let allAttrRule: any[] = [];
+  data.attributes.forEach((attr) => {
+    if (attr.rule && attr.rule != '{}') {
+      let attrCalcRule = JSON.parse(attr.rule);
+      allAttrRule.push(attrCalcRule);
+    }
+
+    if (attr.options) {
+      if (attr.options.readOnlyConditions) {
+        allAttrRule.push({
+          ...attr.options.readOnlyConditions,
+          name: '只读',
+          remark: '',
+          target: attr.id,
+          showType: 'readOnly',
+          value: null,
+          type: 'condition',
+          trigger: getString(JSON.parse(attr.options.readOnlyConditions.condition)),
+        });
+      }
+      if (attr.options.hideFieldConditions) {
+        allAttrRule.push({
+          ...attr.options.hideFieldConditions,
+          name: '隐藏',
+          remark: '',
+          target: attr.id,
+          showType: 'visible',
+          value: null,
+          type: 'condition',
+          trigger: getString(JSON.parse(attr.options.hideFieldConditions.condition)),
+        });
+      }
+      if (attr.options.isRequiredConditions) {
+        allAttrRule.push({
+          ...attr.options.isRequiredConditions,
+          name: '必填',
+          remark: '',
+          target: attr.id,
+          showType: 'isRequired',
+          value: null,
+          type: 'condition',
+          trigger: getString(JSON.parse(attr.options.isRequiredConditions.condition)),
+        });
+      }
+    }
+  });
+  data.rule = allAttrRule;
+  return data;
+};
+
 export class Form extends StandardFileInfo<schema.XForm> implements IForm {
   constructor(_metadata: schema.XForm, _directory: IDirectory) {
-    super(_metadata, _directory, _directory.resource.formColl);
+    super(resetFormRule(_metadata), _directory, _directory.resource.formColl);
     this.canDesign = !_metadata.id.includes('_');
     this.setEntity();
     this.storage = new TemporaryStorage(this);
@@ -218,7 +285,7 @@ export class Form extends StandardFileInfo<schema.XForm> implements IForm {
     return [fileOperates.Copy, entityOperates.Remark];
   }
   async loadThing(loadOptions: any): Promise<LoadResult<any>> {
-    const res = await this.thingColl.loadResult(loadOptions);
+    const res = await this.directory.resource.thingColl.loadResult(loadOptions);
     if (res.success && !Array.isArray(res.data)) {
       res.data = [];
     }

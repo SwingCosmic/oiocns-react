@@ -31,7 +31,7 @@ interface IProps {
   financial: IFinancial;
 }
 
-const AssetDepreciation: React.FC<IProps> = ({ financial }) => {
+const Depreciation: React.FC<IProps> = ({ financial }) => {
   const [loading, setLoading] = useState(false);
   const [ready, setReady] = useState(false);
   const [errMsg, setErrMsg] = useState('');
@@ -233,4 +233,4 @@ const AssetDepreciation: React.FC<IProps> = ({ financial }) => {
   );
 };
 
-export default AssetDepreciation;
+export default Depreciation;

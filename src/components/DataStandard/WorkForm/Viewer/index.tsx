@@ -174,6 +174,27 @@ const WorkFormViewer: React.FC<{
                   logger.error(`计算规则[${formula}]执行失败，请确认是否维护正确!`);
                 }
                 break;
+              case 'condition':
+                {
+                  var conditionRule = rule as model.FormShowRule;
+                  var pass1 = vaildRule(JSON.parse(conditionRule.condition));
+                  const oldRule = props.formData?.rules.find(
+                    (a) =>
+                      a.destId == conditionRule.target &&
+                      a.typeName == conditionRule.showType,
+                  );
+                  if (oldRule) {
+                    oldRule.value = pass1;
+                  } else {
+                    props.formData?.rules.push({
+                      formId: props.form.id,
+                      destId: conditionRule.target,
+                      typeName: conditionRule.showType,
+                      value: pass1,
+                    });
+                  }
+                }
+                break;
             }
           }
         }

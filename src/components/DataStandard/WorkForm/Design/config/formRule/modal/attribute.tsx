@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { Modal } from 'antd';
+import { Modal, Space } from 'antd';
 import { TextArea, TextBox } from 'devextreme-react';
 import { model } from '@/ts/base';
 import { getUuid } from '@/utils/tools';
@@ -32,7 +32,7 @@ const ShowAttributeModal: React.FC<IProps> = (props) => {
   return (
     <Modal
       destroyOnClose
-      title={'属性筛选'}
+      title={<div style={{ margin: '20px 12px 4px' }}>属性筛选</div>}
       open={true}
       onOk={() => {
         const getString = (datas: any[]) => {
@@ -62,33 +62,35 @@ const ShowAttributeModal: React.FC<IProps> = (props) => {
       okButtonProps={{
         disabled: vaildDisable(),
       }}>
-      <TextBox
-        label="规则名称*"
-        labelMode="floating"
-        value={name}
-        onValueChange={(e) => {
-          setName(e);
-        }}
-      />
-      <div style={{ padding: 5 }}>
-        <span>条件*：</span>
-        <CustomBuilder
-          fields={props.fields}
-          displayText={conditionText}
-          onValueChanged={(value, text) => {
-            setCondition(value);
-            setConditionText(text);
+      <Space direction="vertical" size={12} style={{ display: 'flex' }}>
+        <TextBox
+          label="规则名称*"
+          labelMode="outside"
+          value={name}
+          onValueChange={(e) => {
+            setName(e);
           }}
         />
-      </div>
-      <TextArea
-        label="备注"
-        labelMode="floating"
-        onValueChanged={(e) => {
-          setRemark(e.value);
-        }}
-        value={remark}
-      />
+        <div style={{ padding: 5 }}>
+          <span>条件*：</span>
+          <CustomBuilder
+            fields={props.fields}
+            displayText={conditionText}
+            onValueChanged={(value, text) => {
+              setCondition(value);
+              setConditionText(text);
+            }}
+          />
+        </div>
+        <TextArea
+          label="备注"
+          labelMode="outside"
+          onValueChanged={(e) => {
+            setRemark(e.value);
+          }}
+          value={remark}
+        />
+      </Space>
     </Modal>
   );
 };

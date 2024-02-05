@@ -17,6 +17,7 @@ import { Theme } from '@/config/theme';
 import { Workbook } from 'exceljs';
 import { exportDataGrid as toExcel } from 'devextreme/excel_exporter';
 import saveAs from 'file-saver';
+import { model } from '@/ts/base';
 
 interface IProps {
   form: IForm;
@@ -45,9 +46,10 @@ export const exporting = (e: any, formName: string) => {
 const FormView: React.FC<IProps> = ({ form, finished }) => {
   const [select, setSelcet] = useState();
   const [loaded] = useAsyncLoad(() => form.loadContent());
-  const dataRange = form.metadata.options?.dataRange;
-  const filterExp: any[] = JSON.parse(dataRange?.filterExp ?? '[]');
-  const labels = dataRange?.labels ?? [];
+  const filterExp: any[] = JSON.parse(
+    form.metadata.options?.dataRange?.filterExp ?? '[]',
+  );
+
   const FormBrower: React.FC = () => {
     const [, rootMenu, selectMenu, setSelectMenu] = useMenuUpdate(
       () => config.loadSpeciesItemMenu(form),
@@ -76,8 +78,16 @@ const FormView: React.FC<IProps> = ({ form, finished }) => {
             new CustomStore({
               key: 'id',
               async load(loadOptions) {
-                if ((filterExp && filterExp.length > 0) || labels.length > 0) {
-                  loadOptions.userData = labels.map((a) => a.value);
+                const species = form.metadata.options?.dataRange?.species ?? [];
+                const allSpecies: model.speciesListItem[] = [];
+                species.forEach((it) => {
+                  allSpecies.push(...(it.speciesList || []));
+                });
+                if (
+                  (filterExp && filterExp.length > 0) ||
+                  (allSpecies && allSpecies.length > 0)
+                ) {
+                  loadOptions.userData = allSpecies.map((a) => a.value);
                   if (selectMenu.item?.value) {
                     loadOptions.userData.push(selectMenu.item.value);
                   } else if (selectMenu.item?.code) {
@@ -129,9 +139,7 @@ const FormView: React.FC<IProps> = ({ form, finished }) => {
                 icon: <ImShuffle fontSize={22} color={Theme.FocusColor} />,
               },
             ],
-            onMenuClick(_key, _data) {
-              // console.log(key, data);
-            },
+            onMenuClick(_key, _data) {},
           }}
         />
       );

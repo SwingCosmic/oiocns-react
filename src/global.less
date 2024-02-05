@@ -841,10 +841,20 @@ h3 {
   .appName {
     font-size: 14px;
     font-weight: bold;
+    width: 100px;
+    overflow: hidden;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+    margin: 0 auto;
   }
   .teamName {
     color: #686868;
     font-size: 12px;
+    width: 115px;
+    overflow: hidden;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+    margin: 0 auto;
   }
   &:hover {
     border-radius: 10px;
@@ -1144,6 +1154,11 @@ h3 {
               justify-content: center;
               font-size: 14px;
               color: @primary-color;
+              span {
+                display: inline-block;
+                width: 50%;
+                text-align: center;
+              }
             }
             .con_content_txt_inner {
               margin-right: 4px;
@@ -1565,10 +1580,30 @@ h3 {
   border-bottom: 0;
 }
 
-.all-appData{
+.all-appData {
   display: flex;
   flex-wrap: wrap;
-  .appCard{
+  .appCard {
     min-width: 170px;
+  }
+}
+
+.ogo-allData{
+  width: 100%;
+  border-bottom: 1px solid #eee;
+  margin-bottom: 20px;
+  padding: 0 20px;
+  .ogo-large-title{
+    font-size: 20px;
+    font-weight: bold;
+    margin-bottom: 10px;
+  }
+  .ogo-small-title{
+    margin-left: 20px;
+  }
+  .ogo-data-list{
+    display: flex;
+    flex-wrap: wrap;
+    margin: 20px 0;
   }
 }

@@ -159,9 +159,6 @@ export const FullEntityColumns = (fields: model.FieldModel[]) => {
       name: '名称',
       valueType: '描述型',
       remark: '描述信息',
-      options: {
-        visible: true,
-      },
     },
     {
       id: 'code',

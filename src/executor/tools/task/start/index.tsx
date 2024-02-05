@@ -29,14 +29,7 @@ const TaskStart: React.FC<IProps> = ({ current, data, finished }) => {
   if (apply) {
     switch (apply.applyType) {
       case '列表':
-        return (
-          <MultitabTable
-            apply={apply}
-            current={current}
-            finished={finished!}
-            data={data}
-          />
-        );
+        return <MultitabTable current={current as IWork} finished={finished!} />;
       case '选择':
         return (
           <WorkSelect
@@ -46,6 +39,7 @@ const TaskStart: React.FC<IProps> = ({ current, data, finished }) => {
           />
         );
       default:
+        console.log(current.directory.target);
         return (
           <DefaultWayStart
             apply={apply}

@@ -95,6 +95,7 @@ const FormRuleConfig: React.FC<IAttributeProps> = ({ current }) => {
       ...(ss as FieldInfo[]),
     ]);
   }, [current]);
+
   return (
     <div
       style={{

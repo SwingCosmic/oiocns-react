@@ -28,8 +28,8 @@ export interface IBelong extends ITarget {
   cohortChats: ISession[];
   /** 共享组织 */
   shareTarget: ITarget[];
-  /** 草稿箱集合 */
-  draftsColl: XCollection<model.DraftsType>;
+  /** 办事暂存集合 */
+  workStagging: XCollection<schema.XWorkInstance>;
   /** 用户缓存对象 */
   cacheObj: XObject<schema.Xbase>;
   /** 财务接口 */
@@ -60,9 +60,9 @@ export abstract class Belong extends Target implements IBelong {
     this.cacheObj = new XObject(_metadata, 'target-cache', [], [this.key]);
     this.financial = new Financial(this);
     this.collManager = new CollManager(this);
-    this.draftsColl = new XCollection<model.DraftsType>(
+    this.workStagging = new XCollection<schema.XWorkInstance>(
       _metadata,
-      'resource-drafts',
+      'work-instance-staging',
       [_metadata.id],
       [this.key],
     );
@@ -75,7 +75,7 @@ export abstract class Belong extends Target implements IBelong {
   collManager: ICollManager;
   financial: IFinancial;
   cacheObj: XObject<schema.Xbase>;
-  draftsColl: XCollection<model.DraftsType>;
+  workStagging: XCollection<schema.XWorkInstance>;
   cohorts: ICohort[] = [];
   storages: IStorage[] = [];
   superAuth: IAuthority | undefined;

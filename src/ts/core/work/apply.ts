@@ -1,4 +1,5 @@
-import { kernel, model } from '../../base';
+import { kernel, model, schema } from '../../base';
+import { XCollection } from '../public/collection';
 import { IBelong } from '../target/base/belong';
 import { IForm } from '../thing/standard/form';
 export interface IWorkApply {
@@ -22,6 +23,13 @@ export interface IWorkApply {
     content: string,
     gateways: Map<string, string>,
   ): Promise<boolean>;
+  /** 暂存申请 */
+  staggingApply(
+    content: string,
+    gateways: Map<string, string>,
+    collection: XCollection<schema.XWorkInstance>,
+    id?: string,
+  ): Promise<schema.XWorkInstance | undefined>;
 }
 
 export class WorkApply implements IWorkApply {
@@ -74,9 +82,9 @@ export class WorkApply implements IWorkApply {
               }
             }
           }
-        }
-        if (isRequired && valueIsNull(data[item.id])) {
-          return false;
+          if (isRequired && valueIsNull(data[item.id])) {
+            return false;
+          }
         }
       }
     }
@@ -112,6 +120,34 @@ export class WorkApply implements IWorkApply {
       gateways: JSON.stringify(gatewayInfos),
     });
     return res.success;
+  }
+  async staggingApply(
+    content: string,
+    gateways: Map<string, string>,
+    collection: XCollection<schema.XWorkInstance>,
+    id: string = 'snowId()',
+  ): Promise<schema.XWorkInstance | undefined> {
+    var gatewayInfos: model.WorkGatewayInfoModel[] = [];
+    gateways.forEach((v, k) => {
+      gatewayInfos.push({
+        nodeId: k,
+        TargetId: v,
+      });
+    });
+    const hideFormIds = this.getHideForms();
+    hideFormIds.forEach((a) => {
+      delete this.instanceData.data[a];
+      delete this.instanceData.fields[a];
+    });
+    const res = await collection.replace({
+      ...this.metadata,
+      id: id,
+      contentType: 'Text',
+      remark: content,
+      data: JSON.stringify(this.instanceData),
+      gateways: JSON.stringify(gatewayInfos),
+    } as schema.XWorkInstance);
+    return res;
   }
   private getHideForms = () => {
     return this.instanceData.rules

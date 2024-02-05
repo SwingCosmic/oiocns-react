@@ -3,18 +3,19 @@ import { Button, Input } from 'antd';
 import message from '@/utils/message';
 import React from 'react';
 import WorkForm from '@/executor/tools/workForm';
-import { model } from '@/ts/base';
+import { schema } from '@/ts/base';
 import { loadGatewayNodes } from '@/utils/tools';
 import FormItem from '@/components/DataStandard/WorkForm/Viewer/formItem';
 import { Emitter } from '@/ts/base/common';
+import orgCtrl from '@/ts/controller';
 // 卡片渲染
 interface IProps {
   apply: IWorkApply;
   target: ITarget;
   finished?: () => void;
-  data?: model.InstanceDataModel;
-  saveDraft?: (data: any, content: string) => void;
+  onStagging?: () => void;
   content?: string;
+  stagging?: schema.XWorkInstance;
 }
 
 /** 办事发起-默认类型 */
@@ -22,7 +23,8 @@ const DefaultWayStart: React.FC<IProps> = ({
   apply,
   target,
   finished,
-  saveDraft,
+  onStagging,
+  stagging,
   content = '',
 }) => {
   const gatewayData = new Map<string, string>();
@@ -73,13 +75,21 @@ const DefaultWayStart: React.FC<IProps> = ({
           marginRight: '10px',
           zIndex: '1',
         }}>
-        {saveDraft && (
+        {onStagging && (
           <Button
             type="primary"
             style={{ marginLeft: 10 }}
             onClick={async () => {
-              let text = info.content ? info.content : content;
-              saveDraft(apply.instanceData, text);
+              const instance = await apply.staggingApply(
+                info.content,
+                gatewayData,
+                orgCtrl.user.workStagging,
+                stagging?.id,
+              );
+              if (instance) {
+                orgCtrl.user.workStagging.cache.push(instance);
+                onStagging?.apply(this, []);
+              }
             }}>
             保存草稿
           </Button>
@@ -88,8 +98,12 @@ const DefaultWayStart: React.FC<IProps> = ({
           type="primary"
           onClick={async () => {
             if (apply.validation()) {
-              await apply.createApply(apply.belong.id, info.content, gatewayData);
-              finished?.apply(this, []);
+              if (await apply.createApply(apply.belong.id, info.content, gatewayData)) {
+                if (stagging) {
+                  orgCtrl.user.workStagging.remove(stagging);
+                }
+                finished?.apply(this, []);
+              }
             } else {
               message.warn('请完善表单内容再提交!');
             }

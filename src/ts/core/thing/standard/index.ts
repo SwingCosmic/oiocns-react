@@ -306,7 +306,7 @@ export class StandardFiles {
     var apps = this.resource.applicationColl.cache.filter(
       (i) => i.directoryId === this.id,
     );
-    this.resource.applicationColl.removeCache((i) => i.directoryId === this.id);
+    this.resource.applicationColl.removeCache((i) => i.directoryId !== this.id);
     const data = await to.applicationColl.replaceMany(apps);
     to.applicationColl.cache.push(...data);
   }

@@ -10,14 +10,32 @@ import { CloseCircleOutlined, PlusCircleOutlined } from '@ant-design/icons';
 import { Button, Space, Spin, Table } from 'antd';
 import { ColumnType } from 'antd/lib/table';
 import React, { useCallback, useEffect, useState } from 'react';
-import { AssetLedgerModal } from './AssetLedgerModal';
-import { prefixMap } from './config';
+import { AssetLedgerModal } from './ledgetModel';
 import cls from './ledger.module.less';
 
 interface IProps {
   financial: IFinancial;
   period: IPeriod;
 }
+
+const change = [
+  {
+    label: '期初',
+    prefix: 'before',
+  },
+  {
+    label: '增加',
+    prefix: 'plus',
+  },
+  {
+    label: '减少',
+    prefix: 'minus',
+  },
+  {
+    label: '期末',
+    prefix: 'after',
+  },
+];
 
 const AssetLedger: React.FC<IProps> = ({ financial, period }) => {
   const [loading, setLoading] = useState(false);
@@ -104,7 +122,7 @@ const AssetLedger: React.FC<IProps> = ({ financial, period }) => {
                               if (files.length > 0) {
                                 const metadata = files[0].metadata as schema.XProperty;
                                 const result = deepClone(metadata);
-                                result.id = "T" + result.id;
+                                result.id = 'T' + result.id;
                                 financial.setSpecies(result);
                               }
                               setCenter(<></>);
@@ -170,7 +188,7 @@ const AssetLedger: React.FC<IProps> = ({ financial, period }) => {
                       />
                     </Space>
                   }>
-                  {prefixMap.map((item) => {
+                  {change.map((item) => {
                     const prop = item.prefix + '-' + field.id;
                     const column: ColumnType<Node<ItemSummary>> = {
                       title: item.label,
