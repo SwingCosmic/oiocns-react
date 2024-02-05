@@ -54,6 +54,8 @@ export interface IFinancial extends common.Emitter {
   summaryChange(period: string): Promise<Map<string, any>>;
   /** 统计区间的汇总至 */
   summaryRange(start: string, end: string): Promise<common.Node<ItemSummary>[]>;
+  /** 生成快照 */
+  generatingSnapshot(period: string): Promise<void>;
 }
 
 export class Financial extends common.Emitter implements IFinancial {
@@ -195,7 +197,6 @@ export class Financial extends common.Emitter implements IFinancial {
     const result = await this.space.resource.periodColl.insert({
       period: period,
       data: {} as schema.XThing,
-      snapshot: false,
       depreciated: false,
       closed: false,
       balanced: false,
@@ -243,7 +244,7 @@ export class Financial extends common.Emitter implements IFinancial {
     const result = await kernel.collectionAggregate(
       this.space.id,
       [this.space.id],
-      period == this.current ? '_system-things' : '_system-things-' + period,
+      period == this.current ? '_system-things' : '_system-things_' + period,
       options,
     );
     if (result.success && Array.isArray(result.data)) {
@@ -340,5 +341,11 @@ export class Financial extends common.Emitter implements IFinancial {
     const preMonth = new Date(currentMonth);
     preMonth.setMonth(currentMonth.getMonth() + offsetMonth);
     return common.formatDate(preMonth, 'yyyy-MM');
+  }
+  async generatingSnapshot(period: string): Promise<void> {
+    await kernel.snapshotThing(this.space.id, [this.space.id], {
+      collName: '_system-things',
+      dataPeriod: period,
+    });
   }
 }

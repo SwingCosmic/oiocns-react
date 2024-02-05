@@ -28,13 +28,23 @@ const Financial: React.FC<IProps> = ({ financial }) => {
     return () => financial.unsubscribe(id);
   }, []);
   const Center = () => {
+    const [loading, setLoading] = useState(false);
     if (initialized) {
       return (
         <Space>
           <Card>{'初始结账日期：' + (metadata?.initialized ?? '')}</Card>
           <Card>{'当前业务时间：' + (metadata?.current ?? '')}</Card>
           {metadata?.initialized && !financial.current && (
-            <Button onClick={() => financial.generatePeriod(metadata.initialized!)}>
+            <Button
+              loading={loading}
+              onClick={async () => {
+                setLoading(true);
+                await financial.generatingSnapshot(metadata.initialized!);
+                await financial.generatePeriod(
+                  financial.getOffsetPeriod(metadata.initialized!, 1),
+                );
+                setLoading(false);
+              }}>
               生成期初账期
             </Button>
           )}
@@ -161,39 +171,35 @@ const Periods: React.FC<IProps> = ({ financial }) => {
               title: '快照',
               valueType: 'text',
               render(_, item) {
-                if (item.snapshot) {
-                  return (
-                    <Space>
-                      <a
-                        onClick={() => {
-                          setCenter(
-                            <OpenFileDialog
-                              accepts={['表单']}
-                              rootKey={financial.space.key}
-                              onOk={(files) => {
-                                if (files.length > 0) {
-                                  const file = files[0];
-                                  const form = deepClone(file.metadata as schema.XForm);
-                                  form.collName = '_system-things_' + item.period;
-                                  setCenter(
-                                    <FormView
-                                      form={new Form(form, file.directory)}
-                                      finished={() => setCenter(<></>)}
-                                    />,
-                                  );
-                                }
-                              }}
-                              onCancel={() => setCenter(<></>)}
-                            />,
-                          );
-                        }}>
-                        查看
-                      </a>
-                      <Tag color="green">已生成</Tag>
-                    </Space>
-                  );
-                }
-                return <Tag color="red">未生成</Tag>;
+                return (
+                  <Space>
+                    <a
+                      onClick={() => {
+                        setCenter(
+                          <OpenFileDialog
+                            accepts={['表单']}
+                            rootKey={financial.space.key}
+                            onOk={(files) => {
+                              if (files.length > 0) {
+                                const file = files[0];
+                                const form = deepClone(file.metadata as schema.XForm);
+                                form.collName = '_system-things_' + item.period;
+                                setCenter(
+                                  <FormView
+                                    form={new Form(form, file.directory)}
+                                    finished={() => setCenter(<></>)}
+                                  />,
+                                );
+                              }
+                            }}
+                            onCancel={() => setCenter(<></>)}
+                          />,
+                        );
+                      }}>
+                      查看
+                    </a>
+                  </Space>
+                );
               },
             },
             {
@@ -239,19 +245,20 @@ const Periods: React.FC<IProps> = ({ financial }) => {
                         发起折旧
                       </Button>
                     )}
-                    {
+                    {item.deprecated && (
                       <Button
                         loading={loading}
                         type="primary"
                         size="small"
                         onClick={async () => {
                           setLoading(true);
-                          await item.generatingSnapshot();
+                          await financial.generatingSnapshot(item.period);
+                          await item.monthlySettlement();
                           setLoading(false);
                         }}>
                         生成快照
                       </Button>
-                    }
+                    )}
                     {!item.closed && (
                       <Button
                         type="primary"

@@ -789,8 +789,6 @@ export type XPeriod = {
   depreciated: boolean;
   // 是否已结账
   closed: boolean;
-  // 是否已生成快照
-  snapshot: boolean;
   // 是否已生成平衡
   balanced: boolean;
 } & XEntity;

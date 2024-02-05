@@ -1,6 +1,6 @@
 import { IBelong, IEntity, IFinancial } from '../..';
+import { schema } from '../../../base';
 import { Entity } from '../../public';
-import { common, kernel, schema } from '../../../base';
 
 /**
  * 账期
@@ -24,8 +24,6 @@ export interface IPeriod extends IEntity<schema.XPeriod> {
   closed: boolean;
   /** 是否平衡 */
   balanced: boolean;
-  /** 是否已生成快照 */
-  snapshot: boolean;
   /** 获取上一个月日期 */
   getPrePeriod(): string;
   /** 获取下一个月日期 */
@@ -36,8 +34,6 @@ export interface IPeriod extends IEntity<schema.XPeriod> {
   monthlySettlement(): Promise<void>;
   /** 试算平衡 */
   trialBalance(): Promise<void>;
-  /** 生成快照 */
-  generatingSnapshot(): Promise<void>;
 }
 
 export class Period extends Entity<schema.XPeriod> implements IPeriod {
@@ -65,9 +61,6 @@ export class Period extends Entity<schema.XPeriod> implements IPeriod {
   }
   get balanced() {
     return this.metadata.balanced;
-  }
-  get snapshot() {
-    return this.metadata.snapshot;
   }
   async calculateDepreciation(): Promise<void> {
     if (this.closed) {
@@ -102,12 +95,5 @@ export class Period extends Entity<schema.XPeriod> implements IPeriod {
     if (await this.financial.coll.replace(metadata)) {
       await this.financial.coll.notity({ operate: 'update', data: metadata });
     }
-  }
-  async generatingSnapshot(): Promise<void> {
-    await kernel.snapshotThing(this.space.id, [this.space.id], {
-      collName: '_system-things',
-      dataPeriod: this.metadata.period,
-    });
-    await this.update({ ...this.metadata, snapshot: true });
   }
 }

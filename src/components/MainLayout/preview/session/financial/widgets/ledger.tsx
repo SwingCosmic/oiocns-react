@@ -98,8 +98,8 @@ const AssetLedger: React.FC<IProps> = ({ financial, period }) => {
                       onClick={() => {
                         setCenter(
                           <OpenFileDialog
-                            accepts={['分类型']}
-                            rootKey={financial.space.spaceId}
+                            accepts={['变更源']}
+                            rootKey={financial.space.directory.key}
                             onOk={async (files) => {
                               if (files.length > 0) {
                                 const metadata = files[0].metadata as schema.XProperty;
@@ -123,8 +123,8 @@ const AssetLedger: React.FC<IProps> = ({ financial, period }) => {
                       onClick={() => {
                         setCenter(
                           <OpenFileDialog
-                            accepts={['数值型']}
-                            rootKey={financial.space.spaceId}
+                            accepts={['可记录的']}
+                            rootKey={financial.space.directory.key}
                             excludeIds={fields.map((f) => f.id.replace('T', ''))}
                             multiple
                             onOk={async (files) => {

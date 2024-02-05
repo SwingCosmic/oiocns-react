@@ -10,7 +10,7 @@ import 'devextreme/dist/css/dx.light.css';
 import './global.less';
 import zhCN from 'antd/es/locale/zh_CN';
 import moment from 'moment';
-import 'moment/locale/zh-cn';
+import 'moment/dist/locale/zh-cn';
 import orgCtrl from '@/ts/controller';
 import config from 'devextreme/core/config';
 import { loadMessages, locale } from 'devextreme/localization';
@@ -18,7 +18,7 @@ import zhMessage from 'devextreme/localization/messages/zh.json';
 import { LoggerLevel, logger } from '@/ts/base/common';
 import { useAudio } from 'react-use';
 
-moment.locale('cn');
+moment.locale('zh-cn');
 config({ defaultCurrency: 'zh' });
 loadMessages(zhMessage);
 locale('zh');
