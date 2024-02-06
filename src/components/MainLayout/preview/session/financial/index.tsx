@@ -33,7 +33,7 @@ const Financial: React.FC<IProps> = ({ financial }) => {
       return (
         <Space>
           <Card>{'初始结账日期：' + (metadata?.initialized ?? '')}</Card>
-          <Card>{'当前业务时间：' + (metadata?.current ?? '')}</Card>
+          <Card>{'当前业务账期：' + (metadata?.current ?? '')}</Card>
           {metadata?.initialized && !financial.current && (
             <Button
               loading={loading}

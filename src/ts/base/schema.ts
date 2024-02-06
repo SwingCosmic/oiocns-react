@@ -153,8 +153,8 @@ export type XAttributeProps = {
   fixed?: boolean;
   // 是否展示至摘要
   showToRemark?: boolean;
-  // 初始化设置特殊默认值
-  initSpecialValue?: string;
+  // 默认值类型
+  defaultType?: string;
 };
 
 //权限定义
@@ -880,7 +880,7 @@ export interface XSnapshot extends XThing {
 
 /** 变更详情 */
 export interface XChange extends Xbase {
-  // 业务时间
+  // 业务账期
   changeTime: string;
   // 物 ID
   thingId: string;

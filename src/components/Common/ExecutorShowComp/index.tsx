@@ -1,9 +1,9 @@
 import SchemaForm from '@/components/SchemaForm';
-import { model } from '@/ts/base';
+import { model, schema } from '@/ts/base';
 import { IWork } from '@/ts/core';
 import { ProFormInstance } from '@ant-design/pro-form';
 import ProTable from '@ant-design/pro-table';
-import { Button, Card, Empty, Input, Modal, Space } from 'antd';
+import { Button, Card, Checkbox, Empty, Input, Modal, Space } from 'antd';
 import { SelectBox } from 'devextreme-react';
 import React, { ReactNode, useEffect, useRef, useState } from 'react';
 import { AiOutlineCloseCircle } from 'react-icons/ai';
@@ -324,6 +324,8 @@ const ExecutorForm: React.FC<FieldChangeFormProps> = (props) => {
   const form = forms.find((form) => form.id == props.formChange.id);
   const [fields, setFields] = useState<model.FieldModel[]>(form?.fields || []);
   const [open, setOpen] = useState(false);
+  const [checked, setChecked] = useState(false);
+  const options = useRef<schema.XAttributeProps>();
   useEffect(() => {
     form?.loadContent().then(() => setFields(form.fields));
   }, []);
@@ -348,7 +350,6 @@ const ExecutorForm: React.FC<FieldChangeFormProps> = (props) => {
       case '分类型':
       case '附件型': {
         const lookup = field.lookups?.find((item) => value == item.value);
-        console.log(value, field.lookups, lookup);
         formRef.current?.setFieldValue(fieldName + 'Name', lookup?.text);
         break;
       }
@@ -460,21 +461,74 @@ const ExecutorForm: React.FC<FieldChangeFormProps> = (props) => {
               rules: [{ required: true, message: '变动后值为必填项' }],
             },
             renderFormItem: (_) => {
+              const current = props.work.directory.target.space.financial.current;
               const id = formRef.current?.getFieldValue('id');
               const field = fields.find((item) => item.id == id);
               if (field) {
                 const clone = cloneField(field);
+                const Default: React.FC = () => {
+                  let children: ReactNode | undefined;
+                  const setValues = (after: any, afterName?: string) => {
+                    setField(clone, 'after', after);
+                    setField(clone, 'afterName', afterName);
+                  };
+                  switch (field.options?.defaultType) {
+                    case 'currentPeriod':
+                      children = (
+                        <Checkbox
+                          checked={checked}
+                          onChange={(e) => {
+                            setChecked(e.target.checked);
+                            if (e.target.checked) {
+                              setValues(current, '当前业务账期');
+                            } else {
+                              setValues(undefined, undefined);
+                            }
+                          }}>
+                          使用当前业务账期
+                        </Checkbox>
+                      );
+                      break;
+                    default:
+                      if (field.options?.defaultValue) {
+                        children = (
+                          <Checkbox
+                            checked={checked}
+                            onChange={(e) => {
+                              setChecked(e.target.checked);
+                              if (e.target.checked) {
+                                const value = field.options?.defaultValue;
+                                setValues(field.options?.defaultValue, value);
+                              } else {
+                                setValues(undefined, undefined);
+                              }
+                            }}>
+                            使用默认值
+                          </Checkbox>
+                        );
+                      }
+                  }
+                  if (children) {
+                    options.current = field.options;
+                    return <div style={{ marginTop: 10 }}> {children} </div>;
+                  }
+                  options.current = undefined;
+                  return <></>;
+                };
                 return (
-                  <FormItem
-                    data={{}}
-                    numStr={'一列'}
-                    notifyEmitter={new Emitter()}
-                    field={clone}
-                    belong={props.work.directory.target.space}
-                    onValuesChange={(_, value) => setField(clone, 'after', value)}
-                    rules={[]}
-                    form={form.metadata}
-                  />
+                  <>
+                    <FormItem
+                      data={{}}
+                      numStr={'一列'}
+                      notifyEmitter={new Emitter()}
+                      field={clone}
+                      belong={props.work.directory.target.space}
+                      onValuesChange={(_, value) => setField(clone, 'after', value)}
+                      rules={[]}
+                      form={form.metadata}
+                    />
+                    <Default />
+                  </>
                 );
               }
               return <></>;
@@ -485,9 +539,6 @@ const ExecutorForm: React.FC<FieldChangeFormProps> = (props) => {
             dataIndex: 'afterName',
             colProps: { span: 24 },
             readonly: true,
-            formItemProps: {
-              rules: [{ required: true, message: '变动后值为必填项' }],
-            },
             renderFormItem: (_) => {
               return <>{formRef.current?.getFieldValue('afterName')}</>;
             },
@@ -503,6 +554,7 @@ const ExecutorForm: React.FC<FieldChangeFormProps> = (props) => {
           }
         }}
         onFinish={async (values) => {
+          values.options = options.current;
           if (values) {
             props.onSave(values);
           }

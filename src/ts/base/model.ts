@@ -979,6 +979,8 @@ export type FieldChange = {
   after: any;
   // 变动后名称
   afterName: string;
+  // 变动后默认值
+  options?: XAttributeProps;
 };
 
 export type Branche = {

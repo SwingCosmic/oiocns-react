@@ -70,16 +70,14 @@ const FormItem: React.FC<IFormItemProps> = (props) => {
     width: getItemWidth(props.numStr),
   };
 
-  if (props.field.options?.initSpecialValue) {
-    switch (props.field.options.initSpecialValue) {
+  if (props.field.options?.defaultType) {
+    switch (props.field.options.defaultType) {
       case 'currentPeriod': {
-        const company = props.belong.directory.target as IBelong;
-        mixOptions.defaultValue = company.financial.current;
+        if (!props.data[props.field.id]) {
+          mixOptions.defaultValue = props.belong.financial.current;
+        }
         break;
       }
-      default:
-        console.warn(`未知初始化默认值类型 ${props.field.options.initSpecialValue}`);
-        break;
     }
   }
 

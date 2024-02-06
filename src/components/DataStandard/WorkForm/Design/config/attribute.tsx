@@ -21,7 +21,7 @@ interface IAttributeProps {
   notifyEmitter: Emitter;
 }
 
-const initSpecialValues = [
+const defaultTypes = [
   {
     type: 'currentPeriod',
     name: '当前账期',
@@ -399,13 +399,13 @@ const AttributeConfig: React.FC<IAttributeProps> = ({
               }}
             />,
             <SimpleItem
-              dataField="options.initSpecialValue"
+              dataField="options.defaultType"
               editorType="dxSelectBox"
               label={{ text: '初始化赋值' }}
               editorOptions={{
                 valueExpr: 'type',
                 displayExpr: 'name',
-                dataSource: initSpecialValues,
+                dataSource: defaultTypes,
                 showClearButton: true,
               }}
             />,

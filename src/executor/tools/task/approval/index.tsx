@@ -94,6 +94,13 @@ const TaskApproval: React.FC<TaskDetailType> = ({ task, finished, fromData }) =>
         <Space style={{ width: '100%' }} direction="vertical">
           <span>确认后，您的数据将自动产生变更操作，变更字段如下</span>
           {props.executor.metadata.changes.map((item, index) => {
+            item.fieldChanges.forEach((change) => {
+              switch (change.options?.defaultType) {
+                case 'currentPeriod':
+                  change.after = task.belong.financial.current;
+                  break;
+              }
+            });
             return (
               <Card key={index} title={item.name}>
                 <ProTable
