@@ -8,6 +8,7 @@ import { Theme } from '@/config/theme';
 type segmentedTypes = 'icon' | 'table' | 'list';
 
 interface IProps {
+  height?: number | string;
   descriptions: string;
   children?: React.ReactNode; // 子组件
   onSegmentChanged: (type: segmentedTypes) => void;
@@ -16,6 +17,7 @@ interface IProps {
  * 存储-文件系统
  */
 const SegmentContent: React.FC<IProps> = ({
+  height,
   children,
   descriptions,
   onSegmentChanged,
@@ -24,7 +26,7 @@ const SegmentContent: React.FC<IProps> = ({
   const parentRef = useRef<any>();
 
   return (
-    <div className={style.pageCard}>
+    <div style={{ height: height }} className={style.pageCard}>
       <div className={style.mainContent} ref={parentRef}>
         {children && children}
       </div>

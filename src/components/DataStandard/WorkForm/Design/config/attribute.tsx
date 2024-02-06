@@ -174,7 +174,7 @@ const AttributeConfig: React.FC<IAttributeProps> = ({
 
   useEffect(() => {
     loadAttributeResource();
-    setSelect(JSON.parse(attribute.rule));
+    setSelect(JSON.parse(attribute?.rule ?? '{}'));
     setReadOnlyConditions(attribute.options!['readOnlyConditions']);
     setHideFieldConditions(attribute.options!['hideFieldConditions']);
     setIsRequiredConditions(attribute.options!['isRequiredConditions']);
@@ -222,7 +222,7 @@ const AttributeConfig: React.FC<IAttributeProps> = ({
                     type="link"
                     icon={<EditOutlined />}
                     onClick={() => {
-                      setSelect(JSON.parse(attribute.rule));
+                      setSelect(JSON.parse(attribute?.rule ?? '{}'));
                       setOpenType(1);
                     }}>
                     编辑计算规则

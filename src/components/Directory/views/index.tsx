@@ -20,6 +20,7 @@ interface IProps {
   preDirectory?: IDEntity;
   focusFile?: IDEntity;
   rightBars?: ReactNode;
+  height?: number | string;
   currentTag: string;
   badgeCount?: (tag: string) => number;
   tagChanged?: (tag: string) => void;
@@ -112,6 +113,7 @@ const DirectoryView: React.FC<IProps> = (props) => {
         onBack={() => props.fileOpen(props.preDirectory, true)}
         onChanged={(t) => props.tagChanged && props.tagChanged(t)}></TagsBar>
       <SegmentContent
+        height={props.height}
         onSegmentChanged={setSegmented}
         descriptions={`${getContent().length}个项目`}>
         {segmented === 'icon' ? (

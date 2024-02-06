@@ -1,5 +1,5 @@
 import { AiOutlineCaretRight } from 'react-icons/ai';
-import { Breadcrumb, Divider, Space } from 'antd';
+import { Breadcrumb, Divider, Space, Tag } from 'antd';
 import React, { useEffect, useState } from 'react';
 import { MenuItemType } from 'typings/globelType';
 
@@ -39,6 +39,7 @@ const CustomBreadcrumb = (props: CustomBreadcrumbType) => {
         items: item.children.map((i) => {
           return {
             key: i.key,
+            icon: <span style={{ fontSize: 16, paddingTop: 2 }}>{i.icon}</span>,
             label: i.label,
           };
         }),
@@ -66,7 +67,18 @@ const CustomBreadcrumb = (props: CustomBreadcrumbType) => {
               onClick={() => {
                 props.onSelect?.apply(this, [item]);
               }}>
-              {item.label}
+              <span style={{ fontSize: 16, paddingTop: 6, paddingRight: 4 }}>
+                {item.icon}
+              </span>
+              {item.label}{' '}
+              {item.tag &&
+                item.tag.map((tag) => {
+                  return (
+                    <Tag key={tag} color="success">
+                      {tag}
+                    </Tag>
+                  );
+                })}
             </Breadcrumb.Item>
           );
         })}
