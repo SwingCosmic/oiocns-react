@@ -79,7 +79,7 @@ export class Financial extends common.Emitter implements IFinancial {
     );
     this.averageCache = new XObject(
       belong.metadata,
-      'financial-year-average',
+      'year-average-calculator',
       [],
       [this.key],
     );
@@ -130,11 +130,15 @@ export class Financial extends common.Emitter implements IFinancial {
     return this.metadata?.fields ?? [];
   }
   async loadContent(): Promise<void> {
-    const data = await this.financialCache.get<schema.XFinancial>('');
-    if (data) {
-      this.metadata = data;
+    const financial = await this.financialCache.get<schema.XFinancial>('');
+    if (financial) {
+      this.metadata = financial;
     }
-    this.financialCache.subscribe('', (res: schema.XFinancial) => {
+    const yearAverage = await this.averageCache.get<schema.YearAverage>('');
+    if (yearAverage) {
+      this.yearAverage = yearAverage;
+    }
+    this.financialCache.subscribe('financial', (res: schema.XFinancial) => {
       this.metadata = res;
       this.changCallback();
     });
@@ -148,7 +152,7 @@ export class Financial extends common.Emitter implements IFinancial {
         this.changCallback();
       }
     });
-    this.averageCache.subscribe('', (res: schema.YearAverage) => {
+    this.averageCache.subscribe('average', (res: schema.YearAverage) => {
       this.yearAverage = res;
       this.changCallback();
     });
@@ -204,16 +208,14 @@ export class Financial extends common.Emitter implements IFinancial {
   }
   async setYearAverage(yearAverage: schema.YearAverage): Promise<void> {
     if (await this.averageCache.set('', yearAverage)) {
-      await this.averageCache.notity('', yearAverage, true, false);
+      await this.averageCache.notity('average', yearAverage, true, false);
     }
   }
   async clear(): Promise<void> {
     if (await this.financialCache.set('', {})) {
-      await this.financialCache.notity('', {}, true, false);
+      await this.financialCache.notity('financial', {}, true, false);
     }
-    if (await this.averageCache.set('', {})) {
-      await this.averageCache.notity('', {}, true, false);
-    }
+    await this.setYearAverage({} as schema.YearAverage);
     if (await this.coll.removeMatch({})) {
       await this.coll.notity({ operate: 'clear' });
     }

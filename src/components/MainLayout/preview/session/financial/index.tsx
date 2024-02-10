@@ -8,21 +8,22 @@ import { Form } from '@/ts/core/thing/standard/form';
 import { IPeriod } from '@/ts/core/work/financial/period';
 import { ProTable } from '@ant-design/pro-components';
 import {
+  Form as AntForm,
   Button,
   Card,
   DatePicker,
-  Form as AntForm,
   Select,
   Space,
   Tag,
-  Tooltip,
+  Tooltip
 } from 'antd';
+import { FormInstance } from 'antd/es/form';
+import FormItem from 'antd/lib/form/FormItem';
 import React, { ReactNode, useEffect, useRef, useState } from 'react';
 import cls from './index.module.less';
 import { Closing } from './widgets/closing';
 import Depreciation from './widgets/depreciation';
 import AssetLedger from './widgets/ledger';
-import FormItem from 'antd/lib/form/FormItem';
 
 interface IProps {
   financial: IFinancial;
@@ -141,18 +142,11 @@ interface TemplateProps {
 
 const DepreciationTemplate: React.FC<TemplateProps> = ({ financial, onFinished }) => {
   const [center, setCenter] = useState(<></>);
-  const [depreciation, setDepreciation] = useState(
-    financial.yearAverage ?? ({} as schema.YearAverage),
-  );
+  const [form] = AntForm.useForm<schema.YearAverage>();
   const [speciesItems, setSpeciesItems] = useState<schema.XSpeciesItem[]>([]);
-  const loadSpeciesItems = (depreciationMethod: schema.XProperty) => {
-    if (depreciationMethod) {
-      if (depreciationMethod.speciesId) {
-        financial
-          .loadSpeciesItems(depreciationMethod.speciesId)
-          .then((data) => setSpeciesItems(data));
-      }
-    }
+  const loadSpeciesItems = async (speciesId: string) => {
+    const data = await financial.loadSpeciesItems(speciesId);
+    setSpeciesItems(data);
   };
   const onSelect = (key: string) => {
     setCenter(
@@ -162,7 +156,7 @@ const DepreciationTemplate: React.FC<TemplateProps> = ({ financial, onFinished }
         onOk={(files: IFile[]) => {
           if (files) {
             const property = files[0].metadata as schema.XProperty;
-            setDepreciation({ ...depreciation, [key]: property });
+            form.setFieldValue(key, property);
           }
           setCenter(<></>);
         }}
@@ -180,8 +174,10 @@ const DepreciationTemplate: React.FC<TemplateProps> = ({ financial, onFinished }
         onOk={(files: IFile[]) => {
           if (files.length > 0) {
             const property = files[0].metadata as schema.XProperty;
-            setDepreciation({ ...depreciation, depreciationMethod: property });
-            loadSpeciesItems(property);
+            form.setFieldValue('depreciationMethod', property);
+            if (property.speciesId) {
+              loadSpeciesItems(property.speciesId);
+            }
           }
           setCenter(<></>);
         }}
@@ -192,34 +188,44 @@ const DepreciationTemplate: React.FC<TemplateProps> = ({ financial, onFinished }
     );
   };
   useEffect(() => {
-    loadSpeciesItems(depreciation.depreciationMethod);
+    const method = financial.yearAverage?.depreciationMethod;
+    console.log(financial.yearAverage);
+    if (method && method.speciesId) {
+      loadSpeciesItems(method.speciesId);
+    }
   }, []);
   return (
     <FullScreen
       title={'折旧模板配置'}
       onFinished={onFinished}
       onSave={async () => {
-        await financial.setYearAverage(depreciation);
+        form.isFieldsTouched;
+        const validated = await form.validateFields();
+        await financial.setYearAverage(validated);
         onFinished();
       }}>
-      <AntForm>
+      <AntForm<schema.YearAverage> form={form} initialValues={financial.yearAverage}>
         <Card title="平均年限法">
           <Card title={'公式定义'}>
             <Space direction="vertical">
               <Space>
-                <FormItem name="depreciationMethod">
+                <FormItem
+                  name="depreciationMethod"
+                  rules={[{ required: true, message: '请绑定折旧方式！' }]}>
                   <FieldText
                     field="depreciationMethod"
-                    value="折旧方式"
+                    label="折旧方式"
                     onSelect={onMethodSelected}
-                    depreciation={depreciation}
+                    form={form}
                   />
                 </FormItem>
                 <SymbolText value="=" />
-                <FormItem label="">
+                <FormItem
+                  name="speciesItemId"
+                  rules={[{ required: true, message: '请绑定折旧方法！' }]}>
                   <Select
                     style={{ width: 200 }}
-                    placeholder="选择折旧方式"
+                    placeholder="选择折旧方法"
                     options={speciesItems.map((item) => {
                       return {
                         label: item.name,
@@ -230,85 +236,129 @@ const DepreciationTemplate: React.FC<TemplateProps> = ({ financial, onFinished }
                 </FormItem>
               </Space>
               <Space>
-                <FieldText
-                  field="netWorth"
-                  value="净值"
-                  onSelect={onSelect}
-                  depreciation={depreciation}
-                />
+                <FormItem
+                  name="netWorth"
+                  rules={[{ required: true, message: '请绑定净值！' }]}>
+                  <FieldText
+                    field="netWorth"
+                    label="净值"
+                    onSelect={onSelect}
+                    form={form}
+                  />
+                </FormItem>
                 <SymbolText value="=" />
-                <FieldText
-                  field="originalValue"
-                  value="原值"
-                  onSelect={onSelect}
-                  depreciation={depreciation}
-                />
+                <FormItem
+                  name="originalValue"
+                  rules={[{ required: true, message: '请绑定原值！' }]}>
+                  <FieldText
+                    field="originalValue"
+                    label="原值"
+                    onSelect={onSelect}
+                    form={form}
+                  />
+                </FormItem>
                 <SymbolText value="-" />
-                <FieldText
-                  field="monthlyDepreciationAmount"
-                  value="累计折旧"
-                  onSelect={onSelect}
-                  depreciation={depreciation}
-                />
+                <FormItem
+                  name="monthlyDepreciationAmount"
+                  rules={[{ required: true, message: '请绑定累计折旧！' }]}>
+                  <FieldText
+                    field="monthlyDepreciationAmount"
+                    label="累计折旧"
+                    onSelect={onSelect}
+                    form={form}
+                  />
+                </FormItem>
               </Space>
               <Space>
-                <FieldText
-                  field="monthlyDepreciationAmount"
-                  value="月折旧额"
-                  onSelect={onSelect}
-                  depreciation={depreciation}
-                />
+                <FormItem
+                  name="monthlyDepreciationAmount"
+                  rules={[{ required: true, message: '请绑定月折旧额！' }]}>
+                  <FieldText
+                    field="monthlyDepreciationAmount"
+                    label="月折旧额"
+                    onSelect={onSelect}
+                    form={form}
+                  />
+                </FormItem>
                 <SymbolText value="=" />
-                <FieldText
-                  field="originalValue"
-                  value="原值"
-                  onSelect={onSelect}
-                  depreciation={depreciation}
-                />
+                <FormItem
+                  name="originalValue"
+                  rules={[{ required: true, message: '请绑定原值！' }]}>
+                  <FieldText
+                    field="originalValue"
+                    label="原值"
+                    onSelect={onSelect}
+                    form={form}
+                  />
+                </FormItem>
                 <SymbolText value="/" />
-                <FieldText
-                  field="usefulLife"
-                  value="使用年限"
-                  onSelect={onSelect}
-                  depreciation={depreciation}
-                />
+                <FormItem
+                  name="usefulLife"
+                  rules={[{ required: true, message: '请绑定使用年限！' }]}>
+                  <FieldText
+                    field="usefulLife"
+                    label="使用年限"
+                    onSelect={onSelect}
+                    form={form}
+                  />
+                </FormItem>
               </Space>
               <Space>
-                <FieldText
-                  field="monthlyDepreciationAmount"
-                  value="累计折旧"
-                  onSelect={onSelect}
-                  depreciation={depreciation}
-                />
+                <FormItem
+                  name="monthlyDepreciationAmount"
+                  rules={[{ required: true, message: '请绑定累计折旧！' }]}>
+                  <FieldText
+                    field="monthlyDepreciationAmount"
+                    label="累计折旧"
+                    onSelect={onSelect}
+                    form={form}
+                  />
+                </FormItem>
                 <SymbolText value="=" />
-                <FieldText
-                  field="monthlyDepreciationAmount"
-                  value="累计折旧"
-                  onSelect={onSelect}
-                  depreciation={depreciation}
-                />
+                <FormItem
+                  name="monthlyDepreciationAmount"
+                  rules={[{ required: true, message: '请绑定累计折旧！' }]}>
+                  <FieldText
+                    field="monthlyDepreciationAmount"
+                    label="累计折旧"
+                    onSelect={onSelect}
+                    form={form}
+                  />
+                </FormItem>
                 <SymbolText value="+" />
-                <FieldText
-                  field="monthlyDepreciationAmount"
-                  value="月折旧额"
-                  onSelect={onSelect}
-                  depreciation={depreciation}
-                />
+                <FormItem
+                  name="monthlyDepreciationAmount"
+                  rules={[{ required: true, message: '请绑定月折旧额！' }]}>
+                  <FieldText
+                    field="monthlyDepreciationAmount"
+                    label="月折旧额"
+                    onSelect={onSelect}
+                    form={form}
+                  />
+                </FormItem>
               </Space>
               <Space>
-                <FieldText
-                  field="accruedMonths"
-                  value="已计提月份"
-                  onSelect={onSelect}
-                  depreciation={depreciation}
-                />
+                <FormItem
+                  name="accruedMonths"
+                  rules={[{ required: true, message: '请绑定已计提月份！' }]}>
+                  <FieldText
+                    field="accruedMonths"
+                    label="已计提月份"
+                    onSelect={onSelect}
+                    form={form}
+                  />
+                </FormItem>
                 <SymbolText value="=" />
-                <FieldText
-                  field="accruedMonths"
-                  value="已计提月份"
-                  onSelect={onSelect}
-                  depreciation={depreciation}
-                />
+                <FormItem
+                  name="accruedMonths"
+                  rules={[{ required: true, message: '请绑定已计提月份！' }]}>
+                  <FieldText
+                    field="accruedMonths"
+                    label="已计提月份"
+                    onSelect={onSelect}
+                    form={form}
+                  />
+                </FormItem>
                 <SymbolText value="+" />
                 <NumberText number={1} />
               </Space>
@@ -322,21 +372,21 @@ const DepreciationTemplate: React.FC<TemplateProps> = ({ financial, onFinished }
 };
 
 interface DesignProps {
-  field: keyof schema.YearAverage | 'number';
-  value: string;
-  depreciation: schema.YearAverage;
+  field: keyof schema.YearAverage;
+  label: string;
+  form: FormInstance<schema.YearAverage>;
   onSelect: (key: string) => void;
 }
 
 export const FieldText: React.FC<DesignProps> = (props) => {
   return (
-    <Tooltip title={props.value}>
+    <Tooltip title={props.label}>
       <div
         style={{ width: 200 }}
         className={cls.designText}
         onClick={() => props.onSelect(props.field)}>
-        <div className={cls.textOverflow}>{props.value}</div>
-        {props.field == 'number' || props.depreciation[props.field] ? (
+        <div className={cls.textOverflow}>{props.label}</div>
+        {props.form.getFieldValue(props.field) ? (
           <Tag color="green">已绑定</Tag>
         ) : (
           <Tag color="red">未绑定</Tag>
