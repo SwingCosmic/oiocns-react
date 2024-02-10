@@ -6,7 +6,7 @@ import useAsyncLoad from '@/hooks/useAsyncLoad';
 import DefaultWayStart from './default';
 import MultitabTable from './multitabTable';
 import WorkSelect from '@/executor/tools/task/start/selection';
-import NullableFinancial from '@/components/MainLayout/preview/session/financial';
+import BelongFinancial from '@/components/MainLayout/preview/session/financial';
 
 // 卡片渲染
 interface IProps {
@@ -41,12 +41,7 @@ const TaskStart: React.FC<IProps> = ({ current, data, finished }) => {
           />
         );
       case '财务':
-        return (
-          <NullableFinancial
-            belong={current.directory.target.space}
-            finished={finished}
-          />
-        );
+        return <BelongFinancial belong={current.directory.target.space} />;
       default:
         return (
           <DefaultWayStart

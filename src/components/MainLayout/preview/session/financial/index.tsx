@@ -1,18 +1,28 @@
 import FullScreenModal from '@/components/Common/fullScreen';
 import OpenFileDialog from '@/components/OpenFileDialog';
 import FormView from '@/executor/open/form';
-import { model, schema } from '@/ts/base';
+import { schema } from '@/ts/base';
 import { deepClone } from '@/ts/base/common';
 import { IBelong, IFile, IFinancial, TargetType } from '@/ts/core';
+import { Form } from '@/ts/core/thing/standard/form';
 import { IPeriod } from '@/ts/core/work/financial/period';
 import { ProTable } from '@ant-design/pro-components';
-import { Button, Card, DatePicker, Select, Space, Table, Tag, Tooltip } from 'antd';
-import React, { ReactNode, useEffect, useMemo, useRef, useState } from 'react';
-import Depreciation from './widgets/depreciation';
-import { Closing } from './widgets/closing';
-import AssetLedger from './widgets/ledger';
-import { Form } from '@/ts/core/thing/standard/form';
+import {
+  Button,
+  Card,
+  DatePicker,
+  Form as AntForm,
+  Select,
+  Space,
+  Tag,
+  Tooltip,
+} from 'antd';
+import React, { ReactNode, useEffect, useRef, useState } from 'react';
 import cls from './index.module.less';
+import { Closing } from './widgets/closing';
+import Depreciation from './widgets/depreciation';
+import AssetLedger from './widgets/ledger';
+import FormItem from 'antd/lib/form/FormItem';
 
 interface IProps {
   financial: IFinancial;
@@ -101,7 +111,8 @@ const Financial: React.FC<IProps> = ({ financial }) => {
 
 interface FullProps {
   title: string;
-  onFinished: () => void;
+  onFinished?: () => void;
+  onSave?: () => void;
   children: ReactNode;
 }
 
@@ -115,7 +126,9 @@ const FullScreen: React.FC<FullProps> = (props) => {
       width={'80vw'}
       bodyHeight={'80vh'}
       title={props.title}
-      onCancel={props.onFinished}>
+      onOk={props.onFinished}
+      onCancel={props.onFinished}
+      onSave={props.onSave}>
       {props.children}
     </FullScreenModal>
   );
@@ -131,16 +144,27 @@ const DepreciationTemplate: React.FC<TemplateProps> = ({ financial, onFinished }
   const [depreciation, setDepreciation] = useState(
     financial.yearAverage ?? ({} as schema.YearAverage),
   );
+  const [speciesItems, setSpeciesItems] = useState<schema.XSpeciesItem[]>([]);
+  const loadSpeciesItems = (depreciationMethod: schema.XProperty) => {
+    if (depreciationMethod) {
+      if (depreciationMethod.speciesId) {
+        financial
+          .loadSpeciesItems(depreciationMethod.speciesId)
+          .then((data) => setSpeciesItems(data));
+      }
+    }
+  };
   const onSelect = (key: string) => {
     setCenter(
       <OpenFileDialog
         accepts={['数值型']}
-        rootKey={financial.space.key}
+        rootKey={financial.space.directory.key}
         onOk={(files: IFile[]) => {
           if (files) {
             const property = files[0].metadata as schema.XProperty;
             setDepreciation({ ...depreciation, [key]: property });
           }
+          setCenter(<></>);
         }}
         onCancel={() => {
           setCenter(<></>);
@@ -152,12 +176,14 @@ const DepreciationTemplate: React.FC<TemplateProps> = ({ financial, onFinished }
     setCenter(
       <OpenFileDialog
         accepts={['选择型', '分类型']}
-        rootKey={financial.space.key}
+        rootKey={financial.space.directory.key}
         onOk={(files: IFile[]) => {
           if (files.length > 0) {
             const property = files[0].metadata as schema.XProperty;
             setDepreciation({ ...depreciation, depreciationMethod: property });
+            loadSpeciesItems(property);
           }
+          setCenter(<></>);
         }}
         onCancel={function (): void {
           setCenter(<></>);
@@ -165,93 +191,166 @@ const DepreciationTemplate: React.FC<TemplateProps> = ({ financial, onFinished }
       />,
     );
   };
+  useEffect(() => {
+    loadSpeciesItems(depreciation.depreciationMethod);
+  }, []);
   return (
-    <FullScreen title={'折旧模板配置'} onFinished={onFinished}>
-      <Card title="平均年限法">
-        <Space style={{ width: '100%' }} direction="vertical">
-          <Card title={'折旧方式绑定'}>
-            <Space>
-              <FieldText
-                key="depreciationMethod"
-                value="折旧方式属性"
-                onSelect={onMethodSelected}
-              />
-              折旧方式: <Select />
-            </Space>
-          </Card>
+    <FullScreen
+      title={'折旧模板配置'}
+      onFinished={onFinished}
+      onSave={async () => {
+        await financial.setYearAverage(depreciation);
+        onFinished();
+      }}>
+      <AntForm>
+        <Card title="平均年限法">
           <Card title={'公式定义'}>
             <Space direction="vertical">
               <Space>
-                <FieldText key="netWorth" value="净值" onSelect={onSelect} />
+                <FormItem name="depreciationMethod">
+                  <FieldText
+                    field="depreciationMethod"
+                    value="折旧方式"
+                    onSelect={onMethodSelected}
+                    depreciation={depreciation}
+                  />
+                </FormItem>
                 <SymbolText value="=" />
-                <FieldText key="originalValue" value="原值" onSelect={onSelect} />
+                <FormItem label="">
+                  <Select
+                    style={{ width: 200 }}
+                    placeholder="选择折旧方式"
+                    options={speciesItems.map((item) => {
+                      return {
+                        label: item.name,
+                        value: item.id,
+                      };
+                    })}
+                  />
+                </FormItem>
+              </Space>
+              <Space>
+                <FieldText
+                  field="netWorth"
+                  value="净值"
+                  onSelect={onSelect}
+                  depreciation={depreciation}
+                />
+                <SymbolText value="=" />
+                <FieldText
+                  field="originalValue"
+                  value="原值"
+                  onSelect={onSelect}
+                  depreciation={depreciation}
+                />
                 <SymbolText value="-" />
                 <FieldText
-                  key="monthlyDepreciationAmount"
+                  field="monthlyDepreciationAmount"
                   value="累计折旧"
                   onSelect={onSelect}
+                  depreciation={depreciation}
                 />
               </Space>
               <Space>
                 <FieldText
-                  key="monthlyDepreciationAmount"
+                  field="monthlyDepreciationAmount"
                   value="月折旧额"
                   onSelect={onSelect}
+                  depreciation={depreciation}
                 />
                 <SymbolText value="=" />
-                <FieldText key="originalValue" value="原值" onSelect={onSelect} />
+                <FieldText
+                  field="originalValue"
+                  value="原值"
+                  onSelect={onSelect}
+                  depreciation={depreciation}
+                />
                 <SymbolText value="/" />
-                <FieldText key="usefulLife" value="使用年限" onSelect={onSelect} />
+                <FieldText
+                  field="usefulLife"
+                  value="使用年限"
+                  onSelect={onSelect}
+                  depreciation={depreciation}
+                />
               </Space>
               <Space>
                 <FieldText
-                  key="monthlyDepreciationAmount"
+                  field="monthlyDepreciationAmount"
                   value="累计折旧"
                   onSelect={onSelect}
+                  depreciation={depreciation}
                 />
                 <SymbolText value="=" />
                 <FieldText
-                  key="monthlyDepreciationAmount"
+                  field="monthlyDepreciationAmount"
                   value="累计折旧"
                   onSelect={onSelect}
+                  depreciation={depreciation}
                 />
                 <SymbolText value="+" />
                 <FieldText
-                  key="monthlyDepreciationAmount"
+                  field="monthlyDepreciationAmount"
                   value="月折旧额"
                   onSelect={onSelect}
+                  depreciation={depreciation}
                 />
               </Space>
               <Space>
-                <FieldText key="accruedMonths" value="已计提月份" onSelect={onSelect} />
+                <FieldText
+                  field="accruedMonths"
+                  value="已计提月份"
+                  onSelect={onSelect}
+                  depreciation={depreciation}
+                />
                 <SymbolText value="=" />
-                <FieldText key="accruedMonths" value="已计提月份" onSelect={onSelect} />
+                <FieldText
+                  field="accruedMonths"
+                  value="已计提月份"
+                  onSelect={onSelect}
+                  depreciation={depreciation}
+                />
                 <SymbolText value="+" />
-                <FieldText key="number" value="1" onSelect={() => {}} />
+                <NumberText number={1} />
               </Space>
             </Space>
           </Card>
-        </Space>
-      </Card>
+        </Card>
+      </AntForm>
       {center}
     </FullScreen>
   );
 };
 
 interface DesignProps {
-  key: string;
+  field: keyof schema.YearAverage | 'number';
   value: string;
+  depreciation: schema.YearAverage;
   onSelect: (key: string) => void;
 }
 
 export const FieldText: React.FC<DesignProps> = (props) => {
   return (
-    <Tooltip title={props.value} key={props.key}>
+    <Tooltip title={props.value}>
       <div
-        style={{ width: 200, height: '100%' }}
+        style={{ width: 200 }}
         className={cls.designText}
-        onClick={() => props.onSelect(props.key)}>
+        onClick={() => props.onSelect(props.field)}>
         <div className={cls.textOverflow}>{props.value}</div>
+        {props.field == 'number' || props.depreciation[props.field] ? (
+          <Tag color="green">已绑定</Tag>
+        ) : (
+          <Tag color="red">未绑定</Tag>
+        )}
+      </div>
+    </Tooltip>
+  );
+};
+
+export const NumberText: React.FC<{ number: number }> = (props) => {
+  return (
+    <Tooltip>
+      <div style={{ width: 200 }} className={cls.designText}>
+        <div className={cls.textOverflow}>{props.number}</div>
       </div>
     </Tooltip>
   );
@@ -440,21 +539,18 @@ const Periods: React.FC<IProps> = ({ financial }) => {
 
 interface FinancialProps {
   belong: IBelong;
-  finished: () => void;
 }
 
-const NullableFinancial: React.FC<FinancialProps> = ({ belong, finished }) => {
+const BelongFinancial: React.FC<FinancialProps> = ({ belong }) => {
   if ([TargetType.Company, TargetType.Person].includes(belong.typeName as TargetType)) {
     return (
-      <FullScreen title={'财务管理'} onFinished={finished}>
-        <Space style={{ width: '100%' }} direction="vertical">
-          <Financial financial={belong.financial} />
-          <Periods financial={belong.financial} />
-        </Space>
-      </FullScreen>
+      <Space style={{ width: '100%' }} direction="vertical">
+        <Financial financial={belong.financial} />
+        <Periods financial={belong.financial} />
+      </Space>
     );
   }
   return <></>;
 };
 
-export default NullableFinancial;
+export default BelongFinancial;

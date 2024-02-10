@@ -885,11 +885,12 @@ export interface XChange extends Xbase {
   [dimension: string]: any;
 }
 
-
 // 平均年限法
 export interface YearAverage extends Xbase {
   // 折旧方式
   depreciationMethod: XProperty;
+  // 折旧方法
+  speciesItemId: string;
   // 原值
   originalValue: XProperty;
   // 累计折旧
