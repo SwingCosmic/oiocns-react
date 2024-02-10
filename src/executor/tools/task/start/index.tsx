@@ -6,6 +6,8 @@ import useAsyncLoad from '@/hooks/useAsyncLoad';
 import DefaultWayStart from './default';
 import MultitabTable from './multitabTable';
 import WorkSelect from '@/executor/tools/task/start/selection';
+import NullableFinancial from '@/components/MainLayout/preview/session/financial';
+
 // 卡片渲染
 interface IProps {
   current: IWork | IWorkTask;
@@ -38,8 +40,14 @@ const TaskStart: React.FC<IProps> = ({ current, data, finished }) => {
             finished={finished}
           />
         );
+      case '财务':
+        return (
+          <NullableFinancial
+            belong={current.directory.target.space}
+            finished={finished}
+          />
+        );
       default:
-        console.log(current.directory.target);
         return (
           <DefaultWayStart
             apply={apply}

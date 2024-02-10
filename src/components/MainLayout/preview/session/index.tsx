@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { IBelong, IFile, ISession, ITarget, TargetType } from '@/ts/core';
+import { IFile, ISession, ITarget, TargetType } from '@/ts/core';
 import { command } from '@/ts/base';
 import Directory from '@/components/Directory';
 import DirectoryViewer from '@/components/Directory/views';
@@ -9,7 +9,6 @@ import ChatBody from './chat';
 import PreviewLayout from '../layout';
 import { cleanMenus } from '@/utils/tools';
 import useCtrlUpdate from '@/hooks/useCtrlUpdate';
-import NullableFinancial from './financial';
 
 const SessionBody = ({
   session,
@@ -104,8 +103,6 @@ const SessionBody = ({
         return <Directory key={session.target.key} root={session.target.directory} />;
       case 'relation':
         return <RenderMemberDirectory target={session.target} />;
-      case 'setting':
-        return <NullableFinancial belong={session.target as IBelong} />;
       default:
         return <></>;
     }

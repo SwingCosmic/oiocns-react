@@ -1,6 +1,6 @@
 import { IBelong, XCollection } from '../..';
-import { XObject } from '../../public/object';
 import { common, kernel, schema } from '../../../base';
+import { XObject } from '../../public/object';
 import { IPeriod, Period } from './period';
 
 /** 汇总数据 */
@@ -13,17 +13,19 @@ export interface IFinancial extends common.Emitter {
   /** 归属对象 */
   space: IBelong;
   /** 元数据 */
-  metadata: schema.XFinancial | undefined;
+  metadata: schema.XFinancial;
   /** 初始化结账月 */
   initialized: string | undefined;
   /** 当前账期 */
   current: string | undefined;
+  /** 平均年限法 */
+  yearAverage: schema.YearAverage | undefined;
   /** 统计维度 */
   species: schema.XProperty | undefined;
   /** 统计字段 */
   fields: schema.XProperty[];
   /** 缓存 */
-  cache: XObject<schema.Xbase>;
+  financialCache: XObject<schema.Xbase>;
   /** 账期集合 */
   coll: XCollection<schema.XPeriod>;
   /** 期数集合 */
@@ -34,10 +36,16 @@ export interface IFinancial extends common.Emitter {
   initialize(period: string): Promise<void>;
   /** 设置当前账期 */
   setCurrent(period: string): Promise<void>;
+  /** 设置折旧配置 */
+  setYearAverage(yearAverage: schema.YearAverage): Promise<void>;
   /** 清空结账日期 */
   clear(): Promise<void>;
   /** 设置总账统计维度（分类型、字典型） */
   setSpecies(species: schema.XProperty): Promise<void>;
+  /** 发现分类型 */
+  findSpecies(speciesId: string): Promise<schema.XSpecies | undefined>;
+  /** 加载分类明细项 */
+  loadSpeciesItems(speciesId: string): Promise<schema.XSpeciesItem[]>;
   /** 设置总账统计字段（数值型） */
   setFields(fields: schema.XProperty[]): Promise<void>;
   /** 加载财务数据 */
@@ -55,14 +63,26 @@ export interface IFinancial extends common.Emitter {
   /** 统计区间的汇总至 */
   summaryRange(start: string, end: string): Promise<common.Node<ItemSummary>[]>;
   /** 生成快照 */
-  generatingSnapshot(period: string): Promise<void>;
+  generateSnapshot(period: string): Promise<void>;
 }
 
 export class Financial extends common.Emitter implements IFinancial {
   constructor(belong: IBelong) {
     super();
     this.space = belong;
-    this.cache = new XObject(belong.metadata, 'target-financial', [], [this.key]);
+    this.metadata = {};
+    this.financialCache = new XObject(
+      belong.metadata,
+      'target-financial',
+      [],
+      [this.key],
+    );
+    this.averageCache = new XObject(
+      belong.metadata,
+      'financial-year-average',
+      [],
+      [this.key],
+    );
     this.coll = this.space.resource.periodColl;
     this.coll.subscribe([this.key], (result) => {
       switch (result.operate) {
@@ -84,8 +104,10 @@ export class Financial extends common.Emitter implements IFinancial {
       this.changCallback();
     });
   }
-  cache: XObject<schema.Xbase>;
-  metadata: schema.XFinancial | undefined;
+  yearAverage: schema.YearAverage | undefined;
+  financialCache: XObject<schema.Xbase>;
+  averageCache: XObject<schema.YearAverage>;
+  metadata: schema.XFinancial;
   speciesLoaded: boolean = false;
   space: IBelong;
   periods: IPeriod[] = [];
@@ -108,56 +130,89 @@ export class Financial extends common.Emitter implements IFinancial {
     return this.metadata?.fields ?? [];
   }
   async loadContent(): Promise<void> {
-    const data = await this.cache.get<schema.XFinancial>('financial');
+    const data = await this.financialCache.get<schema.XFinancial>('');
     if (data) {
       this.metadata = data;
     }
-    this.cache.subscribe('financial', (res: schema.XFinancial) => {
+    this.financialCache.subscribe('', (res: schema.XFinancial) => {
       this.metadata = res;
       this.changCallback();
     });
-    this.cache.subscribe('financial.current', (res: string) => {
+    this.financialCache.subscribe('initialized', (res: string) => {
+      this.metadata.initialized = res;
+      this.changCallback();
+    });
+    this.financialCache.subscribe('current', (res: string) => {
       if (this.metadata) {
         this.metadata.current = res;
         this.changCallback();
       }
     });
-    this.cache.subscribe('financial.species', (res: schema.XProperty) => {
+    this.averageCache.subscribe('', (res: schema.YearAverage) => {
+      this.yearAverage = res;
+      this.changCallback();
+    });
+    this.financialCache.subscribe('species', (res: schema.XProperty) => {
       if (this.metadata) {
         this.metadata.species = res;
         this.changCallback();
       }
     });
-    this.cache.subscribe('financial.fields', (res: schema.XProperty[]) => {
+    this.financialCache.subscribe('fields', (res: schema.XProperty[]) => {
       if (this.metadata) {
         this.metadata.fields = res;
         this.changCallback();
       }
     });
   }
+  async findSpecies(speciesId: string): Promise<schema.XSpecies | undefined> {
+    const result = await this.space.resource.speciesColl.loadResult({
+      options: { match: { id: speciesId } },
+    });
+    if (result.success && result.data.length > 0) {
+      return result.data[0];
+    }
+  }
+  async loadSpeciesItems(speciesId: string): Promise<schema.XSpeciesItem[]> {
+    const items = await this.space.resource.speciesItemColl.loadResult({
+      options: { match: { speciesId: speciesId } },
+    });
+    if (items.success) {
+      return items.data;
+    }
+    return [];
+  }
   async setSpecies(species: schema.XProperty): Promise<void> {
-    if (await this.cache.set('financial.species', species)) {
-      await this.cache.notity('financial.species', species, true, false);
+    if (await this.financialCache.set('species', species)) {
+      await this.financialCache.notity('species', species, true, false);
     }
   }
   async setFields(fields: schema.XProperty[]): Promise<void> {
-    if (await this.cache.set('financial.fields', fields)) {
-      await this.cache.notity('financial.fields', fields, true, false);
+    if (await this.financialCache.set('fields', fields)) {
+      await this.financialCache.notity('fields', fields, true, false);
     }
   }
   async initialize(period: string): Promise<void> {
-    if (await this.cache.set('financial', { initialized: period })) {
-      await this.cache.notity('financial', { initialized: period }, true, false);
+    if (await this.financialCache.set('initialized', period)) {
+      await this.financialCache.notity('initialized', period, true, false);
     }
   }
   async setCurrent(period: string) {
-    if (await this.cache.set('financial.current', period)) {
-      await this.cache.notity('financial.current', period, true, false);
+    if (await this.financialCache.set('current', period)) {
+      await this.financialCache.notity('current', period, true, false);
+    }
+  }
+  async setYearAverage(yearAverage: schema.YearAverage): Promise<void> {
+    if (await this.averageCache.set('', yearAverage)) {
+      await this.averageCache.notity('', yearAverage, true, false);
     }
   }
   async clear(): Promise<void> {
-    if (await this.cache.set('financial', {})) {
-      await this.cache.notity('financial', {}, true, false);
+    if (await this.financialCache.set('', {})) {
+      await this.financialCache.notity('', {}, true, false);
+    }
+    if (await this.averageCache.set('', {})) {
+      await this.averageCache.notity('', {}, true, false);
     }
     if (await this.coll.removeMatch({})) {
       await this.coll.notity({ operate: 'clear' });
@@ -342,7 +397,7 @@ export class Financial extends common.Emitter implements IFinancial {
     preMonth.setMonth(currentMonth.getMonth() + offsetMonth);
     return common.formatDate(preMonth, 'yyyy-MM');
   }
-  async generatingSnapshot(period: string): Promise<void> {
+  async generateSnapshot(period: string): Promise<void> {
     await kernel.snapshotThing(this.space.id, [this.space.id], {
       collName: '_system-things',
       dataPeriod: period,

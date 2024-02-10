@@ -777,21 +777,6 @@ export interface XFinancial {
   initialized?: string;
   /** 当前账期 */
   current?: string;
-  /** 折旧配置 */
-  depreciation?: {
-    // 折旧方法
-    method: XProperty;
-    // 原值
-    originalValue: XProperty;
-    // 累计折旧
-    accumulated: XProperty;
-    // 月折旧额
-    monthly: XProperty;
-    // 净值
-    netWorth: XProperty;
-    // 使用年限
-    useLife: XProperty;
-  };
   // 分类树
   species?: XProperty;
   // 统计字段
@@ -898,4 +883,23 @@ export interface XChange extends Xbase {
   snapshotId: string;
   // 维度 ID
   [dimension: string]: any;
+}
+
+
+// 平均年限法
+export interface YearAverage extends Xbase {
+  // 折旧方式
+  depreciationMethod: XProperty;
+  // 原值
+  originalValue: XProperty;
+  // 累计折旧
+  accumulatedDepreciation: XProperty;
+  // 月折旧额
+  monthlyDepreciationAmount: XProperty;
+  // 净值
+  netWorth: XProperty;
+  // 已计提月份
+  accruedMonths: XProperty;
+  // 使用年限
+  usefulLife: XProperty;
 }

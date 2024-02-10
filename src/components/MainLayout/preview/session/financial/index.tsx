@@ -1,17 +1,18 @@
 import FullScreenModal from '@/components/Common/fullScreen';
 import OpenFileDialog from '@/components/OpenFileDialog';
 import FormView from '@/executor/open/form';
-import { schema } from '@/ts/base';
+import { model, schema } from '@/ts/base';
 import { deepClone } from '@/ts/base/common';
-import { IBelong, IFinancial, TargetType } from '@/ts/core';
+import { IBelong, IFile, IFinancial, TargetType } from '@/ts/core';
 import { IPeriod } from '@/ts/core/work/financial/period';
 import { ProTable } from '@ant-design/pro-components';
-import { Button, Card, DatePicker, Space, Tag } from 'antd';
+import { Button, Card, DatePicker, Select, Space, Table, Tag, Tooltip } from 'antd';
 import React, { ReactNode, useEffect, useMemo, useRef, useState } from 'react';
 import Depreciation from './widgets/depreciation';
 import { Closing } from './widgets/closing';
 import AssetLedger from './widgets/ledger';
 import { Form } from '@/ts/core/thing/standard/form';
+import cls from './index.module.less';
 
 interface IProps {
   financial: IFinancial;
@@ -19,27 +20,25 @@ interface IProps {
 
 const Financial: React.FC<IProps> = ({ financial }) => {
   const [metadata, setMetadata] = useState(financial.metadata);
+  const [center, setCenter] = useState(<></>);
   const month = useRef<string>();
-  const initialized = useMemo(() => {
-    return metadata && Object.keys(metadata).length > 0;
-  }, [metadata]);
   useEffect(() => {
     const id = financial.subscribe(() => setMetadata({ ...financial.metadata }));
     return () => financial.unsubscribe(id);
   }, []);
   const Center = () => {
     const [loading, setLoading] = useState(false);
-    if (initialized) {
+    if (metadata?.initialized) {
       return (
         <Space>
-          <Card>{'初始结账日期：' + (metadata?.initialized ?? '')}</Card>
+          <Card>{'初始结账日期：' + (metadata.initialized ?? '')}</Card>
           <Card>{'当前业务账期：' + (metadata?.current ?? '')}</Card>
           {metadata?.initialized && !financial.current && (
             <Button
               loading={loading}
               onClick={async () => {
                 setLoading(true);
-                await financial.generatingSnapshot(metadata.initialized!);
+                await financial.generateSnapshot(metadata.initialized!);
                 await financial.generatePeriod(
                   financial.getOffsetPeriod(metadata.initialized!, 1),
                 );
@@ -48,6 +47,17 @@ const Financial: React.FC<IProps> = ({ financial }) => {
               生成期初账期
             </Button>
           )}
+          <Button
+            onClick={() =>
+              setCenter(
+                <DepreciationTemplate
+                  financial={financial}
+                  onFinished={() => setCenter(<></>)}
+                />,
+              )
+            }>
+            折旧模板配置
+          </Button>
           <Button onClick={() => financial.clear()}>清空初始化</Button>
         </Space>
       );
@@ -76,7 +86,7 @@ const Financial: React.FC<IProps> = ({ financial }) => {
       title={
         <Space>
           {'初始化账期'}
-          {initialized ? (
+          {metadata?.initialized ? (
             <Tag color="green">已初始化</Tag>
           ) : (
             <Tag color="red">未初始化</Tag>
@@ -84,6 +94,7 @@ const Financial: React.FC<IProps> = ({ financial }) => {
         </Space>
       }>
       {<Center />}
+      {center}
     </Card>
   );
 };
@@ -108,6 +119,146 @@ const FullScreen: React.FC<FullProps> = (props) => {
       {props.children}
     </FullScreenModal>
   );
+};
+
+interface TemplateProps {
+  financial: IFinancial;
+  onFinished: () => void;
+}
+
+const DepreciationTemplate: React.FC<TemplateProps> = ({ financial, onFinished }) => {
+  const [center, setCenter] = useState(<></>);
+  const [depreciation, setDepreciation] = useState(
+    financial.yearAverage ?? ({} as schema.YearAverage),
+  );
+  const onSelect = (key: string) => {
+    setCenter(
+      <OpenFileDialog
+        accepts={['数值型']}
+        rootKey={financial.space.key}
+        onOk={(files: IFile[]) => {
+          if (files) {
+            const property = files[0].metadata as schema.XProperty;
+            setDepreciation({ ...depreciation, [key]: property });
+          }
+        }}
+        onCancel={() => {
+          setCenter(<></>);
+        }}
+      />,
+    );
+  };
+  const onMethodSelected = () => {
+    setCenter(
+      <OpenFileDialog
+        accepts={['选择型', '分类型']}
+        rootKey={financial.space.key}
+        onOk={(files: IFile[]) => {
+          if (files.length > 0) {
+            const property = files[0].metadata as schema.XProperty;
+            setDepreciation({ ...depreciation, depreciationMethod: property });
+          }
+        }}
+        onCancel={function (): void {
+          setCenter(<></>);
+        }}
+      />,
+    );
+  };
+  return (
+    <FullScreen title={'折旧模板配置'} onFinished={onFinished}>
+      <Card title="平均年限法">
+        <Space style={{ width: '100%' }} direction="vertical">
+          <Card title={'折旧方式绑定'}>
+            <Space>
+              <FieldText
+                key="depreciationMethod"
+                value="折旧方式属性"
+                onSelect={onMethodSelected}
+              />
+              折旧方式: <Select />
+            </Space>
+          </Card>
+          <Card title={'公式定义'}>
+            <Space direction="vertical">
+              <Space>
+                <FieldText key="netWorth" value="净值" onSelect={onSelect} />
+                <SymbolText value="=" />
+                <FieldText key="originalValue" value="原值" onSelect={onSelect} />
+                <SymbolText value="-" />
+                <FieldText
+                  key="monthlyDepreciationAmount"
+                  value="累计折旧"
+                  onSelect={onSelect}
+                />
+              </Space>
+              <Space>
+                <FieldText
+                  key="monthlyDepreciationAmount"
+                  value="月折旧额"
+                  onSelect={onSelect}
+                />
+                <SymbolText value="=" />
+                <FieldText key="originalValue" value="原值" onSelect={onSelect} />
+                <SymbolText value="/" />
+                <FieldText key="usefulLife" value="使用年限" onSelect={onSelect} />
+              </Space>
+              <Space>
+                <FieldText
+                  key="monthlyDepreciationAmount"
+                  value="累计折旧"
+                  onSelect={onSelect}
+                />
+                <SymbolText value="=" />
+                <FieldText
+                  key="monthlyDepreciationAmount"
+                  value="累计折旧"
+                  onSelect={onSelect}
+                />
+                <SymbolText value="+" />
+                <FieldText
+                  key="monthlyDepreciationAmount"
+                  value="月折旧额"
+                  onSelect={onSelect}
+                />
+              </Space>
+              <Space>
+                <FieldText key="accruedMonths" value="已计提月份" onSelect={onSelect} />
+                <SymbolText value="=" />
+                <FieldText key="accruedMonths" value="已计提月份" onSelect={onSelect} />
+                <SymbolText value="+" />
+                <FieldText key="number" value="1" onSelect={() => {}} />
+              </Space>
+            </Space>
+          </Card>
+        </Space>
+      </Card>
+      {center}
+    </FullScreen>
+  );
+};
+
+interface DesignProps {
+  key: string;
+  value: string;
+  onSelect: (key: string) => void;
+}
+
+export const FieldText: React.FC<DesignProps> = (props) => {
+  return (
+    <Tooltip title={props.value} key={props.key}>
+      <div
+        style={{ width: 200, height: '100%' }}
+        className={cls.designText}
+        onClick={() => props.onSelect(props.key)}>
+        <div className={cls.textOverflow}>{props.value}</div>
+      </div>
+    </Tooltip>
+  );
+};
+
+export const SymbolText: React.FC<{ value: string }> = (props) => {
+  return <div style={{ width: 10, textAlign: 'center' }}>{props.value}</div>;
 };
 
 const Periods: React.FC<IProps> = ({ financial }) => {
@@ -252,7 +403,7 @@ const Periods: React.FC<IProps> = ({ financial }) => {
                         size="small"
                         onClick={async () => {
                           setLoading(true);
-                          await financial.generatingSnapshot(item.period);
+                          await financial.generateSnapshot(item.period);
                           await item.monthlySettlement();
                           setLoading(false);
                         }}>
@@ -289,15 +440,18 @@ const Periods: React.FC<IProps> = ({ financial }) => {
 
 interface FinancialProps {
   belong: IBelong;
+  finished: () => void;
 }
 
-const NullableFinancial: React.FC<FinancialProps> = ({ belong }) => {
+const NullableFinancial: React.FC<FinancialProps> = ({ belong, finished }) => {
   if ([TargetType.Company, TargetType.Person].includes(belong.typeName as TargetType)) {
     return (
-      <Space style={{ width: '100%' }} direction="vertical">
-        <Financial financial={belong.financial} />
-        <Periods financial={belong.financial} />
-      </Space>
+      <FullScreen title={'财务管理'} onFinished={finished}>
+        <Space style={{ width: '100%' }} direction="vertical">
+          <Financial financial={belong.financial} />
+          <Periods financial={belong.financial} />
+        </Space>
+      </FullScreen>
     );
   }
   return <></>;
