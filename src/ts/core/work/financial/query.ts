@@ -131,7 +131,6 @@ export class Query extends Entity<schema.XQuery> implements IQuery {
       collName,
       options,
     );
-    console.log(options, result);
     if (result.success && Array.isArray(result.data)) {
       const dimensions = [this.species, ...this.dimensions];
       for (const item of result.data) {
@@ -150,17 +149,17 @@ export class Query extends Entity<schema.XQuery> implements IQuery {
         }
       }
     }
-    console.log(data);
     return data;
   }
   async summaryChange(period: string): Promise<DimensionMap<any>> {
     const data = new Map<string, any>();
-    if (this.dimensions.length == 0) {
+    if (this.fields.length == 0) {
       return data;
     }
     const match: any = {
       belongId: this.space.id,
       changeTime: period,
+      [this.species.id]: { _ne_: null },
     };
     this.dimensions.forEach((item) => {
       match[item.id] = { _ne_: null };
@@ -169,7 +168,12 @@ export class Query extends Entity<schema.XQuery> implements IQuery {
       { match: match },
       {
         group: {
-          key: [...this.dimensions.map((item) => item.id), 'propId', 'symbol'],
+          key: [
+            this.species.id,
+            ...this.dimensions.map((item) => item.id),
+            'propId',
+            'symbol',
+          ],
           change: { _sum_: '$change' },
         },
       },
@@ -224,10 +228,10 @@ export class Query extends Entity<schema.XQuery> implements IQuery {
     const res = await this.loadSpecies();
 
     const thing = '_system-things';
-    const before = thing + this.financial.getOffsetPeriod(start, -1);
+    const before = thing + '_' + this.financial.getOffsetPeriod(start, -1);
     const beforeMap = await this.summary(before);
     const changeMap = await this.summaryChange(end);
-    const after = this.financial.current == end ? thing : thing + end;
+    const after = this.financial.current == end ? thing : thing + '_' + end;
     const afterMap = await this.summary(after);
 
     const nodes: ItemSummary[] = [];
@@ -254,9 +258,9 @@ export class Query extends Entity<schema.XQuery> implements IQuery {
         (item, context) => {
           const { before, after, change } = context!;
           return {
-            before: before.get(item.id),
-            after: after.get(item.id),
-            change: change.get(item.id),
+            before: before?.get(item.id),
+            after: after?.get(item.id),
+            change: change?.get(item.id),
           };
         },
       );

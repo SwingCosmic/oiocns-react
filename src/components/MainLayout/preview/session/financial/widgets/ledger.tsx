@@ -366,14 +366,11 @@ async function loadColumn(query: IQuery): Promise<ColumnsType<Node<ItemSummary>>
             };
             if (['plus', 'minus'].includes(item.prefix)) {
               column.render = (_, row) => {
-                // return (
-                //   <div
-                //     className="cell-link"
-                //     onClick={() => handleViewDetail(row, field.id, item.prefix)}>
-                //     {formatNumber(row.data[prop] ?? 0, 2, true)}
-                //   </div>
-                // );
-                return <></>;
+                return (
+                  <div className="cell-link">
+                    {formatNumber(row.data[prop] ?? 0, 2, true)}
+                  </div>
+                );
               };
             } else {
               column.render = (_, row) => {

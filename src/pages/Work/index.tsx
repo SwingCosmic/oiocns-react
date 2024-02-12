@@ -38,7 +38,7 @@ const WorkContent: React.FC = () => {
   const [submitHanlder, clearHanlder] = useTimeoutHanlder();
   const [, key] = useFlagCmdEmitter('_commons', () => loadContent('常用'));
   useEffect(() => {
-    const id = orgCtrl.work.notity.subscribe(() => loadContent('待办'));
+    const id = orgCtrl.work.notity.subscribe(() => loadContent('常用'));
     return () => {
       orgCtrl.work.notity.unsubscribe(id);
     };

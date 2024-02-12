@@ -222,6 +222,8 @@ export class Financial extends common.Emitter implements IFinancial {
     if (await this.periodColl.removeMatch({})) {
       await this.periodColl.notity({ operate: 'clear' });
     }
+    const change = this.space.resource.genColl('_system-things-changed');
+    change.removeMatch({});
   }
   async createQuery(metadata: schema.XQuery): Promise<schema.XQuery | undefined> {
     const result = await this.queryColl.insert({
