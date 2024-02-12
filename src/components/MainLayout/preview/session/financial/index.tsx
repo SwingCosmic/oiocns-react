@@ -411,11 +411,13 @@ export const SymbolText: React.FC<{ value: string }> = (props) => {
 
 const Periods: React.FC<IProps> = ({ financial }) => {
   const [periods, setPeriods] = useState<IPeriod[]>([]);
+  const [form, setForm] = useState(financial.form);
   const [center, setCenter] = useState(<></>);
   const [loading, setLoading] = useState(false);
   useEffect(() => {
-    const id = financial.subscribe(() => {
-      financial.loadPeriods().then((data) => setPeriods([...data]));
+    const id = financial.subscribe(async () => {
+      setPeriods([...(await financial.loadPeriods())]);
+      setForm(await financial.loadForm());
     });
     return () => financial.unsubscribe(id);
   }, []);
@@ -467,33 +469,43 @@ const Periods: React.FC<IProps> = ({ financial }) => {
               },
             },
             {
-              title: '快照',
+              title: (
+                <Space>
+                  <span>快照</span>
+                  {form && <Tag color="green">{form.name}</Tag>}
+                </Space>
+              ),
               valueType: 'text',
               render(_, item) {
                 return (
                   <Space>
                     <a
                       onClick={() => {
-                        setCenter(
-                          <OpenFileDialog
-                            accepts={['表单']}
-                            rootKey={financial.space.key}
-                            onOk={(files) => {
-                              if (files.length > 0) {
-                                const file = files[0];
-                                const form = deepClone(file.metadata as schema.XForm);
-                                form.collName = '_system-things_' + item.period;
-                                setCenter(
-                                  <FormView
-                                    form={new Form(form, file.directory)}
-                                    finished={() => setCenter(<></>)}
-                                  />,
-                                );
-                              }
-                            }}
-                            onCancel={() => setCenter(<></>)}
-                          />,
-                        );
+                        if (!form) {
+                          setCenter(
+                            <OpenFileDialog
+                              accepts={['表单']}
+                              rootKey={financial.space.key}
+                              onOk={(files) => {
+                                if (files.length > 0) {
+                                  const metadata = files[0].metadata as schema.XForm;
+                                  financial.setForm(metadata);
+                                }
+                                setCenter(<></>);
+                              }}
+                              onCancel={() => setCenter(<></>)}
+                            />,
+                          );
+                        } else {
+                          const metadata = deepClone(form.metadata);
+                          metadata.collName = '_system-things_' + item.period;
+                          setCenter(
+                            <FormView
+                              form={new Form(metadata, financial.space.directory)}
+                              finished={() => setCenter(<></>)}
+                            />,
+                          );
+                        }
                       }}>
                       查看
                     </a>
@@ -537,7 +549,7 @@ const Periods: React.FC<IProps> = ({ financial }) => {
                             <FullScreen
                               title={'资产折旧'}
                               onFinished={() => setCenter(<></>)}>
-                              <Depreciation financial={financial} />
+                              <Depreciation financial={financial} period={item} />
                             </FullScreen>,
                           )
                         }>

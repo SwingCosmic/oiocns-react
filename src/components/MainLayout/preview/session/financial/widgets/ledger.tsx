@@ -15,6 +15,7 @@ import {
 } from '@ant-design/pro-components';
 import { Button, Input, Modal, Select, Space, Spin, Table } from 'antd';
 import { ColumnGroupType, ColumnType, ColumnsType } from 'antd/lib/table';
+import moment from 'moment';
 import React, { useEffect, useRef, useState } from 'react';
 import cls from './ledger.module.less';
 import { LedgerModal } from './ledgerModel';
@@ -495,6 +496,17 @@ const Ledger: React.FC<IProps> = ({ financial, period }) => {
                 value={month}
                 onChange={setMonth}
                 format="YYYY-MM"
+                disabledDate={(current) => {
+                  if (financial.initialized) {
+                    return (
+                      current &&
+                      (current <
+                        moment(financial.getOffsetPeriod(financial.initialized, 1)) ||
+                        current > moment(financial.current))
+                    );
+                  }
+                  return false;
+                }}
               />
               <Button onClick={loadData}>刷新</Button>
             </Space>

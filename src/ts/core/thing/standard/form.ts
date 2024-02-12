@@ -285,7 +285,7 @@ export class Form extends StandardFileInfo<schema.XForm> implements IForm {
     return [fileOperates.Copy, entityOperates.Remark];
   }
   async loadThing(loadOptions: any): Promise<LoadResult<any>> {
-    const res = await this.directory.resource.thingColl.loadResult(loadOptions);
+    const res = await this.thingColl.loadResult(loadOptions);
     if (res.success && !Array.isArray(res.data)) {
       res.data = [];
     }

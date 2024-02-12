@@ -1,14 +1,14 @@
 import { DatePicker } from '@/components/Common/StringDatePickers/DatePicker';
 import GenerateThingTable from '@/executor/tools/generate/thingTable';
-import { kernel } from '@/ts/base';
 import { XThing } from '@/ts/base/schema';
-import { IBelong, IFinancial, IForm } from '@/ts/core';
+import { IFinancial, IForm } from '@/ts/core';
 import { formatDate } from '@/utils';
 import { Result, Spin, Tag } from 'antd';
 import CustomStore from 'devextreme/data/custom_store';
 import React, { useEffect, useState } from 'react';
-import { useEffectOnce } from 'react-use';
 import './index.less';
+import { IPeriod } from '@/ts/core/work/financial/period';
+import moment from 'moment';
 
 type DepreciationState = 'none' | 'calculated' | 'confirmed';
 
@@ -29,9 +29,10 @@ const stateMap: Record<DepreciationState, { label: string; type: string }> = {
 
 interface IProps {
   financial: IFinancial;
+  period: IPeriod;
 }
 
-const Depreciation: React.FC<IProps> = ({ financial }) => {
+const Depreciation: React.FC<IProps> = ({ financial, period }) => {
   const [loading, setLoading] = useState(false);
   const [ready, setReady] = useState(false);
   const [errMsg, setErrMsg] = useState('');
@@ -43,113 +44,13 @@ const Depreciation: React.FC<IProps> = ({ financial }) => {
   const [detailData, setDetailData] = useState<XThing[]>([]);
   const [depreciationState, setDepreciationState] = useState<DepreciationState>('none');
 
-  function getCompany() {
-    return ctx.view.pageInfo.directory.target.space as IBelong;
-  }
-
-  async function init() {
-    if (!props.form?.id) {
-      return;
-    }
-    if (!props.detailForm?.id) {
-      return;
-    }
-
-    const belong = getCompany();
-    let period = belong.financial.metadata?.initialized!;
-    setCreditTime(() => period);
-    if (!period) {
-      setErrMsg('当前单位未初始化账期');
-      return;
-    }
-
-    const formData = await ctx.view.pageInfo.loadForm(props.form.id);
-    setForm(formData);
-
-    const detailFormData = await ctx.view.pageInfo.loadForm(props.detailForm.id);
-    setDetailForm(detailFormData);
-
-    setReady(true);
-  }
-
   async function loadData() {
-    if (!ready) {
-      return;
-    }
-
     try {
-      setLoading(true);
-
-      const belongId = ctx.view.pageInfo.directory.belongId;
-
-      const startDate = new Date(creditTime + '-01 00:00:00');
-      const endDate = new Date(startDate);
-      endDate.setMonth(endDate.getMonth() + 1);
-      endDate.setDate(0);
-
-      const loadOptions = {
-        take: 100,
-        skip: 0,
-        requireTotalCount: true,
-        userData: [`F${props.form.id}`],
-        filter: [
-          // ['belongId', '=', belongId],
-          [
-            `T${props.creditTimeField.id}`,
-            '>=',
-            formatDate(startDate, 'yyyy/MM/dd 00:00:00'),
-          ],
-          [
-            `T${props.creditTimeField.id}`,
-            '<=',
-            formatDate(endDate, 'yyyy/MM/dd 23:59:59'),
-          ],
-        ],
-      };
-      const res1 = await kernel.loadThing(belongId, [belongId], loadOptions);
-      console.log(loadOptions, res1.data);
-      setData(res1.data);
-
-      if (res1.data.length == 0) {
-        setDepreciationState('none');
-        setDetailData([]);
-        return;
-      }
-
-      const res2 = await kernel.loadThing(belongId, [belongId], {
-        take: 100,
-        skip: 0,
-        requireTotalCount: true,
-        userData: [`F${props.detailForm.id}`],
-        filter: [
-          // ['belongId', '=', belongId],
-          [
-            `T${props.creditTimeField.id}`,
-            '>=',
-            formatDate(startDate, 'yyyy/MM/dd 00:00:00'),
-          ],
-          [
-            `T${props.creditTimeField.id}`,
-            '<=',
-            formatDate(endDate, 'yyyy/MM/dd 23:59:59'),
-          ],
-        ],
-      });
-
-      setDetailData(res2.data);
-      if (res2.data.length == 0) {
-        setDepreciationState('none');
-      } else {
-        setDepreciationState('calculated');
-      }
     } finally {
       setLoading(false);
     }
   }
 
-  useEffectOnce(() => {
-    init();
-  });
   useEffect(() => {
     loadData();
   }, [creditTime, ready]);
@@ -175,14 +76,19 @@ const Depreciation: React.FC<IProps> = ({ financial }) => {
             <div>业务月份</div>
             <DatePicker
               picker="month"
-              value={creditTime}
+              value={period.period}
               onChange={setCreditTime}
               format="YYYY-MM"
-              disabledDate={(date) => {
-                return (
-                  date.toDate().getTime() <
-                  new Date(getCompany().financial.metadata?.current!).getTime()
-                );
+              disabledDate={(current) => {
+                if (financial.initialized) {
+                  return (
+                    current &&
+                    (current <
+                      moment(financial.getOffsetPeriod(financial.initialized, 1)) ||
+                      current > moment(financial.current))
+                  );
+                }
+                return false;
               }}
             />
           </div>
