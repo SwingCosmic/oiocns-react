@@ -772,15 +772,13 @@ export interface XPageTemplate extends XStandard {
 }
 
 // 财务
-export interface XFinancial {
+export interface XFinancial extends Xbase {
   /** 初始化结账月 */
   initialized?: string;
   /** 当前账期 */
   current?: string;
-  // 分类树
-  species?: XProperty;
-  // 统计字段
-  fields?: XProperty[];
+  /** 当前查询 */
+  query?: string;
 }
 
 // 账期
@@ -903,4 +901,14 @@ export interface YearAverage extends Xbase {
   accruedMonths: XProperty;
   // 使用年限
   usefulLife: XProperty;
+}
+
+// 查询方案
+export interface XQuery extends XEntity {
+  // 分类维度
+  species: XProperty;
+  // 统计维度
+  dimensions: XProperty[];
+  // 统计字段
+  fields: XProperty[];
 }

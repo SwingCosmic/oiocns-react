@@ -2,6 +2,7 @@ import { IBelong, XCollection } from '../..';
 import { common, kernel, schema } from '../../../base';
 import { XObject } from '../../public/object';
 import { IPeriod, Period } from './period';
+import { IQuery, Query } from './query';
 
 /** 汇总数据 */
 export interface ItemSummary extends schema.XSpeciesItem {
@@ -20,57 +21,53 @@ export interface IFinancial extends common.Emitter {
   current: string | undefined;
   /** 平均年限法 */
   yearAverage: schema.YearAverage | undefined;
-  /** 统计维度 */
-  species: schema.XProperty | undefined;
-  /** 统计字段 */
-  fields: schema.XProperty[];
   /** 缓存 */
   financialCache: XObject<schema.Xbase>;
   /** 账期集合 */
-  coll: XCollection<schema.XPeriod>;
-  /** 期数集合 */
+  periodColl: XCollection<schema.XPeriod>;
+  /** 期数数据 */
   periods: IPeriod[];
+  /** 当前查询方案 */
+  query: IQuery | undefined;
+  /** 查询方案集合 */
+  queryColl: XCollection<schema.XQuery>;
+  /** 查询集合 */
+  queries: IQuery[];
+  /** 创建查询 */
+  createQuery(metadata: schema.XQuery): Promise<schema.XQuery | undefined>;
   /** 获取偏移的期数 */
   getOffsetPeriod(period: string, offset: number): string;
   /** 初始化账期 */
-  initialize(period: string): Promise<void>;
+  setInitialize(period: string): Promise<void>;
   /** 设置当前账期 */
   setCurrent(period: string): Promise<void>;
+  /** 设置查询条件 */
+  setQuery(query: schema.XQuery): Promise<void>;
   /** 设置折旧配置 */
   setYearAverage(yearAverage: schema.YearAverage): Promise<void>;
   /** 清空结账日期 */
   clear(): Promise<void>;
-  /** 设置总账统计维度（分类型、字典型） */
-  setSpecies(species: schema.XProperty): Promise<void>;
   /** 发现分类型 */
   findSpecies(speciesId: string): Promise<schema.XSpecies | undefined>;
   /** 加载分类明细项 */
   loadSpeciesItems(speciesId: string): Promise<schema.XSpeciesItem[]>;
-  /** 设置总账统计字段（数值型） */
-  setFields(fields: schema.XProperty[]): Promise<void>;
   /** 加载财务数据 */
   loadContent(): Promise<void>;
   /** 加载账期 */
   loadPeriods(reload?: boolean): Promise<IPeriod[]>;
+  /** 加载查询方案 */
+  loadQueries(reload?: boolean): Promise<IQuery[]>;
   /** 生成账期 */
-  generatePeriod(period: string): Promise<void>;
-  /** 加载分类树 */
-  loadSpecies(reload?: boolean): Promise<schema.XSpeciesItem[]>;
-  /** 统计某一时刻快照按统计维度的汇总值 */
-  summary(period: string): Promise<Map<string, any>>;
-  /** 统计变动的汇总值 */
-  summaryChange(period: string): Promise<Map<string, any>>;
-  /** 统计区间的汇总至 */
-  summaryRange(start: string, end: string): Promise<common.Node<ItemSummary>[]>;
+  createPeriod(period: string): Promise<void>;
   /** 生成快照 */
-  generateSnapshot(period: string): Promise<void>;
+  createSnapshots(period: string): Promise<void>;
 }
 
 export class Financial extends common.Emitter implements IFinancial {
   constructor(belong: IBelong) {
     super();
     this.space = belong;
-    this.metadata = {};
+    this.metadata = {} as schema.XFinancial;
     this.financialCache = new XObject(
       belong.metadata,
       'target-financial',
@@ -83,8 +80,9 @@ export class Financial extends common.Emitter implements IFinancial {
       [],
       [this.key],
     );
-    this.coll = this.space.resource.periodColl;
-    this.coll.subscribe([this.key], (result) => {
+    this.periodColl = this.space.resource.genColl('financial-period');
+    this.queryColl = this.space.resource.genColl('data-query');
+    this.periodColl.subscribe([this.key + '-period'], (result) => {
       switch (result.operate) {
         case 'insert':
           this.periods.unshift(new Period(result.data, this));
@@ -103,17 +101,37 @@ export class Financial extends common.Emitter implements IFinancial {
       }
       this.changCallback();
     });
+    this.queryColl.subscribe([this.key + '-query'], (result) => {
+      switch (result.operate) {
+        case 'insert':
+          this.queries.unshift(new Query(result.data, this));
+          break;
+        case 'update':
+          this.queries.forEach((item) => {
+            if (result.data.id == item.id) {
+              item.updateMetadata(result.data);
+            }
+          });
+          break;
+        case 'remove':
+          this.queries = this.queries.filter((item) => item.id != result.data.id);
+          break;
+      }
+      this.changCallback();
+    });
   }
+  query: IQuery | undefined;
   yearAverage: schema.YearAverage | undefined;
   financialCache: XObject<schema.Xbase>;
   averageCache: XObject<schema.YearAverage>;
   metadata: schema.XFinancial;
-  speciesLoaded: boolean = false;
   space: IBelong;
   periods: IPeriod[] = [];
-  loaded: boolean = false;
-  coll: XCollection<schema.XPeriod>;
-  speciesItems: schema.XSpeciesItem[] = [];
+  periodLoaded: boolean = false;
+  periodColl: XCollection<schema.XPeriod>;
+  queries: IQuery[] = [];
+  queryLoaded: boolean = false;
+  queryColl: XCollection<schema.XQuery>;
   get key() {
     return this.space.key + '-financial';
   }
@@ -122,12 +140,6 @@ export class Financial extends common.Emitter implements IFinancial {
   }
   get current(): string | undefined {
     return this.metadata?.current;
-  }
-  get species(): schema.XProperty | undefined {
-    return this.metadata?.species;
-  }
-  get fields(): schema.XProperty[] {
-    return this.metadata?.fields ?? [];
   }
   async loadContent(): Promise<void> {
     const financial = await this.financialCache.get<schema.XFinancial>('');
@@ -147,26 +159,22 @@ export class Financial extends common.Emitter implements IFinancial {
       this.changCallback();
     });
     this.financialCache.subscribe('current', (res: string) => {
-      if (this.metadata) {
-        this.metadata.current = res;
-        this.changCallback();
+      this.metadata.current = res;
+      this.changCallback();
+    });
+    this.financialCache.subscribe('query', (res: string) => {
+      this.metadata.query = res;
+      for (const query of this.queries) {
+        if (query.id == res) {
+          this.query = query;
+          break;
+        }
       }
+      this.changCallback();
     });
     this.averageCache.subscribe('average', (res: schema.YearAverage) => {
       this.yearAverage = res;
       this.changCallback();
-    });
-    this.financialCache.subscribe('species', (res: schema.XProperty) => {
-      if (this.metadata) {
-        this.metadata.species = res;
-        this.changCallback();
-      }
-    });
-    this.financialCache.subscribe('fields', (res: schema.XProperty[]) => {
-      if (this.metadata) {
-        this.metadata.fields = res;
-        this.changCallback();
-      }
     });
   }
   async findSpecies(speciesId: string): Promise<schema.XSpecies | undefined> {
@@ -186,17 +194,7 @@ export class Financial extends common.Emitter implements IFinancial {
     }
     return [];
   }
-  async setSpecies(species: schema.XProperty): Promise<void> {
-    if (await this.financialCache.set('species', species)) {
-      await this.financialCache.notity('species', species, true, false);
-    }
-  }
-  async setFields(fields: schema.XProperty[]): Promise<void> {
-    if (await this.financialCache.set('fields', fields)) {
-      await this.financialCache.notity('fields', fields, true, false);
-    }
-  }
-  async initialize(period: string): Promise<void> {
+  async setInitialize(period: string): Promise<void> {
     if (await this.financialCache.set('initialized', period)) {
       await this.financialCache.notity('initialized', period, true, false);
     }
@@ -211,29 +209,72 @@ export class Financial extends common.Emitter implements IFinancial {
       await this.averageCache.notity('average', yearAverage, true, false);
     }
   }
+  async setQuery(query: schema.XQuery): Promise<void> {
+    if (await this.financialCache.set('query', query.id)) {
+      await this.financialCache.notity('query', query.id, true, false);
+    }
+  }
   async clear(): Promise<void> {
     if (await this.financialCache.set('', {})) {
       await this.financialCache.notity('financial', {}, true, false);
     }
     await this.setYearAverage({} as schema.YearAverage);
-    if (await this.coll.removeMatch({})) {
-      await this.coll.notity({ operate: 'clear' });
+    if (await this.periodColl.removeMatch({})) {
+      await this.periodColl.notity({ operate: 'clear' });
     }
   }
+  async createQuery(metadata: schema.XQuery): Promise<schema.XQuery | undefined> {
+    const result = await this.queryColl.insert({
+      ...metadata,
+      typeName: '总账',
+    });
+    if (result) {
+      await this.queryColl.notity({ data: result, operate: 'insert' });
+      return result;
+    }
+  }
+  async loadQueries(reload: boolean = false, skip: number = 0): Promise<IQuery[]> {
+    if (!this.queryLoaded || reload) {
+      this.queryLoaded = true;
+      if (skip == 0) {
+        this.queries = [];
+      }
+      const take = 20;
+      const res = await this.queryColl.loadResult({
+        skip: 0,
+        take: take,
+        options: {
+          match: { typeName: '总账' },
+        },
+      });
+      if (res.success) {
+        if (res.data && res.data.length > 0) {
+          this.queries = res.data.map((item) => {
+            const query = new Query(item, this);
+            if (item.id == this.metadata.query) {
+              this.query = query;
+            }
+            return query;
+          });
+          if (this.queries.length < res.totalCount && res.data.length === take) {
+            await this.loadQueries(true, this.queries.length);
+          }
+        }
+      }
+    }
+    return this.queries;
+  }
   async loadPeriods(reload: boolean = false, skip: number = 0): Promise<IPeriod[]> {
-    if (!this.loaded || reload) {
-      this.loaded = true;
+    if (!this.periodLoaded || reload) {
+      this.periodLoaded = true;
       if (skip == 0) {
         this.periods = [];
       }
       const take = 12 * 6;
-      const res = await this.space.resource.periodColl.loadResult({
+      const res = await this.periodColl.loadResult({
         skip: skip,
         take: take,
         options: {
-          match: {
-            isDeleted: false,
-          },
           sort: {
             period: -1,
           },
@@ -250,8 +291,8 @@ export class Financial extends common.Emitter implements IFinancial {
     }
     return this.periods;
   }
-  async generatePeriod(period: string): Promise<void> {
-    const result = await this.space.resource.periodColl.insert({
+  async createPeriod(period: string): Promise<void> {
+    const result = await this.periodColl.insert({
       period: period,
       data: {} as schema.XThing,
       depreciated: false,
@@ -259,139 +300,8 @@ export class Financial extends common.Emitter implements IFinancial {
       balanced: false,
     } as schema.XPeriod);
     if (result) {
-      await this.coll.notity({ data: result, operate: 'insert' });
+      await this.periodColl.notity({ data: result, operate: 'insert' });
     }
-  }
-  async loadSpecies(reload?: boolean | undefined): Promise<schema.XSpeciesItem[]> {
-    const species = this.metadata?.species;
-    if (!species || species.speciesId.length == 0) {
-      return [];
-    }
-    if (!this.speciesLoaded || reload) {
-      this.speciesLoaded = true;
-      this.speciesItems = await this.space.resource.speciesItemColl.loadSpace({
-        options: { match: { speciesId: species.speciesId } },
-      });
-    }
-    return this.speciesItems;
-  }
-  async summary(period: string): Promise<Map<string, any>> {
-    const map = new Map<string, any>();
-    if (!this.species) {
-      return map;
-    }
-    let group: any = {
-      key: this.species.id,
-    };
-    this.fields.map((item) => {
-      group[item.id] = { _sum_: '$' + item.id };
-    });
-    let options = [
-      {
-        match: {
-          belongId: this.space.id,
-          [this.species.id]: { _ne_: null },
-        },
-      },
-      {
-        group: group,
-      },
-      { limit: this.speciesItems.length },
-    ];
-    const result = await kernel.collectionAggregate(
-      this.space.id,
-      [this.space.id],
-      period == this.current ? '_system-things' : '_system-things_' + period,
-      options,
-    );
-    if (result.success && Array.isArray(result.data)) {
-      for (const item of result.data) {
-        map.set(item[this.species.id], item);
-      }
-    }
-    return map;
-  }
-  async summaryChange(
-    period: string,
-  ): Promise<Map<string, Map<string, Map<number, any>>>> {
-    const map = new Map<string, Map<string, Map<number, any>>>();
-    if (!this.species) {
-      return map;
-    }
-    let options = [
-      {
-        match: {
-          belongId: this.space.id,
-          changeTime: period,
-          [this.species.id]: { _ne_: null },
-        },
-      },
-      {
-        group: {
-          key: [this.species.id, 'propId', 'symbol'],
-          change: { _sum_: '$change' },
-        },
-      },
-      { limit: this.speciesItems.length },
-    ];
-    const result = await kernel.collectionAggregate(
-      this.space.id,
-      [this.space.id],
-      '_system-things-changed',
-      options,
-    );
-    if (result.success && Array.isArray(result.data)) {
-      for (const item of result.data) {
-        if (!map.has(item[this.species.id])) {
-          map.set(item[this.species.id], new Map<string, Map<number, any>>());
-        }
-        const species = map.get(item[this.species.id])!;
-        if (!species.has(item.propId)) {
-          species.set(item.propId, new Map<number, any>());
-        }
-        const prop = species.get(item.propId)!;
-        prop.set(item.symbol, item.change);
-      }
-    }
-    return map;
-  }
-  async summaryRange(start: string, end: string): Promise<common.Node<ItemSummary>[]> {
-    const res = await this.loadSpecies();
-
-    const beforeMap = await this.summary(this.getOffsetPeriod(start, -1));
-    const changeMap = await this.summaryChange(end);
-    const afterMap = await this.summary(end);
-
-    const nodes: ItemSummary[] = [];
-    for (const item of res) {
-      const dimension = 'S' + item.id;
-      const one: ItemSummary = { ...item };
-      const before = beforeMap.get(dimension);
-      const after = afterMap.get(dimension);
-      const change = changeMap.get(dimension);
-      for (const field of this.fields) {
-        one['before-' + field.id] = Number(before?.[field.id] ?? 0);
-        one['after-' + field.id] = Number(after?.[field.id] ?? 0);
-        one['plus-' + field.id] = Number(change?.get(field.id)?.get(1) ?? 0);
-        one['minus-' + field.id] = Number(change?.get(field.id)?.get(-1) ?? 0);
-      }
-      nodes.push(one);
-    }
-    const tree = new common.AggregateTree(
-      nodes,
-      (item) => item.id,
-      (item) => item.parentId,
-    );
-    tree.summary((pre, cur, _, __) => {
-      for (const field of this.fields) {
-        pre['before-' + field.id] += cur['before-' + field.id];
-        pre['after-' + field.id] += cur['after-' + field.id];
-        pre['plus-' + field.id] += cur['plus-' + field.id];
-        pre['minus-' + field.id] += cur['minus-' + field.id];
-      }
-      return pre;
-    });
-    return tree.root.children;
   }
   getOffsetPeriod(period: string, offsetMonth: number): string {
     const currentMonth = new Date(period);
@@ -399,7 +309,7 @@ export class Financial extends common.Emitter implements IFinancial {
     preMonth.setMonth(currentMonth.getMonth() + offsetMonth);
     return common.formatDate(preMonth, 'yyyy-MM');
   }
-  async generateSnapshot(period: string): Promise<void> {
+  async createSnapshots(period: string): Promise<void> {
     await kernel.snapshotThing(this.space.id, [this.space.id], {
       collName: '_system-things',
       dataPeriod: period,

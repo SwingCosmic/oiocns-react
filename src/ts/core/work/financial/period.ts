@@ -89,11 +89,11 @@ export class Period extends Entity<schema.XPeriod> implements IPeriod {
     return this.financial.getOffsetPeriod(this.period, 1);
   }
   async toNextPeriod(): Promise<void> {
-    await this.financial.generatePeriod(this.getNextPeriod());
+    await this.financial.createPeriod(this.getNextPeriod());
   }
   async update(metadata: schema.XPeriod): Promise<void> {
-    if (await this.financial.coll.replace(metadata)) {
-      await this.financial.coll.notity({ operate: 'update', data: metadata });
+    if (await this.financial.periodColl.replace(metadata)) {
+      await this.financial.periodColl.notity({ operate: 'update', data: metadata });
     }
   }
 }

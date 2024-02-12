@@ -15,7 +15,7 @@ import {
   Select,
   Space,
   Tag,
-  Tooltip
+  Tooltip,
 } from 'antd';
 import { FormInstance } from 'antd/es/form';
 import FormItem from 'antd/lib/form/FormItem';
@@ -23,7 +23,7 @@ import React, { ReactNode, useEffect, useRef, useState } from 'react';
 import cls from './index.module.less';
 import { Closing } from './widgets/closing';
 import Depreciation from './widgets/depreciation';
-import AssetLedger from './widgets/ledger';
+import Ledger from './widgets/ledger';
 
 interface IProps {
   financial: IFinancial;
@@ -49,8 +49,8 @@ const Financial: React.FC<IProps> = ({ financial }) => {
               loading={loading}
               onClick={async () => {
                 setLoading(true);
-                await financial.generateSnapshot(metadata.initialized!);
-                await financial.generatePeriod(
+                await financial.createSnapshots(metadata.initialized!);
+                await financial.createPeriod(
                   financial.getOffsetPeriod(metadata.initialized!, 1),
                 );
                 setLoading(false);
@@ -83,7 +83,7 @@ const Financial: React.FC<IProps> = ({ financial }) => {
           <Button
             onClick={async () => {
               if (month.current) {
-                financial.initialize(month.current);
+                financial.setInitialize(month.current);
               }
             }}>
             确认
@@ -189,7 +189,6 @@ const DepreciationTemplate: React.FC<TemplateProps> = ({ financial, onFinished }
   };
   useEffect(() => {
     const method = financial.yearAverage?.depreciationMethod;
-    console.log(financial.yearAverage);
     if (method && method.speciesId) {
       loadSpeciesItems(method.speciesId);
     }
@@ -513,7 +512,7 @@ const Periods: React.FC<IProps> = ({ financial }) => {
                         <FullScreen
                           title={entity.period + ' 资产总账'}
                           onFinished={() => setCenter(<></>)}>
-                          <AssetLedger financial={financial} period={entity} />
+                          <Ledger financial={financial} period={entity} />
                         </FullScreen>,
                       );
                     }}>
@@ -552,7 +551,7 @@ const Periods: React.FC<IProps> = ({ financial }) => {
                         size="small"
                         onClick={async () => {
                           setLoading(true);
-                          await financial.generateSnapshot(item.period);
+                          await financial.createSnapshots(item.period);
                           await item.monthlySettlement();
                           setLoading(false);
                         }}>
