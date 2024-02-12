@@ -272,7 +272,7 @@ export class Query extends Entity<schema.XQuery> implements IQuery {
       (item) => item.parentId,
     );
     tree.summary((pre, cur) => {
-      this.recursion(res, 'summary', (path) => {
+      this.recursion(res, 'summary-', (path) => {
         for (const field of this.fields) {
           pre['before-' + path + field.id] += cur['before-' + path + field.id];
           pre['after-' + path + field.id] += cur['after-' + path + field.id];
