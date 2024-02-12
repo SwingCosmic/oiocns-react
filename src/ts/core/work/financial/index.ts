@@ -1,6 +1,7 @@
-import { IBelong, XCollection } from '../..';
+import { IBelong, IForm, XCollection } from '../..';
 import { common, kernel, schema } from '../../../base';
 import { XObject } from '../../public/object';
+import { Form } from '../../thing/standard/form';
 import { IPeriod, Period } from './period';
 import { IQuery, Query } from './query';
 
@@ -25,7 +26,7 @@ export interface IFinancial extends common.Emitter {
   financialCache: XObject<schema.Xbase>;
   /** 账期集合 */
   periodColl: XCollection<schema.XPeriod>;
-  /** 期数数据 */
+  /** 账期数据 */
   periods: IPeriod[];
   /** 当前查询方案 */
   query: IQuery | undefined;
@@ -33,8 +34,8 @@ export interface IFinancial extends common.Emitter {
   queryColl: XCollection<schema.XQuery>;
   /** 查询集合 */
   queries: IQuery[];
-  /** 创建查询 */
-  createQuery(metadata: schema.XQuery): Promise<schema.XQuery | undefined>;
+  /** 查询物的表单 */
+  form: IForm | undefined;
   /** 获取偏移的期数 */
   getOffsetPeriod(period: string, offset: number): string;
   /** 初始化账期 */
@@ -43,12 +44,12 @@ export interface IFinancial extends common.Emitter {
   setCurrent(period: string): Promise<void>;
   /** 设置查询条件 */
   setQuery(query: schema.XQuery): Promise<void>;
+  /** 设置查询条件 */
+  setForm(form: schema.XForm): Promise<void>;
   /** 设置折旧配置 */
   setYearAverage(yearAverage: schema.YearAverage): Promise<void>;
   /** 清空结账日期 */
   clear(): Promise<void>;
-  /** 发现分类型 */
-  findSpecies(speciesId: string): Promise<schema.XSpecies | undefined>;
   /** 加载分类明细项 */
   loadSpeciesItems(speciesId: string): Promise<schema.XSpeciesItem[]>;
   /** 加载财务数据 */
@@ -57,6 +58,10 @@ export interface IFinancial extends common.Emitter {
   loadPeriods(reload?: boolean): Promise<IPeriod[]>;
   /** 加载查询方案 */
   loadQueries(reload?: boolean): Promise<IQuery[]>;
+  /** 加载表单 */
+  loadForm(reload?: boolean): Promise<IForm | undefined>;
+  /** 创建查询 */
+  createQuery(metadata: schema.XQuery): Promise<schema.XQuery | undefined>;
   /** 生成账期 */
   createPeriod(period: string): Promise<void>;
   /** 生成快照 */
@@ -120,6 +125,7 @@ export class Financial extends common.Emitter implements IFinancial {
       this.changCallback();
     });
   }
+  form: IForm | undefined;
   query: IQuery | undefined;
   yearAverage: schema.YearAverage | undefined;
   financialCache: XObject<schema.Xbase>;
@@ -132,6 +138,7 @@ export class Financial extends common.Emitter implements IFinancial {
   queries: IQuery[] = [];
   queryLoaded: boolean = false;
   queryColl: XCollection<schema.XQuery>;
+  formLoaded: boolean = false;
   get key() {
     return this.space.key + '-financial';
   }
@@ -172,18 +179,14 @@ export class Financial extends common.Emitter implements IFinancial {
       }
       this.changCallback();
     });
+    this.financialCache.subscribe('form', (res: schema.XForm) => {
+      this.form = new Form(res, this.space.directory);
+      this.changCallback();
+    });
     this.averageCache.subscribe('average', (res: schema.YearAverage) => {
       this.yearAverage = res;
       this.changCallback();
     });
-  }
-  async findSpecies(speciesId: string): Promise<schema.XSpecies | undefined> {
-    const result = await this.space.resource.speciesColl.loadResult({
-      options: { match: { id: speciesId } },
-    });
-    if (result.success && result.data.length > 0) {
-      return result.data[0];
-    }
   }
   async loadSpeciesItems(speciesId: string): Promise<schema.XSpeciesItem[]> {
     const items = await this.space.resource.speciesItemColl.loadResult({
@@ -212,6 +215,11 @@ export class Financial extends common.Emitter implements IFinancial {
   async setQuery(query: schema.XQuery): Promise<void> {
     if (await this.financialCache.set('query', query.id)) {
       await this.financialCache.notity('query', query.id, true, false);
+    }
+  }
+  async setForm(form: schema.XForm): Promise<void> {
+    if (await this.financialCache.set('form', form.id)) {
+      await this.financialCache.notity('form', form, true, false);
     }
   }
   async clear(): Promise<void> {
@@ -292,6 +300,21 @@ export class Financial extends common.Emitter implements IFinancial {
       }
     }
     return this.periods;
+  }
+  async loadForm(reload?: boolean | undefined): Promise<IForm | undefined> {
+    if (!this.formLoaded || reload) {
+      if (this.metadata.form) {
+        this.formLoaded = true;
+        const formId = this.metadata.form;
+        const form = await this.space.resource.formColl.loadResult({
+          options: { match: { id: formId } },
+        });
+        if (form.success && form.data && form.data.length > 0) {
+          this.form = new Form(form.data[0], this.space.directory);
+        }
+      }
+    }
+    return this.form;
   }
   async createPeriod(period: string): Promise<void> {
     const result = await this.periodColl.insert({

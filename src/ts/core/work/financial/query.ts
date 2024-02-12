@@ -1,6 +1,6 @@
-import { common, kernel, schema, List } from '../../../base';
 import { IFinancial, ItemSummary } from '.';
-import { IBelong, IEntity } from '../..';
+import { IBelong, IEntity, XCollection } from '../..';
+import { List, common, kernel, model, schema } from '../../../base';
 import { Entity } from '../../public';
 
 type DimensionMap<T> = Map<string, DimensionMap<T> | any>;
@@ -34,7 +34,18 @@ export interface IQuery extends IEntity<schema.XQuery> {
   /** 统计变动的汇总值 */
   summaryChange(period: string): Promise<DimensionMap<any>>;
   /** 统计区间的汇总至 */
-  summaryRange(start: string, end: string): Promise<common.Node<ItemSummary>[]>;
+  summaryRange(start: string, end: string): Promise<common.Tree<ItemSummary>>;
+  /** 读取快照 */
+  findSnapshot(snapshotId: string): Promise<schema.XSnapshot | undefined>;
+  /** 加载明细数据 */
+  loadChanges(
+    between: [string, string],
+    node: common.Node<ItemSummary>,
+    field: schema.XProperty,
+    symbol: number,
+    offset: number,
+    limit: number,
+  ): Promise<model.LoadResult<schema.XChange[]>>;
   /** 递归汇总分类树 */
   recursion<T>(
     res: { [key: string]: schema.XSpeciesItem[] },
@@ -42,7 +53,6 @@ export interface IQuery extends IEntity<schema.XQuery> {
     summary: (path: string, context?: T) => void,
     context?: T,
     build?: (item: schema.XSpeciesItem, context?: T) => T,
-    index?: number,
   ): void;
 }
 
@@ -50,10 +60,14 @@ export class Query extends Entity<schema.XQuery> implements IQuery {
   constructor(metadata: schema.XQuery, financial: IFinancial) {
     super(metadata, []);
     this.financial = financial;
+    this.changeColl = this.space.resource.genColl('_system-things-changed');
+    this.snapshotColl = this.space.resource.genColl('_system-things-snapshot');
   }
   financial: IFinancial;
   speciesLoaded: boolean = false;
   speciesItems: { [key: string]: schema.XSpeciesItem[] } = {};
+  changeColl: XCollection<schema.XChange>;
+  snapshotColl: XCollection<schema.XSnapshot>;
   get species(): schema.XProperty {
     return this.metadata.species;
   }
@@ -224,7 +238,7 @@ export class Query extends Entity<schema.XQuery> implements IQuery {
       this.recursion(res, path + '-' + item.id, summary, next, build, index + 1);
     }
   }
-  async summaryRange(start: string, end: string): Promise<common.Node<ItemSummary>[]> {
+  async summaryRange(start: string, end: string): Promise<common.Tree<ItemSummary>> {
     const res = await this.loadSpecies();
 
     const thing = '_system-things';
@@ -282,6 +296,49 @@ export class Query extends Entity<schema.XQuery> implements IQuery {
       });
       return pre;
     });
-    return tree.root.children;
+    return tree;
+  }
+  async loadChanges(
+    between: [string, string],
+    node: common.Node<ItemSummary>,
+    field: schema.XProperty,
+    symbol: number,
+    offset: number,
+    limit: number,
+  ): Promise<model.LoadResult<schema.XChange[]>> {
+    return await this.changeColl.loadResult({
+      options: {
+        match: {
+          changeTime: {
+            _gte_: between[0],
+            _lte_: between[1],
+          },
+          belongId: this.space.id,
+          propId: field.id,
+          symbol: symbol,
+          [this.species.id]: {
+            _in_: this.recursionNodes(node),
+          },
+        },
+      },
+      skip: offset,
+      limit: limit,
+      requireTotalCount: true,
+    });
+  }
+  private recursionNodes(node: common.Node<ItemSummary>) {
+    const res: string[] = ['S' + node.id];
+    for (const child of node.children) {
+      res.push(...this.recursionNodes(child));
+    }
+    return res;
+  }
+  async findSnapshot(snapshotId: string): Promise<schema.XSnapshot | undefined> {
+    const result = await this.snapshotColl.loadResult({
+      options: { match: { id: snapshotId } },
+    });
+    if (result.success && result.data && result.data.length > 0) {
+      return result.data[0];
+    }
   }
 }

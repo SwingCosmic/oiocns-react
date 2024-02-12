@@ -1,23 +1,47 @@
 import { RangePicker } from '@/components/Common/StringDatePickers/RangePicker';
-import { schema } from '@/ts/base';
+import OpenFileDialog from '@/components/OpenFileDialog';
+import SchemaForm from '@/components/SchemaForm';
+import { common, schema } from '@/ts/base';
 import { Node, deepClone } from '@/ts/base/common';
 import { IFinancial } from '@/ts/core';
 import { ItemSummary } from '@/ts/core/work/financial';
 import { IPeriod } from '@/ts/core/work/financial/period';
+import { IQuery } from '@/ts/core/work/financial/query';
+import { formatNumber } from '@/utils';
 import {
   ProFormColumnsType,
   ProFormInstance,
   ProTable,
 } from '@ant-design/pro-components';
 import { Button, Input, Modal, Select, Space, Spin, Table } from 'antd';
-import React, { useCallback, useEffect, useRef, useState } from 'react';
-import cls from './ledger.module.less';
-import { AssetLedgerModal } from './ledgetModel';
-import SchemaForm from '@/components/SchemaForm';
-import OpenFileDialog from '@/components/OpenFileDialog';
-import { IQuery } from '@/ts/core/work/financial/query';
-import { formatNumber } from '@/utils';
 import { ColumnGroupType, ColumnType, ColumnsType } from 'antd/lib/table';
+import React, { useEffect, useRef, useState } from 'react';
+import cls from './ledger.module.less';
+import { LedgerModal } from './ledgerModel';
+
+export interface SummaryColumn {
+  label: string;
+  prefix: string;
+}
+
+const columns: SummaryColumn[] = [
+  {
+    label: '期初',
+    prefix: 'before',
+  },
+  {
+    label: '增加',
+    prefix: 'plus',
+  },
+  {
+    label: '减少',
+    prefix: 'minus',
+  },
+  {
+    label: '期末',
+    prefix: 'after',
+  },
+];
 
 interface FormProps {
   current: IFinancial | IQuery;
@@ -316,26 +340,14 @@ interface IProps {
   period: IPeriod;
 }
 
-const columns = [
-  {
-    label: '期初',
-    prefix: 'before',
-  },
-  {
-    label: '增加',
-    prefix: 'plus',
-  },
-  {
-    label: '减少',
-    prefix: 'minus',
-  },
-  {
-    label: '期末',
-    prefix: 'after',
-  },
-];
-
-async function loadColumn(query: IQuery): Promise<ColumnsType<Node<ItemSummary>>> {
+async function loadColumn(
+  query: IQuery,
+  onClick: (
+    prefix: SummaryColumn,
+    field: schema.XProperty,
+    data: Node<ItemSummary>,
+  ) => void,
+): Promise<ColumnsType<Node<ItemSummary>>> {
   const res = await query.loadSpecies();
   const nodes: ColumnType<Node<ItemSummary>>[] = [
     {
@@ -367,7 +379,7 @@ async function loadColumn(query: IQuery): Promise<ColumnsType<Node<ItemSummary>>
             if (['plus', 'minus'].includes(item.prefix)) {
               column.render = (_, row) => {
                 return (
-                  <div className="cell-link">
+                  <div className="cell-link" onClick={() => onClick(item, field, row)}>
                     {formatNumber(row.data[prop] ?? 0, 2, true)}
                   </div>
                 );
@@ -401,12 +413,8 @@ const Ledger: React.FC<IProps> = ({ financial, period }) => {
   const [month, setMonth] = useState<[string, string]>([period.period, period.period]);
   const [query, setQuery] = useState(financial.query);
   const [queries, setQueries] = useState<IQuery[]>(financial.queries);
-  const [data, setData] = useState<Node<schema.XSpeciesItem>[]>([]);
-  const [detailVisible, setDetailVisible] = useState(false);
+  const [data, setData] = useState<common.Tree<ItemSummary> | undefined>();
   const [columns, setColumns] = useState<ColumnsType<Node<ItemSummary>>>([]);
-  const [currentRow, setCurrentRow] = useState<Node<ItemSummary> | null>(null);
-  const [currentField, setCurrentField] = useState('');
-  const [currentType, setCurrentType] = useState('');
   const [center, setCenter] = useState(<></>);
 
   async function loadData() {
@@ -414,30 +422,32 @@ const Ledger: React.FC<IProps> = ({ financial, period }) => {
       setLoading(true);
       const queries = await financial.loadQueries();
       const columns = [];
-      const data = [];
       if (financial.query) {
-        columns.push(...(await loadColumn(financial.query)));
-        data.push(...(await financial.query.summaryRange(month[0], month[1])));
+        const data = await financial.query.summaryRange(month[0], month[1]);
+        columns.push(
+          ...(await loadColumn(financial.query, (prefix, field, node) => {
+            setCenter(
+              <LedgerModal
+                query={financial.query!}
+                tree={data!}
+                between={month}
+                symbol={prefix.prefix == 'plus' ? 1 : -1}
+                node={node}
+                field={field}
+                finished={() => setCenter(<></>)}
+              />,
+            );
+          })),
+        );
+        setData(data);
       }
-
       setQueries(queries);
       setQuery(financial.query);
       setColumns(columns);
-      setData(data);
     } finally {
       setLoading(false);
     }
   }
-
-  const handleViewDetail = useCallback(
-    async (row: Node<ItemSummary>, field: string, type: string) => {
-      setCurrentRow(row);
-      setCurrentField(field);
-      setCurrentType(type);
-      setDetailVisible(true);
-    },
-    [],
-  );
 
   useEffect(() => {
     const id = financial.subscribe(() => loadData());
@@ -497,25 +507,12 @@ const Ledger: React.FC<IProps> = ({ financial, period }) => {
               pagination={false}
               bordered
               size="small"
-              dataSource={data}
+              dataSource={data?.root.children ?? []}
               scroll={{ y: 'calc(100%)' }}
             />
           </div>
         </div>
       </Spin>
-
-      {detailVisible ? (
-        <AssetLedgerModal
-          summary={currentRow}
-          field={currentField}
-          type={currentType}
-          visible={detailVisible}
-          onVisibleChange={setDetailVisible}
-          form={null!}
-        />
-      ) : (
-        <></>
-      )}
       {center}
     </div>
   );

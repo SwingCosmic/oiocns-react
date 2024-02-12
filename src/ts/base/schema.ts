@@ -779,6 +779,8 @@ export interface XFinancial extends Xbase {
   current?: string;
   /** 当前查询 */
   query?: string;
+  /** 查看物的表单 */
+  form?: string;
 }
 
 // 账期
