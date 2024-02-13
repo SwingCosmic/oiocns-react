@@ -886,11 +886,19 @@ export interface XChange extends Xbase {
 }
 
 // 平均年限法
-export interface YearAverage extends Xbase {
+export interface XYearAverage extends Xbase {
+  // 折旧维度（统计）
+  dimensions: XProperty[];
   // 折旧方式
   depreciationMethod: XProperty;
   // 折旧方法
   speciesItemId: string;
+  // 计提状态
+  depreciationStatus: XProperty;
+  // 计提中状态
+  accruingStatus: string;
+  // 完成计提状态
+  accruedStatus: string;
   // 原值
   originalValue: XProperty;
   // 累计折旧

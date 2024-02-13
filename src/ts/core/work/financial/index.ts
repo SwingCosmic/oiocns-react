@@ -21,7 +21,7 @@ export interface IFinancial extends common.Emitter {
   /** 当前账期 */
   current: string | undefined;
   /** 平均年限法 */
-  yearAverage: schema.YearAverage | undefined;
+  yearAverage: schema.XYearAverage | undefined;
   /** 缓存 */
   financialCache: XObject<schema.Xbase>;
   /** 账期集合 */
@@ -47,7 +47,7 @@ export interface IFinancial extends common.Emitter {
   /** 设置查询条件 */
   setForm(form: schema.XForm): Promise<void>;
   /** 设置折旧配置 */
-  setYearAverage(yearAverage: schema.YearAverage): Promise<void>;
+  setYearAverage(yearAverage: schema.XYearAverage): Promise<void>;
   /** 清空结账日期 */
   clear(): Promise<void>;
   /** 加载分类明细项 */
@@ -127,9 +127,9 @@ export class Financial extends common.Emitter implements IFinancial {
   }
   form: IForm | undefined;
   query: IQuery | undefined;
-  yearAverage: schema.YearAverage | undefined;
+  yearAverage: schema.XYearAverage | undefined;
   financialCache: XObject<schema.Xbase>;
-  averageCache: XObject<schema.YearAverage>;
+  averageCache: XObject<schema.XYearAverage>;
   metadata: schema.XFinancial;
   space: IBelong;
   periods: IPeriod[] = [];
@@ -153,7 +153,7 @@ export class Financial extends common.Emitter implements IFinancial {
     if (financial) {
       this.metadata = financial;
     }
-    const yearAverage = await this.averageCache.get<schema.YearAverage>('');
+    const yearAverage = await this.averageCache.get<schema.XYearAverage>('');
     if (yearAverage) {
       this.yearAverage = yearAverage;
     }
@@ -183,7 +183,7 @@ export class Financial extends common.Emitter implements IFinancial {
       this.form = new Form(res, this.space.directory);
       this.changCallback();
     });
-    this.averageCache.subscribe('average', (res: schema.YearAverage) => {
+    this.averageCache.subscribe('average', (res: schema.XYearAverage) => {
       this.yearAverage = res;
       this.changCallback();
     });
@@ -207,7 +207,7 @@ export class Financial extends common.Emitter implements IFinancial {
       await this.financialCache.notity('current', period, true, false);
     }
   }
-  async setYearAverage(yearAverage: schema.YearAverage): Promise<void> {
+  async setYearAverage(yearAverage: schema.XYearAverage): Promise<void> {
     if (await this.averageCache.set('', yearAverage)) {
       await this.averageCache.notity('average', yearAverage, true, false);
     }
@@ -226,7 +226,7 @@ export class Financial extends common.Emitter implements IFinancial {
     if (await this.financialCache.set('', {})) {
       await this.financialCache.notity('financial', {}, true, false);
     }
-    await this.setYearAverage({} as schema.YearAverage);
+    await this.setYearAverage({} as schema.XYearAverage);
     if (await this.periodColl.removeMatch({})) {
       await this.periodColl.notity({ operate: 'clear' });
     }
