@@ -12,7 +12,6 @@ import { IFile } from '../../thing/fileinfo';
 import { XCollection } from '../../public/collection';
 import { Financial, IFinancial } from '../../work/financial';
 import { XObject } from '../../public/object';
-import { CollManager, ICollManager } from '../../thing/collManager';
 
 /** 自归属用户接口类 */
 export interface IBelong extends ITarget {
@@ -20,6 +19,8 @@ export interface IBelong extends ITarget {
   superAuth: IAuthority | undefined;
   /** 加入/管理的群 */
   cohorts: ICohort[];
+  /** 激活的数据核 */
+  activated: IStorage | undefined;
   /** 存储资源群 */
   storages: IStorage[];
   /** 上级用户 */
@@ -34,8 +35,6 @@ export interface IBelong extends ITarget {
   cacheObj: XObject<schema.Xbase>;
   /** 财务接口 */
   financial: IFinancial;
-  /** 集合管理器 */
-  collManager: ICollManager;
   /** 获取存储占用情况 */
   getDiskInfo(): Promise<model.DiskInfoType | undefined>;
   /** 加载超管权限 */
@@ -59,7 +58,6 @@ export abstract class Belong extends Target implements IBelong {
     super([], _metadata, _relations, undefined, _user, _memberTypes);
     this.cacheObj = new XObject(_metadata, 'target-cache', [], [this.key]);
     this.financial = new Financial(this);
-    this.collManager = new CollManager(this);
     this.workStagging = new XCollection<schema.XWorkInstance>(
       _metadata,
       'work-instance-staging',
@@ -72,13 +70,15 @@ export abstract class Belong extends Target implements IBelong {
       (data: any) => this.superAuth?.receiveAuthority(data),
     );
   }
-  collManager: ICollManager;
   financial: IFinancial;
   cacheObj: XObject<schema.Xbase>;
   workStagging: XCollection<schema.XWorkInstance>;
   cohorts: ICohort[] = [];
   storages: IStorage[] = [];
   superAuth: IAuthority | undefined;
+  get activated(): IStorage | undefined {
+    return this.storages.find((i) => i.isActivate);
+  }
   get superior(): IFile {
     return 'disk' as unknown as IFile;
   }

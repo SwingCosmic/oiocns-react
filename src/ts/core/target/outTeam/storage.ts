@@ -4,11 +4,14 @@ import { OperateType, TargetType, entityOperates, targetOperates } from '../../p
 import { IBelong } from '../base/belong';
 import { ITarget, Target } from '../base/target';
 import { ISession } from '../../chat/session';
+import { DataManager, IDataManager } from '../../work/dba';
 
 /** 存储资源接口 */
 export interface IStorage extends ITarget {
   /** 是否处于激活状态 */
   isActivate: boolean;
+  /** 数据库管理接口 */
+  dataManager: IDataManager;
   /** 激活存储 */
   activateStorage(): Promise<boolean>;
 }
@@ -19,7 +22,9 @@ export class Storage extends Target implements IStorage {
       TargetType.Company,
       TargetType.Person,
     ]);
+    this.dataManager = new DataManager(this);
   }
+  dataManager: IDataManager;
   get isMyTeam(): boolean {
     return true;
   }

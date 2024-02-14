@@ -66,6 +66,12 @@ const Depreciation: React.FC<IProps> = ({ financial, period }) => {
                 }>
                 折旧模板配置
               </Button>
+              <Button
+                onClick={async () => {
+                  await period.calculateDepreciation();
+                }}>
+                计算
+              </Button>
               <div>期间</div>
               <DatePicker
                 picker="month"
@@ -212,7 +218,7 @@ const DepreciationTemplate: React.FC<TemplateProps> = ({ financial, onFinished }
                 </FormItem>
                 <SymbolText value="=" />
                 <FormItem
-                  name="speciesItemId"
+                  name="yearAverageMethod"
                   rules={[{ required: true, message: '请绑定折旧方法！' }]}>
                   <Select
                     style={{ width: 200 }}

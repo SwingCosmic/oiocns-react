@@ -1,5 +1,5 @@
 import { IBelong, IEntity, IFinancial } from '../..';
-import { schema } from '../../../base';
+import { kernel, schema } from '../../../base';
 import { Entity } from '../../public';
 
 /**
@@ -66,7 +66,16 @@ export class Period extends Entity<schema.XPeriod> implements IPeriod {
     if (this.closed) {
       throw new Error('已结账，无法计提折旧！');
     }
-    await this.update({ ...this.metadata, depreciated: true });
+    const yearAverage = this.financial.yearAverage;
+    if (!yearAverage) {
+      throw new Error('未设置平均年限法，折旧失败！');
+    }
+    const res = await kernel.depreciationThing(this.space.id, [this.space.id], {
+      thingQuery: { options: { match: { belongId: this.space.id } } },
+      yearAverage: yearAverage,
+    });
+    console.log(res);
+    // await this.update({ ...this.metadata, depreciated: true });
   }
   async monthlySettlement(): Promise<void> {
     if (!this.deprecated) {

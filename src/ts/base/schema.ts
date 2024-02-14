@@ -214,12 +214,10 @@ export type XForm = {
 } & XStandard;
 
 // 用户自定义集合
-export type XColl = {
-  // 集合代码
-  code: string;
-  // 中文名称
-  name: string;
-};
+export type XDefinedColl = {
+  // 别名
+  alias: string;
+} & Xbase;
 
 export type XFormFilter = {
   filterExp?: string;
@@ -892,7 +890,7 @@ export interface XYearAverage extends Xbase {
   // 折旧方式
   depreciationMethod: XProperty;
   // 折旧方法
-  speciesItemId: string;
+  yearAverageMethod: string;
   // 计提状态
   depreciationStatus: XProperty;
   // 计提中状态

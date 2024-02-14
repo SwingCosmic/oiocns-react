@@ -969,7 +969,27 @@ export default class KernelApi {
     }
     return result;
   }
-
+  /**
+   * 折旧
+   * @param  过滤参数
+   */
+  public async depreciationThing(
+    belongId: string,
+    relations: string[],
+    options: {
+      thingQuery: any,
+      yearAverage: schema.XYearAverage,
+    },
+  ): Promise<model.ResultType<void>> {
+    return await this.dataProxy({
+      module: 'Thing',
+      action: 'Depreciation',
+      belongId,
+      relations,
+      flag: 'depreciationThing',
+      params: options,
+    });
+  }
   /**
    * 物的快照
    * @param  过滤参数

@@ -1,11 +1,12 @@
-import React, { useEffect, useState } from 'react';
-import { ProFormColumnsType } from '@ant-design/pro-components';
 import SchemaForm from '@/components/SchemaForm';
-import { IBelong, IDirectory, IForm } from '@/ts/core';
-import UploadItem from '../../tools/uploadItem';
-import { EntityColumns } from './entityColumns';
 import { schema } from '@/ts/base';
-import { Button, Form, Input, Modal, Select, Space, message } from 'antd';
+import { IBelong, IDirectory, IForm } from '@/ts/core';
+import { ProFormColumnsType } from '@ant-design/pro-components';
+import { Input } from 'antd';
+import React, { useState } from 'react';
+import UploadItem from '../../tools/uploadItem';
+import { CollectionTable } from './collectionForm';
+import { EntityColumns } from './entityColumns';
 
 interface Iprops {
   formType: string;
@@ -13,42 +14,6 @@ interface Iprops {
   current: IDirectory | IForm;
   finished: () => void;
 }
-
-const CollectionForm: React.FC<{ space: IBelong; finished: () => void }> = (props) => {
-  const [form] = Form.useForm();
-  return (
-    <Modal
-      open
-      title={'创建集合'}
-      onOk={async () => {
-        await form.validateFields();
-        const value = await form.validateFields();
-        try {
-          const code = 'formdata-' + value.code;
-          await props.space.collManager.createCollection({ ...value, code });
-          props.finished();
-        } catch (error) {
-          message.error((error as Error).message);
-        }
-      }}
-      onCancel={props.finished}>
-      <Form form={form} preserve>
-        <Form.Item
-          label="集合代码（前缀 formdata-）"
-          name="code"
-          rules={[{ required: true, message: '集合代码为必填项!' }]}>
-          <Input />
-        </Form.Item>
-        <Form.Item
-          label="集合名称"
-          name="name"
-          rules={[{ required: true, message: '集合名称为必填项!' }]}>
-          <Input />
-        </Form.Item>
-      </Form>
-    </Modal>
-  );
-};
 
 /*
   编辑
@@ -60,16 +25,7 @@ const LabelsForm = (props: Iprops) => {
   } else {
     space = (props.current as IForm).directory.target.space;
   }
-  const [collections, setCollections] = useState(space.collManager.collections);
-  const [collectionForm, setCollectionForm] = useState(<></>);
-  useEffect(() => {
-    const id = space.collManager.subscribe(() => {
-      setCollections(space.collManager.collections);
-    });
-    return () => {
-      space.collManager.unsubscribe(id);
-    };
-  }, []);
+  const [center, setCenter] = useState(<></>);
   let title = '';
   let directory: IDirectory;
   let form: IForm | undefined;
@@ -150,36 +106,28 @@ const LabelsForm = (props: Iprops) => {
     {
       title: '存储位置',
       dataIndex: 'collName',
-      valueType: 'select',
       renderFormItem: (_, __, form) => {
+        const value = form.getFieldValue('collName');
+        if (props.formType !== 'new') {
+          return value ?? '_system-things（默认）';
+        }
         return (
-          <Select
-            value={form.getFieldValue('collName')}
-            dropdownRender={(menu) => {
-              return (
-                <Space style={{ width: '100%', padding: 4 }} direction="vertical">
-                  {menu}
-                  <Button
-                    block
-                    onClick={() => {
-                      setCollectionForm(
-                        <CollectionForm
-                          space={space}
-                          finished={() => setCollectionForm(<></>)}
-                        />,
-                      );
-                    }}>
-                    创建数据集
-                  </Button>
-                </Space>
+          <Input
+            allowClear
+            onClick={() => {
+              setCenter(
+                <CollectionTable
+                  space={space}
+                  finished={(collName) => {
+                    if (collName) {
+                      form.setFieldValue('collName', collName);
+                    }
+                    setCenter(<></>);
+                  }}
+                />,
               );
             }}
-            options={collections.map((i) => {
-              return {
-                label: `${i.name}[${i.code}]`,
-                value: i.code,
-              };
-            })}
+            value={value}
           />
         );
       },
@@ -226,7 +174,7 @@ const LabelsForm = (props: Iprops) => {
           }
           props.finished();
         }}></SchemaForm>
-      {collectionForm}
+      {center}
     </>
   );
 };

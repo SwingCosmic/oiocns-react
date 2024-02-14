@@ -92,7 +92,7 @@ export function LedgerModal(props: Props) {
           </Space>
         </div>
         <ProTable<schema.XChange>
-          key={'id'}
+          rowKey={'id'}
           style={{ marginTop: 8 }}
           search={false}
           options={false}
