@@ -4,7 +4,14 @@ import { common, kernel, schema } from '../../../base';
 import { Entity } from '../../public';
 import { ISummary, SumItem, Summary } from './summary';
 
-type DepreciationType = 'Calculate' | 'Confirm' | 'Revoke';
+export type Operation = 'Calculate' | 'Confirm' | 'Revoke';
+export enum OperationStatus {
+  Ready = 1,
+  Working,
+  Error,
+  Stop,
+  Completed,
+}
 
 /**
  * 账期
@@ -32,8 +39,8 @@ export interface IPeriod extends IEntity<schema.XPeriod> {
   getPrePeriod(): string;
   /** 获取下一个月日期 */
   getNextPeriod(): string;
-  /** 计提折旧（确认） */
-  depreciation(type: DepreciationType): Promise<XOperationLog | undefined>;
+  /** 计提折旧 */
+  depreciation(type: Operation): Promise<XOperationLog | undefined>;
   /** 月结账 */
   monthlySettlement(): Promise<void>;
   /** 试算平衡 */
@@ -78,17 +85,17 @@ export class Period extends Entity<schema.XPeriod> implements IPeriod {
   get dimensions() {
     return this.financial.configuration?.dimensions ?? [];
   }
-  async depreciation(
-    depreciationType: DepreciationType,
-  ): Promise<schema.XOperationLog | undefined> {
+  async depreciation(operation: Operation): Promise<schema.XOperationLog | undefined> {
     const res = await kernel.depreciationThing(this.space.id, [this.space.id], {
       id: this.metadata.id,
-      type: depreciationType,
+      type: operation,
     });
     if (res.success) {
-      const updated = { ...this.metadata, operationId: res.data.id };
-      await this.financial.periodColl.notity({ operate: 'update', data: updated });
+      this.setMetadata({ ...this.metadata, operationId: res.data.id });
+      await this.financial.periodColl.notity({ operate: 'update', data: this.metadata });
       return res.data;
+    } else {
+      throw new Error(res.msg);
     }
   }
   async loadOperationLog(): Promise<XOperationLog | undefined> {

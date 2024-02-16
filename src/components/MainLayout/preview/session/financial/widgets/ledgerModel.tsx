@@ -9,7 +9,7 @@ import { SumItem } from '@/ts/core/work/financial/summary';
 import { formatNumber } from '@/utils';
 import { ProTable } from '@ant-design/pro-components';
 import { Modal, Space, Tag } from 'antd';
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useEffect, useState } from 'react';
 
 interface Props {
   query: IQuery;
@@ -25,20 +25,21 @@ export function LedgerModal(props: Props) {
   const [loading, setLoading] = useState(false);
   const [data, setData] = useState<model.LoadResult<schema.XChange[]>>();
   const [form, setForm] = useState(props.query.financial.form);
-  const pageSize = useRef(10);
+  const [size, setSize] = useState(10);
   const [center, setCenter] = useState(<></>);
 
   async function loadData(page: number, pageSize: number) {
     setLoading(true);
     setData(
-      await props.query.loadChanges(
-        props.between,
-        props.node,
-        props.field,
-        props.symbol,
-        (page - 1) * pageSize,
-        pageSize,
-      ),
+      await props.query.financial.loadChanges({
+        species: props.query.species.id,
+        between: props.between,
+        node: props.node,
+        field: props.field,
+        symbol: props.symbol,
+        offset: (page - 1) * pageSize,
+        limit: pageSize,
+      }),
     );
     const current = await props.query.financial.loadForm();
     await current?.loadFields();
@@ -65,7 +66,7 @@ export function LedgerModal(props: Props) {
 
   useEffect(() => {
     const id = props.query.financial.subscribe(() => {
-      loadData(1, pageSize.current);
+      loadData(1, size);
     });
     return () => {
       props.query.financial.unsubscribe(id);
@@ -99,10 +100,14 @@ export function LedgerModal(props: Props) {
           loading={loading}
           dataSource={data?.data}
           pagination={{
-            pageSize: pageSize.current,
+            pageSize: size,
             total: data?.totalCount ?? 0,
-            onChange(page, pageSize) {
-              loadData(page, pageSize);
+            onChange(current, size) {
+              loadData(current, size);
+            },
+            onShowSizeChange(current, size) {
+              setSize(size);
+              loadData(current, size);
             },
           }}
           columns={[

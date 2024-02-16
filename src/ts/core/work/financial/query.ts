@@ -31,22 +31,12 @@ export interface IQuery extends IEntity<schema.XQuery> {
   ledgerSummary(start: string, end: string): Promise<common.Tree<SumItem>>;
   /** 加载分类 */
   loadSpecies(reload?: boolean): Promise<{ [key: string]: schema.XSpeciesItem[] }>;
-  /** 加载明细数据 */
-  loadChanges(
-    between: [string, string],
-    node: common.Node<SumItem>,
-    field: model.FieldModel,
-    symbol: number,
-    offset: number,
-    limit: number,
-  ): Promise<model.LoadResult<schema.XChange[]>>;
 }
 
 export class Query extends Entity<schema.XQuery> implements IQuery {
   constructor(metadata: schema.XQuery, financial: IFinancial) {
     super(metadata, []);
     this.financial = financial;
-    this.changeColl = this.space.resource.genColl('_system-things-changed');
     this.snapshotColl = this.space.resource.genColl('_system-things-snapshot');
     this.summary = new Summary(financial.space);
     this.species = { ...metadata.species, id: 'T' + metadata.species.id };
@@ -61,7 +51,6 @@ export class Query extends Entity<schema.XQuery> implements IQuery {
   financial: IFinancial;
   speciesLoaded: boolean = false;
   speciesItems: { [key: string]: schema.XSpeciesItem[] } = {};
-  changeColl: XCollection<schema.XChange>;
   snapshotColl: XCollection<schema.XSnapshot>;
   species: model.FieldModel;
   dimensions: model.FieldModel[];
@@ -103,41 +92,6 @@ export class Query extends Entity<schema.XQuery> implements IQuery {
       this.speciesItems = await this.financial.loadSpecies(speciesIds);
     }
     return this.speciesItems;
-  }
-  async loadChanges(
-    between: [string, string],
-    node: common.Node<SumItem>,
-    field: model.FieldModel,
-    symbol: number,
-    offset: number,
-    limit: number,
-  ): Promise<model.LoadResult<schema.XChange[]>> {
-    return await this.changeColl.loadResult({
-      options: {
-        match: {
-          changeTime: {
-            _gte_: between[0],
-            _lte_: between[1],
-          },
-          belongId: this.space.id,
-          propId: field.id,
-          symbol: symbol,
-          [this.species.id]: {
-            _in_: this.recursionNodes(node),
-          },
-        },
-      },
-      skip: offset,
-      limit: limit,
-      requireTotalCount: true,
-    });
-  }
-  private recursionNodes(node: common.Node<SumItem>) {
-    const res: string[] = ['S' + node.id];
-    for (const child of node.children) {
-      res.push(...this.recursionNodes(child));
-    }
-    return res;
   }
   async ledgerSummary(start: string, end: string): Promise<common.Tree<SumItem>> {
     const speciesItems = await this.loadSpecies();

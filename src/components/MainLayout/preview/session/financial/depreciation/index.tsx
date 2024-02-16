@@ -2,10 +2,10 @@ import { DatePicker } from '@/components/Common/StringDatePickers/DatePicker';
 import { common, schema } from '@/ts/base';
 import { Node } from '@/ts/base/common';
 import { IFinancial } from '@/ts/core';
-import { IPeriod } from '@/ts/core/work/financial/period';
+import { IPeriod, Operation, OperationStatus } from '@/ts/core/work/financial/period';
 import { SumItem } from '@/ts/core/work/financial/summary';
-import { formatDate } from '@/utils';
-import { Button, Table, Tag } from 'antd';
+import { formatDate, formatNumber } from '@/utils';
+import { Button, Progress, Table, Tag } from 'antd';
 import moment from 'moment';
 import React, { useEffect, useState } from 'react';
 import { DepreciationTemplate } from './template';
@@ -22,22 +22,39 @@ const Depreciation: React.FC<IProps> = ({ financial, period, config }) => {
   const [operation, setOperation] = useState<schema.XOperationLog>();
   const [depreciated, setDepreciated] = useState(period.deprecated);
   const [data, setData] = useState<common.Tree<SumItem> | undefined>();
+  const [progress, setProgress] = useState(0);
   const [center, setCenter] = useState(<></>);
+  const [operating, setOperating] = useState(false);
 
-  async function loadData() {
+  const wrapper = async (operation: Operation) => {
     setLoading(true);
-    await loadOperation();
-    const data = await period.depreciationSummary(config.dimensions[0]);
-    setData(data);
-    setLoading(false);
-  }
+    setOperating(true);
+    setProgress(0);
+    try {
+      await depreciation(operation, (p) => setProgress(p));
+      setData(await period.depreciationSummary(config.dimensions[0]));
+    } finally {
+      setOperating(false);
+      setLoading(false);
+    }
+  };
 
-  const loadOperation = async () => {
-    setOperation(await period.loadOperationLog());
+  const depreciation = async (operation: Operation, onProgress: (p: number) => void) => {
+    await period.depreciation(operation);
+    while (true) {
+      const log = await period.loadOperationLog();
+      await common.sleep(500);
+      if (log) {
+        onProgress(log.progress);
+        if (log.status == OperationStatus.Completed) {
+          break;
+        }
+      }
+    }
   };
 
   useEffect(() => {
-    loadData();
+    wrapper('Calculate');
   }, [current]);
 
   return (
@@ -49,6 +66,7 @@ const Depreciation: React.FC<IProps> = ({ financial, period, config }) => {
             <Tag color={depreciated ? 'green' : 'red'}>
               {depreciated ? '已计提' : '未计提'}
             </Tag>
+            {operating && <Progress percent={progress} style={{ width: 200 }} />}
             <div className="flex-auto"></div>
             <Button
               loading={loading}
@@ -63,31 +81,17 @@ const Depreciation: React.FC<IProps> = ({ financial, period, config }) => {
               折旧模板配置
             </Button>
             {!period.deprecated && (
-              <Button
-                loading={loading}
-                onClick={async () => {
-                  setLoading(true);
-                  await period.depreciation('Calculate');
-                  setLoading(false);
-                }}>
+              <Button loading={loading} onClick={() => wrapper('Calculate')}>
                 计算
               </Button>
             )}
             {!period.deprecated && (
-              <Button
-                loading={loading}
-                onClick={async () => {
-                  await period.depreciation('Confirm');
-                }}>
+              <Button loading={loading} onClick={() => wrapper('Confirm')}>
                 确认
               </Button>
             )}
             {!period.deprecated && (
-              <Button
-                loading={loading}
-                onClick={async () => {
-                  await period.depreciation('Confirm');
-                }}>
+              <Button loading={loading} onClick={() => wrapper('Revoke')}>
                 取消折旧
               </Button>
             )}
@@ -123,25 +127,28 @@ const Depreciation: React.FC<IProps> = ({ financial, period, config }) => {
               },
               {
                 title: '本月计提折旧',
+                align: 'right',
                 render: (_, row) => {
-                  console.log(row.data);
-                  return row.data['current-root-change'];
+                  return formatNumber(row.data['current-root-change'] ?? 0, 2, true);
                 },
               },
               {
                 title: '本月增加折旧',
+                align: 'right',
                 render: (_, row) => {
                   return row.data['plus-T' + config.accumulatedDepreciation.id];
                 },
               },
               {
                 title: '本月减少折旧',
+                align: 'right',
                 render: (_, row) => {
                   return row.data['plus-T' + config.accumulatedDepreciation.id];
                 },
               },
               {
                 title: '合计',
+                align: 'right',
                 render: (_, row) => {
                   return row.data['plus-T' + config.accumulatedDepreciation.id];
                 },

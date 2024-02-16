@@ -1,12 +1,24 @@
 import { IBelong, IForm, XCollection } from '../..';
-import { List, common, kernel, schema } from '../../../base';
+import { List, common, kernel, model, schema } from '../../../base';
 import { XObject } from '../../public/object';
 import { Form } from '../../thing/standard/form';
 import { IPeriod, Period } from './period';
 import { IQuery, Query } from './query';
+import { SumItem } from './summary';
 
 /** 配置字段 */
 export type ConfigField = keyof schema.XDepreciationConfig;
+
+/** 变动参数 */
+export interface ChangeParams {
+  species: string;
+  between: [string, string];
+  node: common.Node<SumItem>;
+  field: model.FieldModel;
+  symbol: number;
+  offset: number;
+  limit: number;
+}
 
 /** 财务接口 */
 export interface IFinancial extends common.Emitter {
@@ -62,6 +74,8 @@ export interface IFinancial extends common.Emitter {
   loadQueries(reload?: boolean): Promise<IQuery[]>;
   /** 加载表单 */
   loadForm(reload?: boolean): Promise<IForm | undefined>;
+  /** 加载明细数据 */
+  loadChanges(params: ChangeParams): Promise<model.LoadResult<schema.XChange[]>>;
   /** 创建查询 */
   createQuery(metadata: schema.XQuery): Promise<schema.XQuery | undefined>;
   /** 生成账期 */
@@ -87,6 +101,7 @@ export class Financial extends common.Emitter implements IFinancial {
       [],
       [this.key],
     );
+    this.changeColl = this.space.resource.genColl('_system-things-changed');
     this.periodColl = this.space.resource.genColl('financial-period');
     this.queryColl = this.space.resource.genColl('data-query');
     this.periodColl.subscribe([this.key + '-period'], (result) => {
@@ -141,6 +156,7 @@ export class Financial extends common.Emitter implements IFinancial {
   queryLoaded: boolean = false;
   queryColl: XCollection<schema.XQuery>;
   formLoaded: boolean = false;
+  changeColl: XCollection<schema.XChange>;
   get key() {
     return this.space.key + '-financial';
   }
@@ -349,6 +365,34 @@ export class Financial extends common.Emitter implements IFinancial {
       result[speciesId] = groupItems[speciesId] ?? [];
     }
     return result;
+  }
+  async loadChanges(params: ChangeParams): Promise<model.LoadResult<schema.XChange[]>> {
+    return await this.changeColl.loadResult({
+      options: {
+        match: {
+          changeTime: {
+            _gte_: params.between[0],
+            _lte_: params.between[1],
+          },
+          belongId: this.space.id,
+          propId: params.field.id,
+          symbol: params.symbol,
+          [params.species]: {
+            _in_: this.recursionNodes(params.node),
+          },
+        },
+      },
+      skip: params.offset,
+      take: params.limit,
+      requireTotalCount: true,
+    });
+  }
+  private recursionNodes(node: common.Node<SumItem>) {
+    const res: string[] = ['S' + node.id];
+    for (const child of node.children) {
+      res.push(...this.recursionNodes(child));
+    }
+    return res;
   }
   async createPeriod(period: string): Promise<void> {
     const result = await this.periodColl.insert({

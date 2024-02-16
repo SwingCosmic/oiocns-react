@@ -922,13 +922,12 @@ export interface XSummary {
 }
 
 // 查询方案
-export interface XQuery extends XEntity, XSummary {
-}
+export interface XQuery extends XEntity, XSummary {}
 
 // 操作日志
 export interface XOperationLog extends Xbase {
   // 办事实例
   instanceId: string;
   // 进度
-  progress: XProperty;
+  progress: number;
 }
