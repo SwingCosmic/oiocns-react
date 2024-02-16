@@ -29,8 +29,8 @@ export interface SummaryColumn {
 
 export interface SummaryColumns {
   dimensions: string[];
-  dimensionsItems: { [key: string]: schema.XSpeciesItem[] };
-  dimensionFields: string[];
+  speciesItems: { [key: string]: schema.XSpeciesItem[] };
+  fields: string[];
   speciesId: string;
   columns: SummaryColumn[];
 }
@@ -119,7 +119,7 @@ export class Summary implements ISummary {
     }
 
     const nodes: SumItem[] = [];
-    const speciesItems = params.dimensionsItems[params.speciesId] ?? [];
+    const speciesItems = params.speciesItems[params.speciesId] ?? [];
     for (let index = 0; index < speciesItems.length; index++) {
       const value = 'S' + speciesItems[index].id;
       const one: SumItem = { ...speciesItems[index] };
@@ -128,12 +128,12 @@ export class Summary implements ISummary {
         speciesData.set(column.key, summaryData.get(column.key)?.get(value) ?? {});
       }
       this.summaryRecursion<DataMap<any>>({
-        dimensionsItems: params.dimensionsItems,
+        dimensionsItems: params.speciesItems,
         dimensions: params.dimensions,
         dimensionPath: 'root',
         context: speciesData,
         summary: (path, context) => {
-          for (const dimensionField of params.dimensionFields) {
+          for (const dimensionField of params.fields) {
             for (const column of params.columns) {
               const key = column.key + '-' + path + '-' + dimensionField;
               for (const sumField of column.params.sumFields) {
@@ -164,11 +164,11 @@ export class Summary implements ISummary {
     );
     tree.summary((previous, current) => {
       this.summaryRecursion({
-        dimensionsItems: params.dimensionsItems,
+        dimensionsItems: params.speciesItems,
         dimensions: params.dimensions,
         dimensionPath: 'root',
         summary: (path) => {
-          for (const dimensionField of params.dimensionFields) {
+          for (const dimensionField of params.fields) {
             for (const column of params.columns) {
               const key = column.key + '-' + path + '-' + dimensionField;
               previous[key] += current[key];

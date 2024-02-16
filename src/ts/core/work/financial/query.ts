@@ -1,6 +1,6 @@
 import { IFinancial } from '.';
 import { IBelong, IEntity, XCollection } from '../..';
-import { List, common, model, schema } from '../../../base';
+import { common, model, schema } from '../../../base';
 import { Entity } from '../../public';
 import { ISummary, SumItem, Summary } from './summary';
 
@@ -14,28 +14,28 @@ export interface IQuery extends IEntity<schema.XQuery> {
   /** 财务 */
   financial: IFinancial;
   /** 分类维度 */
-  species: schema.XProperty;
+  species: model.FieldModel;
   /** 统计维度 */
-  dimensions: schema.XProperty[];
+  dimensions: model.FieldModel[];
   /** 统计字段 */
-  fields: schema.XProperty[];
+  fields: model.FieldModel[];
   /** 统计对象 */
   summary: ISummary;
   /** 更新 */
   update(metadata: schema.XQuery): Promise<boolean>;
   /** 删除 */
   remove(): Promise<boolean>;
-  /** 加载所有分类项 */
-  loadSpecies(reload?: boolean): Promise<{ [key: string]: schema.XSpeciesItem[] }>;
   /** 读取快照 */
   findSnapshot(snapshotId: string): Promise<schema.XSnapshot | undefined>;
   /** 总账 */
   ledgerSummary(start: string, end: string): Promise<common.Tree<SumItem>>;
+  /** 加载分类 */
+  loadSpecies(reload?: boolean): Promise<{ [key: string]: schema.XSpeciesItem[] }>;
   /** 加载明细数据 */
   loadChanges(
     between: [string, string],
     node: common.Node<SumItem>,
-    field: schema.XProperty,
+    field: model.FieldModel,
     symbol: number,
     offset: number,
     limit: number,
@@ -49,6 +49,13 @@ export class Query extends Entity<schema.XQuery> implements IQuery {
     this.changeColl = this.space.resource.genColl('_system-things-changed');
     this.snapshotColl = this.space.resource.genColl('_system-things-snapshot');
     this.summary = new Summary(financial.space);
+    this.species = { ...metadata.species, id: 'T' + metadata.species.id };
+    this.dimensions = metadata.dimensions.map((item) => {
+      return { ...item, id: 'T' + item.id };
+    });
+    this.fields = metadata.fields.map((item) => {
+      return { ...item, id: 'T' + item.id };
+    });
   }
   summary: ISummary;
   financial: IFinancial;
@@ -56,16 +63,10 @@ export class Query extends Entity<schema.XQuery> implements IQuery {
   speciesItems: { [key: string]: schema.XSpeciesItem[] } = {};
   changeColl: XCollection<schema.XChange>;
   snapshotColl: XCollection<schema.XSnapshot>;
-  get species(): schema.XProperty {
-    return this.metadata.species;
-  }
-  get dimensions(): schema.XProperty[] {
-    return this.metadata.dimensions;
-  }
-  get fields(): schema.XProperty[] {
-    return this.metadata.fields;
-  }
-  get allDimension(): schema.XProperty[] {
+  species: model.FieldModel;
+  dimensions: model.FieldModel[];
+  fields: schema.XProperty[];
+  get allDimension(): model.FieldModel[] {
     return [this.species, ...this.dimensions];
   }
   get space(): IBelong {
@@ -96,21 +97,17 @@ export class Query extends Entity<schema.XQuery> implements IQuery {
   async loadSpecies(reload?: boolean): Promise<{ [key: string]: schema.XSpeciesItem[] }> {
     if (!this.speciesLoaded || reload) {
       this.speciesLoaded = true;
-      const speciesIds = [this.species, ...this.dimensions].map((item) => item.speciesId);
-      const speciesItems = await this.financial.space.resource.speciesItemColl.loadSpace({
-        options: { match: { speciesId: { _in_: speciesIds } } },
-      });
-      const groupItems = new List(speciesItems).GroupBy((item) => item.speciesId);
-      for (const speciesId of speciesIds) {
-        this.speciesItems[speciesId] = groupItems[speciesId] ?? [];
-      }
+      const speciesIds = [this.metadata.species, ...this.metadata.dimensions].map(
+        (item) => item.speciesId,
+      );
+      this.speciesItems = await this.financial.loadSpecies(speciesIds);
     }
     return this.speciesItems;
   }
   async loadChanges(
     between: [string, string],
     node: common.Node<SumItem>,
-    field: schema.XProperty,
+    field: model.FieldModel,
     symbol: number,
     offset: number,
     limit: number,
@@ -143,7 +140,7 @@ export class Query extends Entity<schema.XQuery> implements IQuery {
     return res;
   }
   async ledgerSummary(start: string, end: string): Promise<common.Tree<SumItem>> {
-    const dimensionsItems = await this.loadSpecies();
+    const speciesItems = await this.loadSpecies();
     let limit = Math.max(...Object.values(this.speciesItems).map((item) => item.length));
     const getMonthParams = (month: string) => {
       let collName = '_system-things';
@@ -172,10 +169,10 @@ export class Query extends Entity<schema.XQuery> implements IQuery {
       };
     };
     return this.summary.summaries({
+      speciesId: this.metadata.species.speciesId,
       dimensions: this.dimensions.map((item) => item.id),
-      dimensionsItems: dimensionsItems,
-      speciesId: this.species.speciesId,
-      dimensionFields: this.fields.map((item) => item.id),
+      speciesItems: speciesItems,
+      fields: this.fields.map((item) => item.id),
       columns: [
         {
           key: 'before',

@@ -16,7 +16,7 @@ interface Props {
   between: [string, string];
   tree: Tree<SumItem>;
   node: Node<SumItem>;
-  field: schema.XProperty;
+  field: model.FieldModel;
   symbol: number;
   finished: () => void;
 }

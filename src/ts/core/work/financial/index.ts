@@ -1,5 +1,5 @@
 import { IBelong, IForm, XCollection } from '../..';
-import { common, kernel, schema } from '../../../base';
+import { List, common, kernel, schema } from '../../../base';
 import { XObject } from '../../public/object';
 import { Form } from '../../thing/standard/form';
 import { IPeriod, Period } from './period';
@@ -19,7 +19,7 @@ export interface IFinancial extends common.Emitter {
   /** 当前账期 */
   current: string | undefined;
   /** 折旧配置 */
-  depreciationConfig: schema.XDepreciationConfig | undefined;
+  configuration: schema.XDepreciationConfig | undefined;
   /** 缓存 */
   financialCache: XObject<schema.Xbase>;
   /** 账期集合 */
@@ -52,6 +52,8 @@ export interface IFinancial extends common.Emitter {
   clear(): Promise<void>;
   /** 加载分类明细项 */
   loadSpeciesItems(speciesId: string): Promise<schema.XSpeciesItem[]>;
+  /** 加载所有分类项 */
+  loadSpecies(ids: string[]): Promise<{ [key: string]: schema.XSpeciesItem[] }>;
   /** 加载财务数据 */
   loadContent(): Promise<void>;
   /** 加载账期 */
@@ -127,7 +129,7 @@ export class Financial extends common.Emitter implements IFinancial {
   }
   form: IForm | undefined;
   query: IQuery | undefined;
-  depreciationConfig: schema.XDepreciationConfig | undefined;
+  configuration: schema.XDepreciationConfig | undefined;
   financialCache: XObject<schema.Xbase>;
   configCache: XObject<schema.XDepreciationConfig>;
   metadata: schema.XFinancial;
@@ -155,7 +157,7 @@ export class Financial extends common.Emitter implements IFinancial {
     }
     const config = await this.configCache.get<schema.XDepreciationConfig>('');
     if (config) {
-      this.depreciationConfig = config;
+      this.configuration = config;
     }
     this.financialCache.subscribe('financial', (res: schema.XFinancial) => {
       this.metadata = res;
@@ -184,7 +186,7 @@ export class Financial extends common.Emitter implements IFinancial {
       this.changCallback();
     });
     this.configCache.subscribe('average', (res: schema.XDepreciationConfig) => {
-      this.depreciationConfig = res;
+      this.configuration = res;
       this.changCallback();
     });
   }
@@ -233,7 +235,7 @@ export class Financial extends common.Emitter implements IFinancial {
     change.removeMatch({});
   }
   checkConfig(): void {
-    if (!this.depreciationConfig) {
+    if (!this.configuration) {
       throw new Error('未配置折旧模板！');
     }
     const fields: ConfigField[] = [
@@ -249,7 +251,7 @@ export class Financial extends common.Emitter implements IFinancial {
       'netWorth',
     ];
     for (const field of fields) {
-      if (!this.depreciationConfig[field]) {
+      if (!this.configuration[field]) {
         throw new Error('折旧模板配置不全！');
       }
     }
@@ -336,6 +338,17 @@ export class Financial extends common.Emitter implements IFinancial {
       }
     }
     return this.form;
+  }
+  async loadSpecies(ids: string[]): Promise<{ [key: string]: schema.XSpeciesItem[] }> {
+    const result: { [key: string]: schema.XSpeciesItem[] } = {};
+    const speciesItems = await this.space.resource.speciesItemColl.loadSpace({
+      options: { match: { speciesId: { _in_: ids } } },
+    });
+    const groupItems = new List(speciesItems).GroupBy((item) => item.speciesId);
+    for (const speciesId of ids) {
+      result[speciesId] = groupItems[speciesId] ?? [];
+    }
+    return result;
   }
   async createPeriod(period: string): Promise<void> {
     const result = await this.periodColl.insert({

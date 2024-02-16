@@ -1,11 +1,12 @@
 import { RangePicker } from '@/components/Common/StringDatePickers/RangePicker';
 import OpenFileDialog from '@/components/OpenFileDialog';
 import SchemaForm from '@/components/SchemaForm';
-import { common, schema } from '@/ts/base';
-import { Node, deepClone } from '@/ts/base/common';
+import { common, model, schema } from '@/ts/base';
+import { Node } from '@/ts/base/common';
 import { IFinancial } from '@/ts/core';
 import { IPeriod } from '@/ts/core/work/financial/period';
 import { IQuery } from '@/ts/core/work/financial/query';
+import { SumItem } from '@/ts/core/work/financial/summary';
 import { formatNumber } from '@/utils';
 import {
   ProFormColumnsType,
@@ -18,7 +19,6 @@ import moment from 'moment';
 import React, { useEffect, useRef, useState } from 'react';
 import cls from './ledger.module.less';
 import { LedgerModal } from './ledgerModel';
-import { DataMap, SumItem } from '@/ts/core/work/financial/summary';
 
 export interface SummaryColumn {
   label: string;
@@ -112,7 +112,6 @@ const QueryForm: React.FC<FormProps> = (props: FormProps) => {
         rules: [{ required: true, message: '扩展维度为必填项' }],
       },
       renderFormItem: (_, __, form) => {
-        console.log(form.getFieldValue('fields'));
         return (
           <Input
             allowClear
@@ -192,22 +191,17 @@ const QueryForm: React.FC<FormProps> = (props: FormProps) => {
               switch (needType) {
                 case 'dimensions':
                   ref.current?.setFieldsValue({
-                    dimensions: files.map((item) => {
-                      return { ...deepClone(item.metadata), id: 'T' + item.id };
-                    }),
+                    dimensions: files.map((item) => item.metadata),
                   });
                   break;
                 case 'fields':
                   ref.current?.setFieldsValue({
-                    fields: files.map((item) => {
-                      return { ...deepClone(item.metadata), id: 'T' + item.id };
-                    }),
+                    fields: files.map((item) => item.metadata),
                   });
                   break;
                 case 'species': {
-                  const metadata = files[0].metadata;
                   ref.current?.setFieldsValue({
-                    species: { ...deepClone(metadata), id: 'T' + metadata.id },
+                    species: files[0].metadata,
                   });
                   break;
                 }
@@ -343,7 +337,7 @@ interface IProps {
 
 async function loadColumn(
   query: IQuery,
-  onClick: (prefix: SummaryColumn, field: schema.XProperty, data: Node<SumItem>) => void,
+  onClick: (prefix: SummaryColumn, field: model.FieldModel, data: Node<SumItem>) => void,
 ): Promise<ColumnsType<Node<SumItem>>> {
   const nodes: ColumnType<Node<SumItem>>[] = [
     {

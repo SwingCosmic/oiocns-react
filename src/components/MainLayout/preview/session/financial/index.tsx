@@ -257,7 +257,7 @@ const Periods: React.FC<IProps> = ({ financial }) => {
                                 <Depreciation
                                   financial={financial}
                                   period={item}
-                                  config={financial.depreciationConfig!}
+                                  config={financial.configuration!}
                                 />
                               </FullScreen>,
                             );
