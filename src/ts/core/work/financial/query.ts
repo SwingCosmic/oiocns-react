@@ -114,7 +114,7 @@ export class Query extends Entity<schema.XQuery> implements IQuery {
         collName: '_system-things-changed',
         match: {
           belongId: this.space.id,
-          changeTime: { _gte_: start, _lte_: end },
+          changeTime: { _gte_: this.financial.getOffsetPeriod(start, 1), _lte_: end },
           symbol: symbol,
         },
         dimensions: [...this.allDimension.map((item) => item.id), 'propId'],
