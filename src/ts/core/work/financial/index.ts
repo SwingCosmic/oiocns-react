@@ -2,12 +2,10 @@ import { IBelong, IForm, XCollection } from '../..';
 import { List, common, kernel, model, schema } from '../../../base';
 import { XObject } from '../../public/object';
 import { Form } from '../../thing/standard/form';
+import { Configuration, IConfiguration } from './config';
 import { IPeriod, Period } from './period';
 import { IQuery, Query } from './query';
 import { SumItem } from './summary';
-
-/** 配置字段 */
-export type ConfigField = keyof schema.XDepreciationConfig;
 
 /** 变动参数 */
 export interface ChangeParams {
@@ -22,6 +20,8 @@ export interface ChangeParams {
 
 /** 财务接口 */
 export interface IFinancial extends common.Emitter {
+  /** 关键字 */
+  key: string;
   /** 归属对象 */
   space: IBelong;
   /** 元数据 */
@@ -31,7 +31,7 @@ export interface IFinancial extends common.Emitter {
   /** 当前账期 */
   current: string | undefined;
   /** 折旧配置 */
-  configuration: schema.XDepreciationConfig | undefined;
+  configuration: IConfiguration;
   /** 缓存 */
   financialCache: XObject<schema.Xbase>;
   /** 账期集合 */
@@ -56,10 +56,6 @@ export interface IFinancial extends common.Emitter {
   setQuery(query: schema.XQuery): Promise<void>;
   /** 设置查询条件 */
   setForm(form: schema.XForm): Promise<void>;
-  /** 设置折旧配置 */
-  setDepreciationConfig(config: schema.XDepreciationConfig): Promise<void>;
-  /** 检查折旧配置 */
-  checkConfig(): void;
   /** 清空结账日期 */
   clear(): Promise<void>;
   /** 加载分类明细项 */
@@ -89,15 +85,10 @@ export class Financial extends common.Emitter implements IFinancial {
     super();
     this.space = belong;
     this.metadata = {} as schema.XFinancial;
+    this.configuration = new Configuration(this);
     this.financialCache = new XObject(
       belong.metadata,
       'target-financial',
-      [],
-      [this.key],
-    );
-    this.configCache = new XObject(
-      belong.metadata,
-      'depreciation-config',
       [],
       [this.key],
     );
@@ -144,9 +135,8 @@ export class Financial extends common.Emitter implements IFinancial {
   }
   form: IForm | undefined;
   query: IQuery | undefined;
-  configuration: schema.XDepreciationConfig | undefined;
+  configuration: IConfiguration;
   financialCache: XObject<schema.Xbase>;
-  configCache: XObject<schema.XDepreciationConfig>;
   metadata: schema.XFinancial;
   space: IBelong;
   periods: IPeriod[] = [];
@@ -171,10 +161,7 @@ export class Financial extends common.Emitter implements IFinancial {
     if (financial) {
       this.metadata = financial;
     }
-    const config = await this.configCache.get<schema.XDepreciationConfig>('');
-    if (config) {
-      this.configuration = config;
-    }
+    await this.configuration.loadContent();
     this.financialCache.subscribe('financial', (res: schema.XFinancial) => {
       this.metadata = res;
       this.changCallback();
@@ -201,10 +188,6 @@ export class Financial extends common.Emitter implements IFinancial {
       this.form = new Form(res, this.space.directory);
       this.changCallback();
     });
-    this.configCache.subscribe('average', (res: schema.XDepreciationConfig) => {
-      this.configuration = res;
-      this.changCallback();
-    });
   }
   async loadSpeciesItems(speciesId: string): Promise<schema.XSpeciesItem[]> {
     const items = await this.space.resource.speciesItemColl.loadResult({
@@ -223,11 +206,6 @@ export class Financial extends common.Emitter implements IFinancial {
   async setCurrent(period: string) {
     if (await this.financialCache.set('current', period)) {
       await this.financialCache.notity('current', period, true, false);
-    }
-  }
-  async setDepreciationConfig(config: schema.XDepreciationConfig): Promise<void> {
-    if (await this.configCache.set('', config)) {
-      await this.configCache.notity('average', config, true, false);
     }
   }
   async setQuery(query: schema.XQuery): Promise<void> {
@@ -249,28 +227,6 @@ export class Financial extends common.Emitter implements IFinancial {
     }
     const change = this.space.resource.genColl('_system-things-changed');
     change.removeMatch({});
-  }
-  checkConfig(): void {
-    if (!this.configuration) {
-      throw new Error('未配置折旧模板！');
-    }
-    const fields: ConfigField[] = [
-      'dimensions',
-      'depreciationMethod',
-      'yearAverageMethod',
-      'depreciationStatus',
-      'accruingStatus',
-      'accruedStatus',
-      'originalValue',
-      'accumulatedDepreciation',
-      'monthlyDepreciationAmount',
-      'netWorth',
-    ];
-    for (const field of fields) {
-      if (!this.configuration[field]) {
-        throw new Error('折旧模板配置不全！');
-      }
-    }
   }
   async createQuery(metadata: schema.XQuery): Promise<schema.XQuery | undefined> {
     const result = await this.queryColl.insert({

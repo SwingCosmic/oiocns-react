@@ -47,10 +47,10 @@ export interface IPeriod extends IEntity<schema.XPeriod> {
   trialBalance(): Promise<void>;
   /** 加載操作日志 */
   loadOperationLog(): Promise<XOperationLog | undefined>;
+  /** 刷新元数据 */
+  loadMetadata(): Promise<schema.XPeriod | undefined>;
   /** 折旧统计 */
   depreciationSummary(species: schema.XProperty): Promise<common.Tree<SumItem>>;
-  /** 加载分类 */
-  loadSpecies(reload?: boolean): Promise<{ [key: string]: schema.XSpeciesItem[] }>;
 }
 
 export class Period extends Entity<schema.XPeriod> implements IPeriod {
@@ -61,11 +61,9 @@ export class Period extends Entity<schema.XPeriod> implements IPeriod {
     this.operationColl = this.space.resource.genColl('operation-log');
     this.summary = new Summary(financial.space);
   }
-  speciesLoaded: boolean = false;
   operationColl: XCollection<schema.XOperationLog>;
   space: IBelong;
   financial: IFinancial;
-  speciesItems: { [key: string]: schema.XSpeciesItem[] } = {};
   summary: ISummary;
   get annual(): string {
     return this.metadata.period.substring(0, 4);
@@ -81,9 +79,6 @@ export class Period extends Entity<schema.XPeriod> implements IPeriod {
   }
   get period() {
     return this.metadata.period;
-  }
-  get dimensions() {
-    return this.financial.configuration?.dimensions ?? [];
   }
   async depreciation(operation: Operation): Promise<schema.XOperationLog | undefined> {
     const res = await kernel.depreciationThing(this.space.id, [this.space.id], {
@@ -108,6 +103,18 @@ export class Period extends Entity<schema.XPeriod> implements IPeriod {
       if (result.success && result.data && result.data.length > 0) {
         return result.data[0];
       }
+    }
+  }
+  async loadMetadata(): Promise<schema.XPeriod | undefined> {
+    const result = await this.financial.periodColl.loadResult({
+      options: {
+        match: { id: this.metadata.id },
+      },
+    });
+    if (result.success && result.data && result.data.length > 0) {
+      this.setMetadata(result.data[0]);
+      await this.financial.periodColl.notity({ operate: 'update', data: this.metadata });
+      return this.metadata;
     }
   }
   async monthlySettlement(): Promise<void> {
@@ -135,22 +142,12 @@ export class Period extends Entity<schema.XPeriod> implements IPeriod {
       await this.financial.periodColl.notity({ operate: 'update', data: metadata });
     }
   }
-  async loadSpecies(
-    reload: boolean = false,
-  ): Promise<{ [key: string]: schema.XSpeciesItem[] }> {
-    if (!this.speciesLoaded || reload) {
-      this.speciesLoaded = true;
-      const speciesIds = this.dimensions.map((item) => item.speciesId);
-      this.speciesItems = await this.financial.loadSpecies(speciesIds);
-    }
-    return this.speciesItems;
-  }
   async depreciationSummary(species: schema.XProperty): Promise<common.Tree<SumItem>> {
-    const configuration = this.financial.configuration;
+    const configuration = this.financial.configuration.metadata;
     if (!configuration) {
       throw new Error('未配置折旧相关信息！');
     }
-    const result = await this.loadSpecies();
+    const result = await this.financial.configuration.loadSpecies();
     let limit = Math.max(...Object.values(result).map((item) => item.length));
     return this.summary.summaries({
       speciesId: species.speciesId,
@@ -162,12 +159,53 @@ export class Period extends Entity<schema.XPeriod> implements IPeriod {
           key: 'current',
           title: '期初',
           params: {
-            collName: 'financial-depreciation',
+            collName: this.metadata.depreciated
+              ? '_system-things-changed'
+              : 'financial-depreciation',
             match: {
               belongId: this.space.id,
-              propId: 'T' + configuration.accumulatedDepreciation.id,
+              propId: this.financial.configuration.accumulatedDepreciation?.id,
+              instanceId: this.metadata.id,
             },
-            dimensions: [...this.dimensions.map((item) => 'T' + item.id)],
+            dimensions: this.financial.configuration.dimensions.map((item) => item.id),
+            sumFields: ['change'],
+            limit: limit,
+          },
+        },
+        {
+          key: 'plus',
+          title: '本期增加',
+          params: {
+            collName: '_system-things-changed',
+            match: {
+              belongId: this.space.id,
+              propId: this.financial.configuration.accumulatedDepreciation?.id,
+              changeTime: this.period,
+              instanceId: {
+                _ne_: this.metadata.id,
+              },
+              symbol: 1,
+            },
+            dimensions: this.financial.configuration.dimensions.map((item) => item.id),
+            sumFields: ['change'],
+            limit: limit,
+          },
+        },
+        {
+          key: 'minus',
+          title: '本期减少',
+          params: {
+            collName: '_system-things-changed',
+            match: {
+              belongId: this.space.id,
+              propId: this.financial.configuration.accumulatedDepreciation?.id,
+              changeTime: this.period,
+              instanceId: {
+                _ne_: this.metadata.id,
+              },
+              symbol: -1,
+            },
+            dimensions: this.financial.configuration.dimensions.map((item) => item.id),
             sumFields: ['change'],
             limit: limit,
           },

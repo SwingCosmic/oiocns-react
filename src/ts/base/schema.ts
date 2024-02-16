@@ -884,7 +884,7 @@ export interface XChange extends Xbase {
 }
 
 // 平均年限法
-export interface XDepreciationConfig extends Xbase {
+export interface XConfiguration extends Xbase {
   // 折旧维度（统计）
   dimensions: XProperty[];
   // 折旧方式
@@ -930,4 +930,6 @@ export interface XOperationLog extends Xbase {
   instanceId: string;
   // 进度
   progress: number;
+  // 操作类型
+  typeName: string;
 }

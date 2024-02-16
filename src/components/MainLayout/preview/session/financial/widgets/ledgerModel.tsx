@@ -181,21 +181,21 @@ export function LedgerModal(props: Props) {
               dataIndex: 'before',
               title: '变动前',
               render: (_, row) => {
-                return <span>{formatNumber(row.before)}</span>;
+                return <span>{formatNumber(row.before ?? 0, 2, true)}</span>;
               },
             },
             {
               dataIndex: 'after',
               title: '变动后',
               render: (_, row) => {
-                return <span>{formatNumber(row.after)}</span>;
+                return <span>{formatNumber(row.after ?? 0, 2, true)}</span>;
               },
             },
             {
               dataIndex: 'change',
               title: '变动值',
               render: (_, row) => {
-                return <span>{formatNumber(row.change)}</span>;
+                return <span>{formatNumber(row.change ?? 0, 2, true)}</span>;
               },
             },
           ]}

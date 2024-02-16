@@ -244,7 +244,7 @@ const Periods: React.FC<IProps> = ({ financial }) => {
               render: (_, item) => {
                 return (
                   <Space>
-                    {!item.deprecated && (
+                    {!item.closed && (
                       <Button
                         type="primary"
                         size="small"
@@ -257,14 +257,14 @@ const Periods: React.FC<IProps> = ({ financial }) => {
                                 onCancel={() => setCenter(<></>)}>
                                 <Depreciation
                                   financial={financial}
-                                  period={item}
-                                  config={financial.configuration!}
+                                  current={item}
+                                  config={financial.configuration.metadata!}
                                 />
                               </FullScreen>,
                             );
                           };
                           try {
-                            financial.checkConfig();
+                            financial.configuration.checkConfig();
                             start();
                           } catch (e) {
                             setCenter(

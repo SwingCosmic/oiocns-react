@@ -16,7 +16,7 @@ interface TemplateProps {
 
 export const DepreciationTemplate: React.FC<TemplateProps> = (props) => {
   const [center, setCenter] = useState(<></>);
-  const [form] = AntForm.useForm<schema.XDepreciationConfig>();
+  const [form] = AntForm.useForm<schema.XConfiguration>();
   const [methodItems, setMethodItems] = useState<schema.XSpeciesItem[]>([]);
   const [statusItems, setStatusItems] = useState<schema.XSpeciesItem[]>([]);
   const loadSpeciesItems = async (speciesId: string, setter: any) => {
@@ -75,8 +75,8 @@ export const DepreciationTemplate: React.FC<TemplateProps> = (props) => {
     );
   };
   useEffect(() => {
-    const method = props.financial.configuration?.depreciationMethod;
-    const status = props.financial.configuration?.depreciationStatus;
+    const method = props.financial.configuration.metadata?.depreciationMethod;
+    const status = props.financial.configuration.metadata?.depreciationStatus;
     if (method && method.speciesId) {
       loadSpeciesItems(method.speciesId, setMethodItems);
     }
@@ -91,14 +91,14 @@ export const DepreciationTemplate: React.FC<TemplateProps> = (props) => {
       onCancel={props.onCancel}
       onSave={async () => {
         const validated = await form.validateFields();
-        await props.financial.setDepreciationConfig(validated);
+        await props.financial.configuration.setMetadata(validated);
         if (props.onSaved) {
           props.onSaved();
         } else {
           props.onFinished?.();
         }
       }}>
-      <AntForm<schema.XDepreciationConfig>
+      <AntForm<schema.XConfiguration>
         form={form}
         initialValues={props.financial.configuration}>
         <Card title="平均年限法">
@@ -116,7 +116,7 @@ export const DepreciationTemplate: React.FC<TemplateProps> = (props) => {
                       .getFieldValue('dimensions')
                       ?.map((item: any) => item.name)
                       .join(',')}
-                    onSelect={(key) => onMethodSelected(key, true)}
+                    onSelect={(key) => onMethodSelected(key, false)}
                     form={form}
                   />
                 </FormItem>
@@ -330,9 +330,9 @@ export const DepreciationTemplate: React.FC<TemplateProps> = (props) => {
 };
 
 interface DesignProps {
-  field: keyof schema.XDepreciationConfig;
+  field: keyof schema.XConfiguration;
   label: string;
-  form: FormInstance<schema.XDepreciationConfig>;
+  form: FormInstance<schema.XConfiguration>;
   onSelect: (key: string) => void;
 }
 

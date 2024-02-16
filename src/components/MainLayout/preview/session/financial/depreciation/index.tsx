@@ -4,7 +4,7 @@ import { Node } from '@/ts/base/common';
 import { IFinancial } from '@/ts/core';
 import { IPeriod, Operation, OperationStatus } from '@/ts/core/work/financial/period';
 import { SumItem } from '@/ts/core/work/financial/summary';
-import { formatDate, formatNumber } from '@/utils';
+import { formatNumber } from '@/utils';
 import { Button, Progress, Table, Tag } from 'antd';
 import moment from 'moment';
 import React, { useEffect, useState } from 'react';
@@ -12,15 +12,14 @@ import { DepreciationTemplate } from './template';
 
 interface IProps {
   financial: IFinancial;
-  period: IPeriod;
-  config: schema.XDepreciationConfig;
+  current: IPeriod;
+  config: schema.XConfiguration;
 }
 
-const Depreciation: React.FC<IProps> = ({ financial, period, config }) => {
+const Depreciation: React.FC<IProps> = ({ financial, current, config }) => {
   const [loading, setLoading] = useState(false);
-  const [current, setCurrent] = useState(formatDate(new Date(), 'yyyy-MM'));
-  const [operation, setOperation] = useState<schema.XOperationLog>();
-  const [depreciated, setDepreciated] = useState(period.deprecated);
+  const [period, setPeriod] = useState(current);
+  const [depreciated, setDepreciated] = useState(current.deprecated);
   const [data, setData] = useState<common.Tree<SumItem> | undefined>();
   const [progress, setProgress] = useState(0);
   const [center, setCenter] = useState(<></>);
@@ -31,31 +30,63 @@ const Depreciation: React.FC<IProps> = ({ financial, period, config }) => {
     setOperating(true);
     setProgress(0);
     try {
-      await depreciation(operation, (p) => setProgress(p));
-      setData(await period.depreciationSummary(config.dimensions[0]));
+      await period.depreciation(operation);
+      await loadingOperation();
     } finally {
       setOperating(false);
       setLoading(false);
     }
   };
 
-  const depreciation = async (operation: Operation, onProgress: (p: number) => void) => {
-    await period.depreciation(operation);
+  const loadingOperation = async () => {
     while (true) {
       const log = await period.loadOperationLog();
       await common.sleep(500);
       if (log) {
-        onProgress(log.progress);
+        setProgress(log.progress);
         if (log.status == OperationStatus.Completed) {
+          switch (log.typeName) {
+            case 'Confirm':
+            case 'Revoke':
+              await period.loadMetadata();
+              setDepreciated(period.deprecated);
+              break;
+          }
+          setData(await period.depreciationSummary(config.dimensions[0]));
           break;
         }
+      } else {
+        throw new Error('操作日志加载失败');
+      }
+    }
+  };
+
+  const init = async () => {
+    setData(await period.depreciationSummary(config.dimensions[0]));
+    const log = await period.loadOperationLog();
+    if (log) {
+      switch (log.status) {
+        case OperationStatus.Working:
+          await loadingOperation();
+          break;
+      }
+    } else {
+      if (!period.deprecated) {
+        wrapper('Calculate');
       }
     }
   };
 
   useEffect(() => {
-    wrapper('Calculate');
-  }, [current]);
+    init();
+    const id = period.financial.subscribe(() => {
+      setDepreciated(period.deprecated);
+      loadingOperation();
+    });
+    return () => {
+      period.financial.unsubscribe(id);
+    };
+  }, [period]);
 
   return (
     <>
@@ -75,6 +106,7 @@ const Depreciation: React.FC<IProps> = ({ financial, period, config }) => {
                   <DepreciationTemplate
                     financial={financial}
                     onFinished={() => setCenter(<></>)}
+                    onCancel={() => setCenter(<></>)}
                   />,
                 )
               }>
@@ -90,7 +122,7 @@ const Depreciation: React.FC<IProps> = ({ financial, period, config }) => {
                 确认
               </Button>
             )}
-            {!period.deprecated && (
+            {period.deprecated && period.period == period.financial.current && (
               <Button loading={loading} onClick={() => wrapper('Revoke')}>
                 取消折旧
               </Button>
@@ -98,8 +130,16 @@ const Depreciation: React.FC<IProps> = ({ financial, period, config }) => {
             <div>期间</div>
             <DatePicker
               picker="month"
-              value={period.period}
-              onChange={setCurrent}
+              value={current.period}
+              onChange={(value) => {
+                for (const item of financial.periods) {
+                  if (item.period == value) {
+                    setPeriod(item);
+                    setDepreciated(item.deprecated);
+                    break;
+                  }
+                }
+              }}
               format="YYYY-MM"
               disabledDate={(current) => {
                 if (financial.initialized) {
@@ -115,6 +155,7 @@ const Depreciation: React.FC<IProps> = ({ financial, period, config }) => {
             />
           </div>
           <Table<Node<SumItem>>
+            loading={loading}
             rowKey={'id'}
             sticky
             columns={[
@@ -136,21 +177,25 @@ const Depreciation: React.FC<IProps> = ({ financial, period, config }) => {
                 title: '本月增加折旧',
                 align: 'right',
                 render: (_, row) => {
-                  return row.data['plus-T' + config.accumulatedDepreciation.id];
+                  return formatNumber(row.data['plus-root-change'] ?? 0, 2, true);
                 },
               },
               {
                 title: '本月减少折旧',
                 align: 'right',
                 render: (_, row) => {
-                  return row.data['plus-T' + config.accumulatedDepreciation.id];
+                  return formatNumber(row.data['minus-root-change'] ?? 0, 2, true);
                 },
               },
               {
                 title: '合计',
                 align: 'right',
                 render: (_, row) => {
-                  return row.data['plus-T' + config.accumulatedDepreciation.id];
+                  const result =
+                    +(row.data['current-root-change'] ?? 0) +
+                    +(row.data['plus-root-change'] ?? 0) -
+                    +(row.data['minus-root-change'] ?? 0);
+                  return formatNumber(result ?? 0, 2, true);
                 },
               },
             ]}
