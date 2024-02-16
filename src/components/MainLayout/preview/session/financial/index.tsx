@@ -9,8 +9,9 @@ import { IPeriod } from '@/ts/core/work/financial/period';
 import { ProTable } from '@ant-design/pro-components';
 import { Button, Card, DatePicker, Space, Tag } from 'antd';
 import React, { ReactNode, useEffect, useRef, useState } from 'react';
+import Depreciation from './depreciation';
+import { DepreciationTemplate } from './depreciation/template';
 import { Closing } from './widgets/closing';
-import Depreciation, { DepreciationTemplate } from './widgets/depreciation';
 import Ledger from './widgets/ledger';
 
 interface IProps {

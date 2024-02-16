@@ -1,7 +1,8 @@
 import { XOperationLog } from '@/ts/base/schema';
 import { IBelong, IEntity, IFinancial, XCollection } from '../..';
-import { kernel, schema } from '../../../base';
+import { common, kernel, schema } from '../../../base';
 import { Entity } from '../../public';
+import { ISummary, SumItem, Summary } from './summary';
 
 type DepreciationType = 'Calculate' | 'Confirm' | 'Revoke';
 
@@ -25,6 +26,8 @@ export interface IPeriod extends IEntity<schema.XPeriod> {
   deprecated: boolean;
   /** 是否已结账 */
   closed: boolean;
+  /** 汇总接口 */
+  summary: ISummary;
   /** 获取上一个月日期 */
   getPrePeriod(): string;
   /** 获取下一个月日期 */
@@ -37,6 +40,10 @@ export interface IPeriod extends IEntity<schema.XPeriod> {
   trialBalance(): Promise<void>;
   /** 加載操作日志 */
   loadOperationLog(): Promise<XOperationLog | undefined>;
+  /** 折旧统计 */
+  depreciationSummary(species: schema.XProperty): Promise<common.Tree<SumItem>>;
+  /** 加载分类 */
+  loadSpecies(reload?: boolean): Promise<{ [key: string]: schema.XSpeciesItem[] }>;
 }
 
 export class Period extends Entity<schema.XPeriod> implements IPeriod {
@@ -45,12 +52,14 @@ export class Period extends Entity<schema.XPeriod> implements IPeriod {
     this.space = financial.space;
     this.financial = financial;
     this.operationColl = this.space.resource.genColl('operation-log');
+    this.summary = new Summary(financial.space);
   }
   speciesLoaded: boolean = false;
   operationColl: XCollection<schema.XOperationLog>;
   space: IBelong;
   financial: IFinancial;
   speciesItems: { [key: string]: schema.XSpeciesItem[] } = {};
+  summary: ISummary;
   get annual(): string {
     return this.metadata.period.substring(0, 4);
   }
@@ -65,6 +74,9 @@ export class Period extends Entity<schema.XPeriod> implements IPeriod {
   }
   get period() {
     return this.metadata.period;
+  }
+  get dimensions() {
+    return this.financial.configuration?.dimensions ?? [];
   }
   async depreciation(
     depreciationType: DepreciationType,
@@ -115,5 +127,45 @@ export class Period extends Entity<schema.XPeriod> implements IPeriod {
     if (await this.financial.periodColl.replace(metadata)) {
       await this.financial.periodColl.notity({ operate: 'update', data: metadata });
     }
+  }
+  async loadSpecies(
+    reload: boolean = false,
+  ): Promise<{ [key: string]: schema.XSpeciesItem[] }> {
+    if (!this.speciesLoaded || reload) {
+      this.speciesLoaded = true;
+      const speciesIds = this.dimensions.map((item) => item.speciesId);
+      this.speciesItems = await this.financial.loadSpecies(speciesIds);
+    }
+    return this.speciesItems;
+  }
+  async depreciationSummary(species: schema.XProperty): Promise<common.Tree<SumItem>> {
+    const configuration = this.financial.configuration;
+    if (!configuration) {
+      throw new Error('未配置折旧相关信息！');
+    }
+    const result = await this.loadSpecies();
+    let limit = Math.max(...Object.values(result).map((item) => item.length));
+    return this.summary.summaries({
+      speciesId: species.speciesId,
+      speciesItems: result,
+      dimensions: [],
+      fields: ['change'],
+      columns: [
+        {
+          key: 'current',
+          title: '期初',
+          params: {
+            collName: 'financial-depreciation',
+            match: {
+              belongId: this.space.id,
+              propId: 'T' + configuration.accumulatedDepreciation.id,
+            },
+            dimensions: [...this.dimensions.map((item) => 'T' + item.id)],
+            sumFields: ['change'],
+            limit: limit,
+          },
+        },
+      ],
+    });
   }
 }

@@ -1,126 +1,36 @@
-import { DatePicker } from '@/components/Common/StringDatePickers/DatePicker';
 import OpenFileDialog from '@/components/OpenFileDialog';
 import { schema } from '@/ts/base';
 import { IFile, IFinancial } from '@/ts/core';
-import { IPeriod } from '@/ts/core/work/financial/period';
-import { formatDate } from '@/utils';
-import {
-  Form as AntForm,
-  Button,
-  Card,
-  FormInstance,
-  Select,
-  Space,
-  Spin,
-  Tag,
-  Tooltip,
-} from 'antd';
-import FormItem from 'antd/lib/form/FormItem';
-import moment from 'moment';
-import React, { useEffect, useState } from 'react';
+import { Card, Space, Select, Form as AntForm, Tooltip, FormInstance, Tag } from 'antd';
+import React, { useState, useEffect } from 'react';
 import { FullScreen } from '..';
 import cls from '../index.module.less';
-import './index.less';
-
-interface IProps {
-  financial: IFinancial;
-  period: IPeriod;
-}
-
-const Depreciation: React.FC<IProps> = ({ financial, period }) => {
-  const [loading, setLoading] = useState(false);
-  const [current, setCurrent] = useState(formatDate(new Date(), 'yyyy-MM'));
-  const [depreciated, setDepreciated] = useState(period.deprecated);
-  const [center, setCenter] = useState(<></>);
-
-  async function loadData() {
-    try {
-    } finally {
-      setLoading(false);
-    }
-  }
-
-  useEffect(() => {
-    loadData();
-  }, [current]);
-
-  return (
-    <>
-      <div className="asset-page-element">
-        <Spin spinning={loading}>
-          <div className="flex flex-col gap-2 h-full">
-            <div className="asset-page-element__topbar">
-              <div>资产折旧摊销</div>
-              <Tag color={depreciated ? 'green' : 'red'}>
-                {depreciated ? '已计提' : '未计提'}
-              </Tag>
-              <div className="flex-auto"></div>
-              <Button
-                onClick={() =>
-                  setCenter(
-                    <DepreciationTemplate
-                      financial={financial}
-                      onFinished={() => setCenter(<></>)}
-                    />,
-                  )
-                }>
-                折旧模板配置
-              </Button>
-              <Button
-                onClick={async () => {
-                  await period.calculateDepreciation();
-                }}>
-                计算
-              </Button>
-              <div>期间</div>
-              <DatePicker
-                picker="month"
-                value={period.period}
-                onChange={setCurrent}
-                format="YYYY-MM"
-                disabledDate={(current) => {
-                  if (financial.initialized) {
-                    return (
-                      current &&
-                      (current <
-                        moment(financial.getOffsetPeriod(financial.initialized, 1)) ||
-                        current > moment(financial.current))
-                    );
-                  }
-                  return false;
-                }}
-              />
-            </div>
-          </div>
-        </Spin>
-      </div>
-      {center}
-    </>
-  );
-};
+import FormItem from 'antd/lib/form/FormItem';
 
 interface TemplateProps {
   financial: IFinancial;
-  onFinished: () => void;
+  onFinished?: () => void;
+  onSaved?: () => void;
+  onCancel?: () => void;
 }
 
-const DepreciationTemplate: React.FC<TemplateProps> = ({ financial, onFinished }) => {
+export const DepreciationTemplate: React.FC<TemplateProps> = (props) => {
   const [center, setCenter] = useState(<></>);
-  const [form] = AntForm.useForm<schema.XYearAverage>();
+  const [form] = AntForm.useForm<schema.XDepreciationConfig>();
   const [methodItems, setMethodItems] = useState<schema.XSpeciesItem[]>([]);
   const [statusItems, setStatusItems] = useState<schema.XSpeciesItem[]>([]);
   const loadSpeciesItems = async (speciesId: string, setter: any) => {
-    setter(await financial.loadSpeciesItems(speciesId));
+    const species = await props.financial.loadSpecies([speciesId]);
+    setter(species[speciesId]);
   };
   const onSelect = (key: string) => {
     setCenter(
       <OpenFileDialog
         accepts={['数值型']}
-        rootKey={financial.space.directory.key}
+        rootKey={props.financial.space.directory.key}
         onOk={(files: IFile[]) => {
-          if (files) {
-            const property = files[0].metadata as schema.XProperty;
-            form.setFieldValue(key, property);
+          if (files.length > 0) {
+            form.setFieldValue(key, files[0].metadata);
           }
           setCenter(<></>);
         }}
@@ -134,7 +44,7 @@ const DepreciationTemplate: React.FC<TemplateProps> = ({ financial, onFinished }
     setCenter(
       <OpenFileDialog
         accepts={key == 'dimensions' ? ['变更源'] : ['选择型', '分类型']}
-        rootKey={financial.space.directory.key}
+        rootKey={props.financial.space.directory.key}
         multiple={multiple}
         onOk={(files: IFile[]) => {
           if (files.length > 0) {
@@ -165,8 +75,8 @@ const DepreciationTemplate: React.FC<TemplateProps> = ({ financial, onFinished }
     );
   };
   useEffect(() => {
-    const method = financial.yearAverage?.depreciationMethod;
-    const status = financial.yearAverage?.depreciationStatus;
+    const method = props.financial.configuration?.depreciationMethod;
+    const status = props.financial.configuration?.depreciationStatus;
     if (method && method.speciesId) {
       loadSpeciesItems(method.speciesId, setMethodItems);
     }
@@ -177,14 +87,20 @@ const DepreciationTemplate: React.FC<TemplateProps> = ({ financial, onFinished }
   return (
     <FullScreen
       title={'折旧模板配置'}
-      onFinished={onFinished}
+      onFinished={props.onFinished}
+      onCancel={props.onCancel}
       onSave={async () => {
-        form.isFieldsTouched;
         const validated = await form.validateFields();
-        await financial.setYearAverage(validated);
-        onFinished();
+        await props.financial.setDepreciationConfig(validated);
+        if (props.onSaved) {
+          props.onSaved();
+        } else {
+          props.onFinished?.();
+        }
       }}>
-      <AntForm<schema.XYearAverage> form={form} initialValues={financial.yearAverage}>
+      <AntForm<schema.XDepreciationConfig>
+        form={form}
+        initialValues={props.financial.configuration}>
         <Card title="平均年限法">
           <Card title={'公式定义'}>
             <Space direction="vertical">
@@ -221,12 +137,13 @@ const DepreciationTemplate: React.FC<TemplateProps> = ({ financial, onFinished }
                   name="yearAverageMethod"
                   rules={[{ required: true, message: '请绑定折旧方法！' }]}>
                   <Select
+                    allowClear
                     style={{ width: 200 }}
-                    placeholder="选择折旧方法"
+                    placeholder="选择平均年限法"
                     options={methodItems.map((item) => {
                       return {
                         label: item.name,
-                        value: item.id,
+                        value: 'S' + item.id,
                       };
                     })}
                   />
@@ -248,12 +165,13 @@ const DepreciationTemplate: React.FC<TemplateProps> = ({ financial, onFinished }
                   name="accruingStatus"
                   rules={[{ required: true, message: '请选择计提状态中状态！' }]}>
                   <Select
+                    allowClear
                     style={{ width: 200 }}
                     placeholder="计提中状态"
                     options={statusItems.map((item) => {
                       return {
                         label: item.name,
-                        value: item.id,
+                        value: 'S' + item.id,
                       };
                     })}
                   />
@@ -263,12 +181,13 @@ const DepreciationTemplate: React.FC<TemplateProps> = ({ financial, onFinished }
                   name="accruedStatus"
                   rules={[{ required: true, message: '请选择计提完成状态！' }]}>
                   <Select
+                    allowClear
                     style={{ width: 200 }}
                     placeholder="完成计提状态"
                     options={statusItems.map((item) => {
                       return {
                         label: item.name,
-                        value: item.id,
+                        value: 'S' + item.id,
                       };
                     })}
                   />
@@ -355,10 +274,10 @@ const DepreciationTemplate: React.FC<TemplateProps> = ({ financial, onFinished }
                 </FormItem>
                 <SymbolText value="=" />
                 <FormItem
-                  name="monthlyDepreciationAmount"
+                  name="accumulatedDepreciation"
                   rules={[{ required: true, message: '请绑定累计折旧！' }]}>
                   <FieldText
-                    field="monthlyDepreciationAmount"
+                    field="accumulatedDepreciation"
                     label="累计折旧"
                     onSelect={onSelect}
                     form={form}
@@ -366,10 +285,10 @@ const DepreciationTemplate: React.FC<TemplateProps> = ({ financial, onFinished }
                 </FormItem>
                 <SymbolText value="+" />
                 <FormItem
-                  name="monthlyDepreciationAmount"
+                  name="accumulatedDepreciation"
                   rules={[{ required: true, message: '请绑定月折旧额！' }]}>
                   <FieldText
-                    field="monthlyDepreciationAmount"
+                    field="accumulatedDepreciation"
                     label="月折旧额"
                     onSelect={onSelect}
                     form={form}
@@ -411,9 +330,9 @@ const DepreciationTemplate: React.FC<TemplateProps> = ({ financial, onFinished }
 };
 
 interface DesignProps {
-  field: keyof schema.XYearAverage;
+  field: keyof schema.XDepreciationConfig;
   label: string;
-  form: FormInstance<schema.XYearAverage>;
+  form: FormInstance<schema.XDepreciationConfig>;
   onSelect: (key: string) => void;
 }
 
@@ -448,5 +367,3 @@ export const ValueText: React.FC<{ value: any }> = (props) => {
 export const SymbolText: React.FC<{ value: string }> = (props) => {
   return <div style={{ width: 10, textAlign: 'center' }}>{props.value}</div>;
 };
-
-export default Depreciation;
