@@ -785,14 +785,12 @@ export interface XFinancial extends Xbase {
 export type XPeriod = {
   // 账期时间
   period: string;
-  // 财务数据
-  data: XThing;
   // 是否已折旧
   depreciated: boolean;
   // 是否已结账
   closed: boolean;
-  // 是否已生成平衡
-  balanced: boolean;
+  // 操作日志
+  operationId: string;
 } & XEntity;
 
 export enum ReportTreeNodeTypes {
@@ -863,6 +861,8 @@ export interface XSnapshot extends XThing {
 
 /** 变更详情 */
 export interface XChange extends Xbase {
+  // 流程实例
+  instanceId: string;
   // 业务账期
   changeTime: string;
   // 物 ID
@@ -884,12 +884,12 @@ export interface XChange extends Xbase {
 }
 
 // 平均年限法
-export interface XYearAverage extends Xbase {
+export interface XDepreciationConfig extends Xbase {
   // 折旧维度（统计）
   dimensions: XProperty[];
   // 折旧方式
   depreciationMethod: XProperty;
-  // 折旧方法
+  // 平均年限法
   yearAverageMethod: string;
   // 计提状态
   depreciationStatus: XProperty;
@@ -911,12 +911,24 @@ export interface XYearAverage extends Xbase {
   usefulLife: XProperty;
 }
 
-// 查询方案
-export interface XQuery extends XEntity {
+// 汇总方案
+export interface XSummary {
   // 分类维度
   species: XProperty;
   // 统计维度
   dimensions: XProperty[];
   // 统计字段
   fields: XProperty[];
+}
+
+// 查询方案
+export interface XQuery extends XEntity, XSummary {
+}
+
+// 操作日志
+export interface XOperationLog extends Xbase {
+  // 办事实例
+  instanceId: string;
+  // 进度
+  progress: XProperty;
 }

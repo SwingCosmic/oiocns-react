@@ -1,6 +1,9 @@
-import { IBelong, IEntity, IFinancial } from '../..';
+import { XOperationLog } from '@/ts/base/schema';
+import { IBelong, IEntity, IFinancial, XCollection } from '../..';
 import { kernel, schema } from '../../../base';
 import { Entity } from '../../public';
+
+type DepreciationType = 'Calculate' | 'Confirm' | 'Revoke';
 
 /**
  * 账期
@@ -22,18 +25,18 @@ export interface IPeriod extends IEntity<schema.XPeriod> {
   deprecated: boolean;
   /** 是否已结账 */
   closed: boolean;
-  /** 是否平衡 */
-  balanced: boolean;
   /** 获取上一个月日期 */
   getPrePeriod(): string;
   /** 获取下一个月日期 */
   getNextPeriod(): string;
-  /** 计提折旧 */
-  calculateDepreciation(): Promise<void>;
+  /** 计提折旧（确认） */
+  depreciation(type: DepreciationType): Promise<XOperationLog | undefined>;
   /** 月结账 */
   monthlySettlement(): Promise<void>;
   /** 试算平衡 */
   trialBalance(): Promise<void>;
+  /** 加載操作日志 */
+  loadOperationLog(): Promise<XOperationLog | undefined>;
 }
 
 export class Period extends Entity<schema.XPeriod> implements IPeriod {
@@ -41,9 +44,13 @@ export class Period extends Entity<schema.XPeriod> implements IPeriod {
     super(metadata, []);
     this.space = financial.space;
     this.financial = financial;
+    this.operationColl = this.space.resource.genColl('operation-log');
   }
+  speciesLoaded: boolean = false;
+  operationColl: XCollection<schema.XOperationLog>;
   space: IBelong;
   financial: IFinancial;
+  speciesItems: { [key: string]: schema.XSpeciesItem[] } = {};
   get annual(): string {
     return this.metadata.period.substring(0, 4);
   }
@@ -59,37 +66,41 @@ export class Period extends Entity<schema.XPeriod> implements IPeriod {
   get period() {
     return this.metadata.period;
   }
-  get balanced() {
-    return this.metadata.balanced;
-  }
-  async calculateDepreciation(): Promise<void> {
-    if (this.closed) {
-      throw new Error('已结账，无法计提折旧！');
-    }
-    const yearAverage = this.financial.yearAverage;
-    if (!yearAverage) {
-      throw new Error('未设置平均年限法，折旧失败！');
-    }
+  async depreciation(
+    depreciationType: DepreciationType,
+  ): Promise<schema.XOperationLog | undefined> {
     const res = await kernel.depreciationThing(this.space.id, [this.space.id], {
-      thingQuery: { options: { match: { belongId: this.space.id } } },
-      yearAverage: yearAverage,
+      id: this.metadata.id,
+      type: depreciationType,
     });
-    console.log(res);
-    // await this.update({ ...this.metadata, depreciated: true });
+    if (res.success) {
+      const updated = { ...this.metadata, operationId: res.data.id };
+      await this.financial.periodColl.notity({ operate: 'update', data: updated });
+      return res.data;
+    }
+  }
+  async loadOperationLog(): Promise<XOperationLog | undefined> {
+    if (this.metadata.operationId) {
+      const result = await this.operationColl.loadResult({
+        options: {
+          match: { id: this.metadata.operationId },
+        },
+      });
+      if (result.success && result.data && result.data.length > 0) {
+        return result.data[0];
+      }
+    }
   }
   async monthlySettlement(): Promise<void> {
     if (!this.deprecated) {
       throw new Error('未折旧，无法结账！');
     }
     await this.trialBalance();
-    if (!this.balanced) {
-      throw new Error('未试算平衡，无法结账！');
-    }
     await this.update({ ...this.metadata, closed: true });
     await this.toNextPeriod();
   }
   async trialBalance(): Promise<void> {
-    await this.update({ ...this.metadata, balanced: true });
+    await this.update({ ...this.metadata });
   }
   getPrePeriod(): string {
     return this.financial.getOffsetPeriod(this.period, -1);

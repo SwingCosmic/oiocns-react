@@ -5,10 +5,8 @@ import { Form } from '../../thing/standard/form';
 import { IPeriod, Period } from './period';
 import { IQuery, Query } from './query';
 
-/** 汇总数据 */
-export interface ItemSummary extends schema.XSpeciesItem {
-  [field: string]: any;
-}
+/** 配置字段 */
+export type ConfigField = keyof schema.XDepreciationConfig;
 
 /** 财务接口 */
 export interface IFinancial extends common.Emitter {
@@ -20,8 +18,8 @@ export interface IFinancial extends common.Emitter {
   initialized: string | undefined;
   /** 当前账期 */
   current: string | undefined;
-  /** 平均年限法 */
-  yearAverage: schema.XYearAverage | undefined;
+  /** 折旧配置 */
+  depreciationConfig: schema.XDepreciationConfig | undefined;
   /** 缓存 */
   financialCache: XObject<schema.Xbase>;
   /** 账期集合 */
@@ -47,7 +45,9 @@ export interface IFinancial extends common.Emitter {
   /** 设置查询条件 */
   setForm(form: schema.XForm): Promise<void>;
   /** 设置折旧配置 */
-  setYearAverage(yearAverage: schema.XYearAverage): Promise<void>;
+  setDepreciationConfig(config: schema.XDepreciationConfig): Promise<void>;
+  /** 检查折旧配置 */
+  checkConfig(): void;
   /** 清空结账日期 */
   clear(): Promise<void>;
   /** 加载分类明细项 */
@@ -79,9 +79,9 @@ export class Financial extends common.Emitter implements IFinancial {
       [],
       [this.key],
     );
-    this.averageCache = new XObject(
+    this.configCache = new XObject(
       belong.metadata,
-      'year-average-calculator',
+      'depreciation-config',
       [],
       [this.key],
     );
@@ -127,9 +127,9 @@ export class Financial extends common.Emitter implements IFinancial {
   }
   form: IForm | undefined;
   query: IQuery | undefined;
-  yearAverage: schema.XYearAverage | undefined;
+  depreciationConfig: schema.XDepreciationConfig | undefined;
   financialCache: XObject<schema.Xbase>;
-  averageCache: XObject<schema.XYearAverage>;
+  configCache: XObject<schema.XDepreciationConfig>;
   metadata: schema.XFinancial;
   space: IBelong;
   periods: IPeriod[] = [];
@@ -153,9 +153,9 @@ export class Financial extends common.Emitter implements IFinancial {
     if (financial) {
       this.metadata = financial;
     }
-    const yearAverage = await this.averageCache.get<schema.XYearAverage>('');
-    if (yearAverage) {
-      this.yearAverage = yearAverage;
+    const config = await this.configCache.get<schema.XDepreciationConfig>('');
+    if (config) {
+      this.depreciationConfig = config;
     }
     this.financialCache.subscribe('financial', (res: schema.XFinancial) => {
       this.metadata = res;
@@ -183,8 +183,8 @@ export class Financial extends common.Emitter implements IFinancial {
       this.form = new Form(res, this.space.directory);
       this.changCallback();
     });
-    this.averageCache.subscribe('average', (res: schema.XYearAverage) => {
-      this.yearAverage = res;
+    this.configCache.subscribe('average', (res: schema.XDepreciationConfig) => {
+      this.depreciationConfig = res;
       this.changCallback();
     });
   }
@@ -207,9 +207,9 @@ export class Financial extends common.Emitter implements IFinancial {
       await this.financialCache.notity('current', period, true, false);
     }
   }
-  async setYearAverage(yearAverage: schema.XYearAverage): Promise<void> {
-    if (await this.averageCache.set('', yearAverage)) {
-      await this.averageCache.notity('average', yearAverage, true, false);
+  async setDepreciationConfig(config: schema.XDepreciationConfig): Promise<void> {
+    if (await this.configCache.set('', config)) {
+      await this.configCache.notity('average', config, true, false);
     }
   }
   async setQuery(query: schema.XQuery): Promise<void> {
@@ -226,12 +226,33 @@ export class Financial extends common.Emitter implements IFinancial {
     if (await this.financialCache.set('', {})) {
       await this.financialCache.notity('financial', {}, true, false);
     }
-    await this.setYearAverage({} as schema.XYearAverage);
     if (await this.periodColl.removeMatch({})) {
       await this.periodColl.notity({ operate: 'clear' });
     }
     const change = this.space.resource.genColl('_system-things-changed');
     change.removeMatch({});
+  }
+  checkConfig(): void {
+    if (!this.depreciationConfig) {
+      throw new Error('未配置折旧模板！');
+    }
+    const fields: ConfigField[] = [
+      'dimensions',
+      'depreciationMethod',
+      'yearAverageMethod',
+      'depreciationStatus',
+      'accruingStatus',
+      'accruedStatus',
+      'originalValue',
+      'accumulatedDepreciation',
+      'monthlyDepreciationAmount',
+      'netWorth',
+    ];
+    for (const field of fields) {
+      if (!this.depreciationConfig[field]) {
+        throw new Error('折旧模板配置不全！');
+      }
+    }
   }
   async createQuery(metadata: schema.XQuery): Promise<schema.XQuery | undefined> {
     const result = await this.queryColl.insert({
@@ -319,10 +340,8 @@ export class Financial extends common.Emitter implements IFinancial {
   async createPeriod(period: string): Promise<void> {
     const result = await this.periodColl.insert({
       period: period,
-      data: {} as schema.XThing,
       depreciated: false,
       closed: false,
-      balanced: false,
     } as schema.XPeriod);
     if (result) {
       await this.periodColl.notity({ data: result, operate: 'insert' });

@@ -10,7 +10,7 @@ import { ProTable } from '@ant-design/pro-components';
 import { Button, Card, DatePicker, Space, Tag } from 'antd';
 import React, { ReactNode, useEffect, useRef, useState } from 'react';
 import { Closing } from './widgets/closing';
-import Depreciation from './widgets/depreciation';
+import Depreciation, { DepreciationTemplate } from './widgets/depreciation';
 import Ledger from './widgets/ledger';
 
 interface IProps {
@@ -85,9 +85,10 @@ const Financial: React.FC<IProps> = ({ financial }) => {
   );
 };
 
-interface FullProps {
+export interface FullProps {
   title: string;
   onFinished?: () => void;
+  onCancel?: () => void;
   onSave?: () => void;
   children: ReactNode;
 }
@@ -103,7 +104,7 @@ export const FullScreen: React.FC<FullProps> = (props) => {
       bodyHeight={'80vh'}
       title={props.title}
       onOk={props.onFinished}
-      onCancel={props.onFinished}
+      onCancel={props.onCancel}
       onSave={props.onSave}>
       {props.children}
     </FullScreenModal>
@@ -224,7 +225,8 @@ const Periods: React.FC<IProps> = ({ financial }) => {
                       setCenter(
                         <FullScreen
                           title={entity.period + ' 资产总账'}
-                          onFinished={() => setCenter(<></>)}>
+                          onFinished={() => setCenter(<></>)}
+                          onCancel={() => setCenter(<></>)}>
                           <Ledger financial={financial} period={entity} />
                         </FullScreen>,
                       );
@@ -245,15 +247,34 @@ const Periods: React.FC<IProps> = ({ financial }) => {
                       <Button
                         type="primary"
                         size="small"
-                        onClick={async () =>
-                          setCenter(
-                            <FullScreen
-                              title={'资产折旧'}
-                              onFinished={() => setCenter(<></>)}>
-                              <Depreciation financial={financial} period={item} />
-                            </FullScreen>,
-                          )
-                        }>
+                        onClick={async () => {
+                          const start = () => {
+                            setCenter(
+                              <FullScreen
+                                title={'资产折旧'}
+                                onFinished={() => setCenter(<></>)}
+                                onCancel={() => setCenter(<></>)}>
+                                <Depreciation
+                                  financial={financial}
+                                  period={item}
+                                  config={financial.depreciationConfig!}
+                                />
+                              </FullScreen>,
+                            );
+                          };
+                          try {
+                            financial.checkConfig();
+                            start();
+                          } catch (e) {
+                            setCenter(
+                              <DepreciationTemplate
+                                financial={financial}
+                                onCancel={() => setCenter(<></>)}
+                                onSaved={() => start()}
+                              />,
+                            );
+                          }
+                        }}>
                         发起折旧
                       </Button>
                     )}
@@ -279,7 +300,8 @@ const Periods: React.FC<IProps> = ({ financial }) => {
                           setCenter(
                             <FullScreen
                               title={'月结账'}
-                              onFinished={() => setCenter(<></>)}>
+                              onFinished={() => setCenter(<></>)}
+                              onCancel={() => setCenter(<></>)}>
                               <Closing financial={financial} />
                             </FullScreen>,
                           )

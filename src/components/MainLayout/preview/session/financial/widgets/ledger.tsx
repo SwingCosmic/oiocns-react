@@ -4,7 +4,6 @@ import SchemaForm from '@/components/SchemaForm';
 import { common, schema } from '@/ts/base';
 import { Node, deepClone } from '@/ts/base/common';
 import { IFinancial } from '@/ts/core';
-import { ItemSummary } from '@/ts/core/work/financial';
 import { IPeriod } from '@/ts/core/work/financial/period';
 import { IQuery } from '@/ts/core/work/financial/query';
 import { formatNumber } from '@/utils';
@@ -19,6 +18,7 @@ import moment from 'moment';
 import React, { useEffect, useRef, useState } from 'react';
 import cls from './ledger.module.less';
 import { LedgerModal } from './ledgerModel';
+import { DataMap, SumItem } from '@/ts/core/work/financial/summary';
 
 export interface SummaryColumn {
   label: string;
@@ -343,14 +343,9 @@ interface IProps {
 
 async function loadColumn(
   query: IQuery,
-  onClick: (
-    prefix: SummaryColumn,
-    field: schema.XProperty,
-    data: Node<ItemSummary>,
-  ) => void,
-): Promise<ColumnsType<Node<ItemSummary>>> {
-  const res = await query.loadSpecies();
-  const nodes: ColumnType<Node<ItemSummary>>[] = [
+  onClick: (prefix: SummaryColumn, field: schema.XProperty, data: Node<SumItem>) => void,
+): Promise<ColumnsType<Node<SumItem>>> {
+  const nodes: ColumnType<Node<SumItem>>[] = [
     {
       title: query.species.name,
       render: (_, row) => {
@@ -358,21 +353,23 @@ async function loadColumn(
       },
     },
   ];
-  const root: ColumnGroupType<Node<ItemSummary>> = {
+  const root: ColumnGroupType<Node<SumItem>> = {
     title: '根',
     children: [],
   };
-  query.recursion<ColumnGroupType<Node<ItemSummary>>>(
-    res,
-    'summary-',
-    (path, context) => {
+  query.summary.summaryRecursion<ColumnGroupType<Node<SumItem>>>({
+    dimensionsItems: await query.loadSpecies(),
+    dimensions: query.dimensions.map((item) => item.id),
+    dimensionPath: 'root',
+    context: root,
+    summary: (path, context) => {
       query.fields.map((field) => {
         context?.children.push({
           key: field.id,
           title: field.name,
           children: columns.map((item) => {
-            const prop = item.prefix + '-' + path + field.id;
-            const column: ColumnType<Node<ItemSummary>> = {
+            const prop = item.prefix + '-' + path + '-' + field.id;
+            const column: ColumnType<Node<SumItem>> = {
               key: prop,
               align: 'right',
               title: item.label,
@@ -395,8 +392,7 @@ async function loadColumn(
         });
       });
     },
-    root,
-    (item, context) => {
+    buildNext: (item, context) => {
       const node = {
         title: item.name,
         children: [],
@@ -404,7 +400,7 @@ async function loadColumn(
       context?.children.push(node);
       return node;
     },
-  );
+  });
   nodes.push(...root.children);
   return nodes;
 }
@@ -414,8 +410,8 @@ const Ledger: React.FC<IProps> = ({ financial, period }) => {
   const [month, setMonth] = useState<[string, string]>([period.period, period.period]);
   const [query, setQuery] = useState(financial.query);
   const [queries, setQueries] = useState<IQuery[]>(financial.queries);
-  const [data, setData] = useState<common.Tree<ItemSummary> | undefined>();
-  const [columns, setColumns] = useState<ColumnsType<Node<ItemSummary>>>([]);
+  const [data, setData] = useState<common.Tree<SumItem> | undefined>();
+  const [columns, setColumns] = useState<ColumnsType<Node<SumItem>>>([]);
   const [center, setCenter] = useState(<></>);
 
   async function loadData() {
@@ -424,7 +420,8 @@ const Ledger: React.FC<IProps> = ({ financial, period }) => {
       const queries = await financial.loadQueries();
       const columns = [];
       if (financial.query) {
-        const data = await financial.query.summaryRange(month[0], month[1]);
+        const start = financial.getOffsetPeriod(month[0], -1);
+        const data = await financial.query.ledgerSummary(start, month[1]);
         columns.push(
           ...(await loadColumn(financial.query, (prefix, field, node) => {
             setCenter(
@@ -512,7 +509,7 @@ const Ledger: React.FC<IProps> = ({ financial, period }) => {
             </Space>
           </div>
           <div className={cls.content}>
-            <Table<Node<ItemSummary>>
+            <Table<Node<SumItem>>
               rowKey={'id'}
               sticky
               columns={columns}

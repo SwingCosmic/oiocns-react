@@ -976,18 +976,15 @@ export default class KernelApi {
   public async depreciationThing(
     belongId: string,
     relations: string[],
-    options: {
-      thingQuery: any,
-      yearAverage: schema.XYearAverage,
-    },
-  ): Promise<model.ResultType<void>> {
+    params: { id: string; type: string },
+  ): Promise<model.ResultType<schema.XOperationLog>> {
     return await this.dataProxy({
       module: 'Thing',
       action: 'Depreciation',
       belongId,
       relations,
       flag: 'depreciationThing',
-      params: options,
+      params: params,
     });
   }
   /**
@@ -998,8 +995,8 @@ export default class KernelApi {
     belongId: string,
     relations: string[],
     options: {
-      collName: string,
-      dataPeriod: string,
+      collName: string;
+      dataPeriod: string;
     },
   ): Promise<model.ResultType<void>> {
     return await this.dataProxy({
