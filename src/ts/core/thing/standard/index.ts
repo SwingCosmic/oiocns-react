@@ -46,6 +46,7 @@ export class StandardFiles {
     if (this.directory.parent === undefined) {
       subscribeNotity(this.directory);
     }
+    (window as any).batchUpdateFormCollection = (a: any,b: any) => this.batchUpdateFormCollection(a,b);
   }
   get id(): string {
     return this.directory.directoryId;
@@ -84,6 +85,25 @@ export class StandardFiles {
       this.forms = data.map((i) => new Form(i, this.directory));
     }
     return this.forms;
+  }
+
+  async batchUpdateFormCollection(formCodes: string[], collection: string = "formdata-business") {
+    const res = await this.resource.formColl.loadSpace({
+      options: {
+        match: {
+          code: {
+            _in_: formCodes
+          }
+        },
+      }
+    });
+    console.warn("forms:", res)
+    const ids = res.map(f => f.id);
+    await this.resource.formColl.updateMany(ids, {
+      _set_: { 
+        collName: collection
+      },
+    });
   }
   async loadPropertys(reload: boolean = false): Promise<IProperty[]> {
     if (this.propertysLoaded === false || reload) {
