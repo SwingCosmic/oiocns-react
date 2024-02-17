@@ -22,6 +22,7 @@ export enum AddNodeType {
   'ROOT' = '起始',
   'EMPTY' = '空节点',
   'APPROVAL' = '审批',
+  'CUSTOM' = '自由节点',
   'CONDITION' = '条件',
   'CONCURRENTS' = '全部',
   'ORGANIZATIONA' = '组织',
@@ -90,6 +91,8 @@ export const getNodeName = (type: AddNodeType) => {
       return '组织分支';
     case AddNodeType.GATEWAY:
       return '分流网关';
+    case AddNodeType.CUSTOM:
+      return '自由节点';
     default:
       return '';
   }
@@ -225,6 +228,9 @@ export const convertNode = (
         break;
       case AddNodeType.GATEWAY:
         validation.hasGateway = true;
+        break;
+      case AddNodeType.CUSTOM:
+        resource.destType = resource.destType ?? '人员';
         break;
       case AddNodeType.CC:
       case AddNodeType.CHILDWORK:

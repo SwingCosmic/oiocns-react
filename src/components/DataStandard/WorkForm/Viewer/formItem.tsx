@@ -13,7 +13,7 @@ import { DateBox, NumberBox, SelectBox, TextArea, TextBox } from 'devextreme-rea
 import React, { useEffect, useState } from 'react';
 import { ValueChangedEvent } from 'devextreme/ui/text_box';
 import { formatDate } from '@/utils';
-import { IBelong, TargetType } from '@/ts/core';
+import { IBelong, ITarget, TargetType } from '@/ts/core';
 import { useEffectOnce } from 'react-use';
 
 interface IFormItemProps {
@@ -26,6 +26,8 @@ interface IFormItemProps {
   belong: IBelong;
   rules: model.RenderRule[];
   onValuesChange?: (field: string, value: any) => void;
+  setFieldsValue?: (data: any) => void;
+  target?: ITarget;
 }
 
 const FormItem: React.FC<IFormItemProps> = (props) => {
@@ -67,6 +69,7 @@ const FormItem: React.FC<IFormItemProps> = (props) => {
         props.onValuesChange?.apply(this, [props.field.id, e.value]);
       }
     },
+    setFieldsValue: props.setFieldsValue,
     width: getItemWidth(props.numStr),
   };
 
@@ -125,8 +128,9 @@ const FormItem: React.FC<IFormItemProps> = (props) => {
       return (
         <DataBox
           {...mixOptions}
-          attributes={props.form?.attributes}
           field={props.field}
+          attributes={props.form?.attributes}
+          target={props.target}
         />
       );
     case '多级选择框':

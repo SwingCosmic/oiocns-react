@@ -11,6 +11,7 @@ import {
   XPageTemplate,
   XStaging,
   XThing,
+  XFileLink,
   XReportTree,
 } from '../../base/schema';
 import { BucketOpreates, ChatMessageType, Transfer } from '@/ts/base/model';
@@ -40,6 +41,7 @@ export class DataResource {
     this.reportTreeColl = this.genTargetColl<XReportTree>('standard-report-tree');
     this.stagingColl = this.genTargetColl<XStaging>('resource-staging');
     this.thingColl = this.genTargetColl<XThing>('_system-things');
+    this.fileLinkColl = this.genTargetColl<XFileLink>('resource-file-link');
   }
 
   /** 表单集合 */
@@ -68,6 +70,8 @@ export class DataResource {
   stagingColl: XCollection<XStaging>;
   /** 实体集合 */
   thingColl: XCollection<XThing>;
+  /** 文件引用数据集合 */
+  fileLinkColl: XCollection<XFileLink>;
   /** 资源对应的用户信息 */
   get targetMetadata() {
     return this.target;
@@ -79,6 +83,7 @@ export class DataResource {
         this.directoryColl.all(reload),
         this.applicationColl.all(reload),
         this.templateColl.all(reload),
+        this.fileLinkColl.all(reload),
       ]);
     }
     this._proLoaded = true;

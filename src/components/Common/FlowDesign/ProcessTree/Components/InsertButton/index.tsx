@@ -61,6 +61,14 @@ const InsertButton: React.FC<InsertButtonProps> = (props: any) => {
           )}
           <div
             onClick={() => {
+              props.onInsertNode(AddNodeType.CUSTOM);
+              setOpen(false);
+            }}>
+            <ai.AiOutlineApartment color="#7f6dac" />
+            <span>自由节点</span>
+          </div>
+          <div
+            onClick={() => {
               props.onInsertNode(AddNodeType.ORGANIZATIONA);
               setOpen(false);
             }}>

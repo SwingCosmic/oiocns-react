@@ -36,7 +36,7 @@ const UploadItem: React.FC<IProps> = ({
     async customRequest(options) {
       const file = options.file as File;
       if (file) {
-        const result = await directory.createFile(file);
+        const result = await directory.createFile(file.name, file);
         if (result) {
           setAvatar(result.shareInfo());
           onChanged(JSON.stringify(result.shareInfo()));
@@ -48,7 +48,12 @@ const UploadItem: React.FC<IProps> = ({
     <Space>
       <Avatar
         size={100}
-        style={{ background: '#f9f9f9', color: '#606060', fontSize: 10 }}
+        style={{
+          background: '#f9f9f9',
+          color: '#606060',
+          fontSize: 10,
+          paddingLeft: '10px',
+        }}
         src={
           avatar ? (
             <Image

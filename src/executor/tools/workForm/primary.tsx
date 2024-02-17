@@ -1,5 +1,5 @@
 import { kernel, model, schema } from '../../../ts/base';
-import { IBelong } from '@/ts/core';
+import { IBelong, ITarget } from '@/ts/core';
 import { useState } from 'react';
 import React from 'react';
 import { Tabs } from 'antd';
@@ -15,6 +15,7 @@ interface IProps {
   data: model.InstanceDataModel;
   getFormData: (form: schema.XForm) => model.FormEditData;
   onChanged?: (id: string, data: model.FormEditData, field: string, value: any) => void;
+  target?: ITarget;
 }
 
 const PrimaryForm: React.FC<IProps> = (props) => {

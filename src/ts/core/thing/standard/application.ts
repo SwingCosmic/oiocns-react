@@ -61,6 +61,17 @@ export class Application
   get superior(): IFile {
     return this.parent ?? this.directory;
   }
+  get groupTags(): string[] {
+    const tags = [...super.groupTags];
+    if (this.cache.tags?.includes('常用')) {
+      tags.push('常用');
+    }
+    if (this.target.space.id != this.target.id) {
+      tags.push(this.target.space.name);
+    }
+    tags.push(this.target.name);
+    return tags;
+  }
   content(): IFile[] {
     return [...this.children, ...this.works].sort((a, b) =>
       a.metadata.updateTime < b.metadata.updateTime ? 1 : -1,

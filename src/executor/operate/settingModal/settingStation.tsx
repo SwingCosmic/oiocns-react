@@ -215,7 +215,7 @@ const loadSettingMenu = (company: ICompany): MenuItemType => {
         label: item.name,
         itemType: '岗位',
         menus: loadMenus(item),
-        icon: <EntityIcon notAvatar entity={item.metadata} size={18} />,
+        icon: <EntityIcon entity={item.metadata} size={18} />,
         children: [],
       };
     }),

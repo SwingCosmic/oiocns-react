@@ -79,7 +79,14 @@ export const FormItem: React.FC<{
         />
       );
     case '引用选择框':
-      return <DataBox {...mixOptions} attributes={current.attributes} field={attr} />;
+      return (
+        <DataBox
+          {...mixOptions}
+          attributes={current.attributes}
+          field={attr}
+          target={target}
+        />
+      );
     case '多级选择框':
       return <TreeSelectItem {...mixOptions} speciesItems={items} />;
     case '操作人':

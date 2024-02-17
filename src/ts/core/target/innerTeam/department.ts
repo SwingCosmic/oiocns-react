@@ -59,6 +59,9 @@ export class Department extends Target implements IDepartment {
   get superior(): IFile {
     return this.parent ?? this.space;
   }
+  get filterTags(): string[] {
+    return ['内设机构'];
+  }
   async loadChildren(reload?: boolean | undefined): Promise<IDepartment[]> {
     if (this.childrenTypes.length > 0 && (!this._childrenLoaded || reload)) {
       const res = await kernel.querySubTargetById({

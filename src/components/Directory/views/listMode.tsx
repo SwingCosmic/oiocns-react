@@ -4,6 +4,7 @@ import { Badge, Dropdown, List, MenuProps, Tag } from 'antd';
 import { showChatTime } from '@/utils/tools';
 import css from './less/list.module.less';
 import EntityIcon from '@/components/Common/GlobalComps/entityIcon';
+import { XFileLink } from '@/ts/base/schema';
 
 const ListMode = ({
   focusFile,
@@ -55,6 +56,8 @@ const ListMode = ({
                         <div className={css.item_title}>{item.name}</div>
                         {item.metadata.sourceId ? (
                           <Tag color="processing">快捷方式</Tag>
+                        ) : (item.metadata as unknown as XFileLink)?.isLinkFile ? (
+                          <Tag color="processing">引用文件</Tag>
                         ) : (
                           <></>
                         )}

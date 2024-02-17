@@ -1,4 +1,4 @@
-import { Button, Dropdown, Spin } from 'antd';
+import { Button, Dropdown, Spin, Image } from 'antd';
 import React, { useEffect, useState } from 'react';
 import orgCtrl from '@/ts/controller';
 import { ISession } from '@/ts/core';
@@ -7,13 +7,11 @@ import { command } from '@/ts/base';
 import { useFlagCmdEmitter } from '@/hooks/useCtrlUpdate';
 import { cleanMenus } from '@/utils/tools';
 import { loadFileMenus, operatesToMenus } from '@/executor/fileOperate';
-import OrgIcons from '@/components/Common/GlobalComps/orgIcons';
 import AppLayout from '@/components/MainLayout/appLayout';
 import { personJoins } from '@/ts/core/public';
 import SelectChat from './select';
 import FullScreenModal from '@/components/Common/fullScreen';
-import { RiMore2Fill } from 'react-icons/ri';
-import { Theme } from '@/config/theme';
+import OrgIcons from '@/components/Common/GlobalComps/orgIcons';
 
 /** 沟通-通讯录 */
 const ChatContent: React.FC = () => {
@@ -48,15 +46,11 @@ const ChatContent: React.FC = () => {
       .filter((a) => tag === '最近' || a.groupTags.includes(tag))
       .filter((i) => i.chatdata.lastMessage || i.chatdata.recently)
       .sort((a, b) => {
-        var num = (b.chatdata.isToping ? 10 : 0) - (a.chatdata.isToping ? 10 : 0);
-        if (num === 0) {
-          if (b.chatdata.lastMsgTime == a.chatdata.lastMsgTime) {
-            num = b.isBelongPerson ? 1 : -1;
-          } else {
-            num = b.chatdata.lastMsgTime > a.chatdata.lastMsgTime ? 5 : -5;
-          }
+        if (b.chatdata.lastMsgTime == a.chatdata.lastMsgTime) {
+          return b.isBelongPerson ? 1 : -1;
+        } else {
+          return b.chatdata.lastMsgTime > a.chatdata.lastMsgTime ? 5 : -5;
         }
-        return num;
       });
   };
 
@@ -108,12 +102,14 @@ const ChatContent: React.FC = () => {
         )}
         placement="bottom"
         trigger={['click', 'contextMenu']}>
-        <RiMore2Fill
-          fontSize={22}
-          color={Theme.FocusColor}
-          title={'更多操作'}
-          style={{ cursor: 'pointer' }}
-        />
+        <div className="chat-leftBar-search_more">
+          <Image
+            preview={false}
+            height={24}
+            width={24}
+            src={`/svg/chat-left-search_more.svg?v=1.0.0`}
+          />
+        </div>
       </Dropdown>
     );
   };
@@ -121,11 +117,12 @@ const ChatContent: React.FC = () => {
     <AppLayout previewFlag={'chat'}>
       <Spin spinning={!loaded} tip={'加载中...'}>
         <div style={{ marginLeft: 10, padding: 2, fontSize: 16 }}>
-          <OrgIcons chat />
-          <span style={{ paddingLeft: 10 }}>消息</span>
+          <OrgIcons type="navbar/chat" />
+          <span style={{ paddingLeft: 10 }}>沟通</span>
         </div>
         <DirectoryViewer
           extraTags={false}
+          height={'calc(100% - 110px)'}
           initTags={['最近', '常用', '@我', '未读', '好友', '同事', '群聊']}
           selectFiles={[]}
           focusFile={focusFile}

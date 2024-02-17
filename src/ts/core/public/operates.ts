@@ -67,7 +67,7 @@ export const fileOperates = {
     sort: 20,
     cmd: 'download',
     label: '下载文件',
-    iconType: 'rename',
+    iconType: 'download',
   },
   Copy: {
     sort: 21,
@@ -143,7 +143,7 @@ export const directoryOperates = {
     sort: 1,
     cmd: 'newApp',
     label: '新建应用',
-    iconType: '应用',
+    iconType: '新建应用',
   },
   Standard: {
     sort: 2,
@@ -161,19 +161,19 @@ export const directoryOperates = {
     sort: 3,
     cmd: 'newSpecies',
     label: '新建分类',
-    iconType: '分类',
+    iconType: '新建分类',
   },
   NewDict: {
     sort: 4,
     cmd: 'newDict',
     label: '新建字典',
-    iconType: '字典',
+    iconType: '新建字典',
   },
   NewProperty: {
     sort: 5,
     cmd: 'newProperty',
     label: '新建属性',
-    iconType: '属性',
+    iconType: 'newProperty',
   },
   NewWork: {
     sort: 6,
@@ -185,13 +185,13 @@ export const directoryOperates = {
     sort: 7,
     cmd: 'newModule',
     label: '新建模块',
-    iconType: '模块',
+    iconType: '新建模块',
   },
   NewForm: {
     sort: 8,
     cmd: 'newForm',
     label: '新建表单',
-    iconType: '事项配置',
+    iconType: '新建表单',
   },
   NewTransferConfig: {
     sort: 9,
@@ -203,7 +203,7 @@ export const directoryOperates = {
     sort: 11,
     cmd: 'newPageTemplate',
     label: '新建页面模板',
-    iconType: '页面模板',
+    iconType: '新建页面模板',
   },
   NewReportTree: {
     sort: 12,
@@ -300,7 +300,7 @@ export const targetOperates = {
     sort: 35,
     cmd: 'newGroup',
     label: '设立集群',
-    iconType: '组织群',
+    iconType: 'setCluster',
   },
   NewDepartment: {
     sort: 36,
@@ -324,13 +324,13 @@ export const targetOperates = {
     sort: 43,
     cmd: 'joinStorage',
     label: '加入存储资源群',
-    iconType: '存储资源',
+    iconType: 'joinStorage',
   },
   Chat: {
     sort: 15,
     cmd: 'openChat',
     label: '打开会话',
-    iconType: '群组',
+    iconType: 'chat',
   },
   Activate: {
     sort: 15,

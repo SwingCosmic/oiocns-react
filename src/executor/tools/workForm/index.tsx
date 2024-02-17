@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { common, model, schema } from '../../../ts/base';
-import { IBelong } from '@/ts/core';
+import { IBelong, ITarget } from '@/ts/core';
 import PrimaryForms from './primary';
 import DetailForms from './detail';
 import { formatDate } from '@/utils';
@@ -13,6 +13,7 @@ interface IWorkFormProps {
   belong: IBelong;
   nodeId: string;
   data: model.InstanceDataModel;
+  target?: ITarget;
 }
 
 /** 流程节点表单 */
@@ -217,7 +218,6 @@ const WorkForm: React.FC<IWorkFormProps> = (props) => {
       setChangedFields(refreshFields);
     }
   };
-
   return (
     <div style={{ padding: 10 }} key={key}>
       {node.primaryForms && node.primaryForms.length > 0 && (

@@ -116,7 +116,7 @@ const loadSettingMenu = (authority: IAuthority): MenuItemType => {
     item: authority,
     menus: loadAuthorityMenus(authority),
     children: createMenu(authority.children),
-    icon: <EntityIcon notAvatar={true} entity={authority.metadata} size={18} />,
+    icon: <EntityIcon entity={authority.metadata} size={18} />,
   };
 };
 
@@ -130,7 +130,7 @@ const createMenu = (authoritys: IAuthority[]): MenuItemType[] => {
       label: auth.name,
       itemType: '权限',
       menus: loadAuthorityMenus(auth),
-      icon: <EntityIcon notAvatar={true} entity={auth.metadata} size={18} />,
+      icon: <EntityIcon entity={auth.metadata} size={18} />,
       children: createMenu(auth.children),
     });
   }

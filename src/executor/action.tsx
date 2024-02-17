@@ -409,7 +409,7 @@ const uploadFile = (dir: IDirectory, uploaded?: (file: IFile | undefined) => voi
           command.emitter('executor', 'taskList', dir);
           const file = options.file as File;
           if (file) {
-            uploaded?.apply(this, [await dir.createFile(file)]);
+            uploaded?.apply(this, [await dir.createFile(file.name, file)]);
           }
         }}>
         <div style={{ color: 'limegreen', fontSize: 22 }}>点击或拖拽至此处上传</div>

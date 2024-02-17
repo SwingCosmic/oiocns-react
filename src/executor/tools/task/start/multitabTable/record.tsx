@@ -63,6 +63,11 @@ const TaskRecord: React.FC<IProps> = ({ apply, typeName }) => {
             text: '驳回',
             value: '200',
           },
+          {
+            id: '240',
+            text: '流程重置',
+            value: '240',
+          },
         ],
       },
       {

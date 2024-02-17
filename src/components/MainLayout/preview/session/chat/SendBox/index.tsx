@@ -1,4 +1,4 @@
-import { Popover, Input } from 'antd';
+import { Popover, Input, Button } from 'antd';
 import React, { useEffect, useState } from 'react';
 import { IMessage, ISession, ISysFileInfo, MessageType } from '@/ts/core';
 import OpenFileDialog from '@/components/OpenFileDialog';
@@ -6,12 +6,7 @@ import { parseCiteMsg } from '../components/parseMsg';
 import Emoji from '../components/emoji';
 import { AiOutlineClose } from 'react-icons/ai';
 import EntityIcon from '@/components/Common/GlobalComps/entityIcon';
-import {
-  HiOutlineFaceSmile,
-  HiOutlineVideoCamera,
-  HiOutlineFolder,
-  HiOutlineMicrophone,
-} from 'react-icons/hi2';
+import { HiOutlineVideoCamera } from 'react-icons/hi2';
 import { TbSend } from 'react-icons/tb';
 import { Theme } from '@/config/theme';
 const TextArea = Input.TextArea;
@@ -160,26 +155,36 @@ const GroupInputBox = (props: IProps) => {
           open={openEmoji}
           trigger={['click', 'contextMenu']}
           onOpenChange={setOpenEmoji}>
-          <HiOutlineFaceSmile
-            size={28}
-            color={Theme.FocusColor}
-            onClick={() => setOpenEmoji(!openEmoji)}
-          />
+          <svg
+            lang="表情"
+            fill={Theme.FocusColor}
+            width={26}
+            viewBox="0 0 24 24"
+            onClick={() => setOpenEmoji(!openEmoji)}>
+            <path d="M9.447 15.398a.75.75 0 0 0-.894 1.205A5.766 5.766 0 0 0 12 17.75a5.766 5.766 0 0 0 3.447-1.147.75.75 0 0 0-.894-1.206A4.266 4.266 0 0 1 12 16.25a4.266 4.266 0 0 1-2.553-.852ZM16 10.5c0 .828-.448 1.5-1 1.5s-1-.672-1-1.5.448-1.5 1-1.5 1 .672 1 1.5ZM9 12c.552 0 1-.672 1-1.5S9.552 9 9 9s-1 .672-1 1.5.448 1.5 1 1.5Z" />
+            <path d="M12 1.25C6.063 1.25 1.25 6.063 1.25 12S6.063 22.75 12 22.75 22.75 17.937 22.75 12 17.937 1.25 12 1.25ZM2.75 12a9.25 9.25 0 1 1 18.5 0 9.25 9.25 0 0 1-18.5 0Z" />
+          </svg>
         </Popover>
-        <HiOutlineMicrophone title="语言" size={28} color={Theme.FocusColor} />
-        <HiOutlineFolder
-          title="文件"
-          size={28}
-          color={Theme.FocusColor}
-          onClick={() => setOpen(true)}
-        />
-        <HiOutlineVideoCamera title="视频" size={28} color={Theme.FocusColor} />
-        <TbSend
-          size={28}
-          title="发送"
-          color={message.length > 0 ? Theme.FocusColor : '#909090'}
+        <svg lang="语言" fill={Theme.FocusColor} width={26} viewBox="0 0 24 24">
+          <path d="M6.25 8a5.75 5.75 0 1 1 11.5 0v3a5.75 5.75 0 0 1-11.5 0V8ZM12 3.75A4.25 4.25 0 0 0 7.75 8v3a4.25 4.25 0 0 0 8.5 0V8A4.25 4.25 0 0 0 12 3.75Zm-8 5.5a.75.75 0 0 1 .75.75v1a7.25 7.25 0 1 0 14.5 0v-1a.75.75 0 0 1 1.5 0v1a8.75 8.75 0 0 1-8 8.718V22a.75.75 0 0 1-1.5 0v-2.282a8.75 8.75 0 0 1-8-8.718v-1A.75.75 0 0 1 4 9.25Z" />
+        </svg>
+        <svg
+          lang="文件"
+          fill={Theme.FocusColor}
+          width={26}
+          viewBox="0 0 24 24"
+          onClick={() => setOpen(true)}>
+          <path d="M16.5 3 21 7.5v12a1.5 1.5 0 0 1-1.5 1.5h-15A1.5 1.5 0 0 1 3 19.5v-15A1.5 1.5 0 0 1 4.5 3h12ZM15 4.5H9v2.25h6V4.5Zm1.5.621V8.25h-9V4.5h-3v15h3V12h9v7.5h3V8.121l-3-3ZM15 19.5v-6H9v6h6Z" />
+        </svg>
+        <HiOutlineVideoCamera title="视频" size={26} color={Theme.FocusColor} />
+        <Button
+          disabled={!message.length}
+          size="small"
           onClick={() => sendMessage()}
-        />
+          type={message.length > 0 ? 'primary' : 'default'}
+          icon={<TbSend fontSize={16} style={{ verticalAlign: 'middle' }} />}>
+          <span style={{ fontSize: '12px', lineHeight: '20px' }}>&nbsp;发送</span>
+        </Button>
       </div>
       {open && (
         <OpenFileDialog

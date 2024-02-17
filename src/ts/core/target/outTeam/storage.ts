@@ -25,6 +25,9 @@ export class Storage extends Target implements IStorage {
     this.dataManager = new DataManager(this);
   }
   dataManager: IDataManager;
+  get filterTags(): string[] {
+    return ['存储群'];
+  }
   get isMyTeam(): boolean {
     return true;
   }

@@ -769,6 +769,12 @@ export interface XPageTemplate extends XStandard {
   kind?: string;
 }
 
+export type XFileLink = {
+  // 文件目录id
+  directoryId: string;
+} & model.FileItemModel &
+  Xbase;
+
 // 财务
 export interface XFinancial extends Xbase {
   /** 初始化结账月 */

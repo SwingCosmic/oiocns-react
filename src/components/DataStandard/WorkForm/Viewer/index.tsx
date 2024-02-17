@@ -1,5 +1,5 @@
 import { common, model, schema } from '@/ts/base';
-import { IBelong } from '@/ts/core';
+import { IBelong, ITarget } from '@/ts/core';
 import React, { useEffect } from 'react';
 import Toolbar, { Item } from 'devextreme-react/toolbar';
 import FormItem from './formItem';
@@ -21,6 +21,7 @@ const WorkFormViewer: React.FC<{
   rules: model.RenderRule[];
   formData?: model.FormEditData;
   onValuesChange?: (fieldId: string, value: any, data: any) => void;
+  target?: ITarget;
 }> = (props) => {
   props.data.name = props.form.name;
   const [key, forceUpdate] = useObjectUpdate(props.rules);
@@ -213,6 +214,13 @@ const WorkFormViewer: React.FC<{
       }
     }
   };
+  const setFieldsValue = (data: any) => {
+    Object.keys(data).forEach((fieldId) => {
+      onValueChange(fieldId, data[fieldId], true);
+    });
+    forceUpdate();
+  };
+
   useEffect(() => {
     if (props.changedFields) {
       props.changedFields
@@ -310,6 +318,8 @@ const WorkFormViewer: React.FC<{
             <FormItem
               key={field.id}
               data={props.data}
+              form={props.form}
+              target={props.target}
               numStr={colNum}
               rules={[...(props.formData?.rules ?? []), ...(props?.rules ?? [])].filter(
                 (a) => a.destId == field.id,
@@ -319,6 +329,7 @@ const WorkFormViewer: React.FC<{
               belong={props.belong}
               notifyEmitter={notifyEmitter}
               onValuesChange={onValueChange}
+              setFieldsValue={setFieldsValue}
             />
           );
         })}

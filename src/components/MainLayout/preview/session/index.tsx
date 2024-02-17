@@ -9,7 +9,6 @@ import ChatBody from './chat';
 import PreviewLayout from '../layout';
 import { cleanMenus } from '@/utils/tools';
 import useCtrlUpdate from '@/hooks/useCtrlUpdate';
-
 const SessionBody = ({
   session,
   relation,

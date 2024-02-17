@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { Button, Form, Input, InputNumber, Select, Card, Divider } from 'antd';
+import { Form, Input, InputNumber, Select, Card, Divider } from 'antd';
 import {
   conditiondType,
   dataType,
@@ -9,6 +9,7 @@ import {
 import cls from './index.module.less';
 import { AiOutlineDelete } from 'react-icons/ai';
 import { model } from '@/ts/base';
+import { Theme } from '@/config/theme';
 
 interface Iprops {
   current: NodeModel;
@@ -200,7 +201,7 @@ const ConditionNode: React.FC<Iprops> = (props) => {
               style={{
                 height: '16px',
                 borderWidth: '4px',
-                borderColor: '#366EF4',
+                borderColor: Theme.FocusColor,
                 marginLeft: '0px',
               }}
               className={cls['divider']}

@@ -1,5 +1,5 @@
 import { model, schema } from '../../../ts/base';
-import { IBelong } from '@/ts/core';
+import { IBelong, ITarget } from '@/ts/core';
 import { useEffect, useState } from 'react';
 import React from 'react';
 import { Modal, Tabs } from 'antd';
@@ -21,6 +21,7 @@ interface IProps {
   data: model.InstanceDataModel;
   getFormData: (form: schema.XForm) => model.FormEditData;
   onChanged?: (id: string, data: model.FormEditData, field: string, value: any) => void;
+  target?: ITarget;
 }
 
 const DetailTable: React.FC<IProps> = (props) => {
@@ -130,8 +131,10 @@ const DetailTable: React.FC<IProps> = (props) => {
                   form: form,
                   fields: fields,
                   belong: props.belong,
+                  target: props.target,
                   create: true,
                   onSave: (values) => {
+                    console.log(values);
                     formData.after.push(values);
                     setFormData({ ...formData });
                   },

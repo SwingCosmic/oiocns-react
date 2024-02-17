@@ -50,6 +50,25 @@ const authPage: React.FC = () => {
               </a>
             </div>
           )}
+          <div className={cls.copyrightZh}>
+            技术支持：
+            <a
+              href="https://assetcloud.orginone.cn/#/"
+              target="_blank"
+              style={{ color: '#8a8a8a' }}
+              rel="noopener noreferrer">
+              资产云开放协同创新中心
+            </a>
+          </div>
+          <div className={cls.copyrightEn}>
+            <a
+              href="https://orginone.cn"
+              target="_blank"
+              style={{ color: '#8a8a8a' }}
+              rel="noopener noreferrer">
+              Powered by Orginone{' '}
+            </a>
+          </div>
         </div>
       </div>
     </div>

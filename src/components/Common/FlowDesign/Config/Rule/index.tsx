@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import CardOrTableComp from '@/components/CardOrTableComp';
 import { ProColumns } from '@ant-design/pro-components';
-import { Card, Typography, Divider, Button } from 'antd';
+import { Card, Typography, Divider, Button, Popover } from 'antd';
 import CalcRuleModal from './modal/calc';
 import ShowRuleModal from './modal/show';
 import { model, schema } from '@/ts/base';
@@ -13,6 +13,7 @@ import useAsyncLoad from '@/hooks/useAsyncLoad';
 import useObjectUpdate from '@/hooks/useObjectUpdate';
 import ExecutorRuleModal from './modal/executor';
 import cls from './index.module.less';
+import { Theme } from '@/config/theme';
 interface IProps {
   work: IWork;
   current: WorkNodeModel;
@@ -21,7 +22,8 @@ interface IProps {
 }
 
 const NodeRule: React.FC<IProps> = (props) => {
-  const [key, rulesUpdate] = useObjectUpdate(props.current.formRules);
+  const { formRules, primaryForms, detailForms } = props.current;
+  const [key, rulesUpdate] = useObjectUpdate(formRules ?? []);
   const [fields, setFields] = useState<Field[]>([]);
   const [openType, setOpenType] = useState(0);
   const [select, setSelect] = useState<model.Rule>();
@@ -140,7 +142,7 @@ const NodeRule: React.FC<IProps> = (props) => {
               size="small"
               className={cls['flowDesign-rule-delete']}
               onClick={() => {
-                props.current.formRules = props.current.formRules.filter(
+                props.current.formRules = (formRules ?? []).filter(
                   (a) => a.id != record.id,
                 );
                 rulesUpdate();
@@ -158,54 +160,76 @@ const NodeRule: React.FC<IProps> = (props) => {
         type="inner"
         title={
           <div>
-            <Divider type="vertical" className={cls['flowDesign-rule-divider']} />
+            <Divider
+              type="vertical"
+              style={{
+                height: '16px',
+                borderWidth: '4px',
+                borderColor: Theme.FocusColor,
+                marginLeft: '0px',
+              }}
+              className={cls['flowDesign-rule-divider']}
+            />
             <span>规则配置</span>
           </div>
         }
+        bodyStyle={{ padding: formRules && formRules.length > 0 ? '12px' : 0 }}
         extra={
           <>
-            {fields && fields?.length > 0 && (
-              <>
-                <a
-                  style={{ padding: 5 }}
-                  onClick={() => {
-                    setSelect(undefined);
-                    setOpenType(1);
-                  }}>
-                  + 添加渲染规则
-                </a>
-                <a
-                  style={{ padding: 5 }}
-                  onClick={() => {
-                    setSelect(undefined);
-                    setOpenType(2);
-                  }}>
-                  + 添加计算规则
-                </a>
-              </>
-            )}
+            <Popover
+              trigger="click"
+              placement="bottomLeft"
+              content={
+                <>
+                  {fields && fields?.length > 0 && (
+                    <>
+                      <a
+                        style={{ padding: 5 }}
+                        onClick={() => {
+                          setSelect(undefined);
+                          setOpenType(1);
+                        }}>
+                        + 添加渲染规则
+                      </a>
+                      <Divider style={{ margin: 6 }} />
+                      <a
+                        style={{ padding: 5 }}
+                        onClick={() => {
+                          setSelect(undefined);
+                          setOpenType(2);
+                        }}>
+                        + 添加计算规则
+                      </a>
+                    </>
+                  )}
+                </>
+              }>
+              <a className="primary-color">+ 添加</a>
+            </Popover>
           </>
         }>
-        <CardOrTableComp<model.Rule>
-          key={key}
-          rowKey={'id'}
-          dataSource={props.current.formRules}
-          scroll={{ y: 'calc(60vh - 150px)' }}
-          columns={ruleColumns}
-        />
+        {formRules && formRules.length > 0 ? (
+          <CardOrTableComp<model.Rule>
+            key={key}
+            rowKey={'id'}
+            dataSource={formRules ?? []}
+            scroll={{ y: 'calc(60vh - 150px)' }}
+            columns={ruleColumns}
+          />
+        ) : null}
       </Card>
       {openType == 1 && (
         <ShowRuleModal
           fields={fields}
-          primarys={props.current.primaryForms}
-          details={props.current.detailForms}
+          primarys={primaryForms}
+          details={detailForms}
           onCancel={() => setOpenType(0)}
           current={select as model.NodeShowRule}
           onOk={(rule) => {
             setOpenType(0);
             props.current.formRules = [
               rule,
-              ...props.current.formRules.filter((a) => a.id != rule.id),
+              ...(formRules ?? []).filter((a) => a.id != rule.id),
             ];
             rulesUpdate();
           }}
@@ -214,14 +238,14 @@ const NodeRule: React.FC<IProps> = (props) => {
       {openType == 2 && (
         <CalcRuleModal
           primarys={props.primaryForms}
-          details={props.current.detailForms}
+          details={detailForms}
           onCancel={() => setOpenType(0)}
           current={select as model.NodeCalcRule}
           onOk={(rule) => {
             setOpenType(0);
             props.current.formRules = [
               rule,
-              ...props.current.formRules.filter((a) => a.id != rule.id),
+              ...(formRules ?? []).filter((a) => a.id != rule.id),
             ];
             rulesUpdate();
           }}
@@ -230,14 +254,14 @@ const NodeRule: React.FC<IProps> = (props) => {
       {openType == 3 && (
         <ExecutorRuleModal
           fields={fields}
-          details={props.current.detailForms}
+          details={detailForms}
           onCancel={() => setOpenType(0)}
           current={select as model.NodeExecutorRule}
           onOk={(rule) => {
             setOpenType(0);
             props.current.formRules = [
               rule,
-              ...props.current.formRules.filter((a) => a.id != rule.id),
+              ...(formRules ?? []).filter((a) => a.id != rule.id),
             ];
             rulesUpdate();
           }}

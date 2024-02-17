@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { Field } from 'devextreme/ui/filter_builder';
 import { FilterBuilder } from 'devextreme-react/filter-builder';
-import { Modal } from 'antd';
+import { Modal, Space } from 'antd';
 import { SelectBox, TextArea, TextBox } from 'devextreme-react';
 import { model, schema } from '@/ts/base';
 import { getUuid } from '@/utils/tools';
@@ -83,6 +83,7 @@ const ShowRuleModal: React.FC<IProps> = (props) => {
       destroyOnClose
       title={'渲染规则'}
       open={true}
+      bodyStyle={{ border: 'none', padding: 0, marginLeft: '32px', marginRight: '32px' }}
       onOk={() => {
         const getString = (datas: any[]) => {
           const ret: string[] = [];
@@ -113,85 +114,87 @@ const ShowRuleModal: React.FC<IProps> = (props) => {
       okButtonProps={{
         disabled: vaildDisable(),
       }}>
-      <TextBox
-        label="名称*"
-        labelMode="floating"
-        value={name}
-        onValueChange={(e) => {
-          setName(e);
-        }}
-      />
-      <SelectBox
-        label="目标对象*"
-        labelMode="floating"
-        value={target?.key}
-        showClearButton
-        displayExpr="name"
-        valueExpr="key"
-        dataSource={targetSource}
-        onSelectionChanged={(e) => {
-          setTarget(e.selectedItem);
-        }}
-      />
-      <div>
-        <SelectBox
-          width={'60%'}
-          value={showType}
-          label="类型*"
-          showClearButton
-          labelMode="floating"
-          displayExpr="label"
-          valueExpr="value"
-          style={{ display: 'inline-block' }}
-          dataSource={[
-            { label: '是否展示', value: 'visible' },
-            {
-              label: '是否必填',
-              value: 'isRequired',
-              visible: target?.typeName == '主表',
-            },
-          ]}
-          onSelectionChanged={(e) => {
-            setShowType(e.selectedItem['value']);
+      <Space direction="vertical" size={15}>
+        <TextBox
+          label="名称"
+          labelMode="outside"
+          value={name}
+          onValueChange={(e) => {
+            setName(e);
           }}
         />
         <SelectBox
-          width={'40%'}
-          value={value}
-          label="值*"
+          label="目标对象"
+          labelMode="outside"
+          value={target?.key}
           showClearButton
-          labelMode="floating"
-          style={{ display: 'inline-block' }}
-          dataSource={[
-            { label: '是', value: true },
-            { label: '否', value: false },
-          ]}
-          displayExpr="label"
-          valueExpr="value"
+          displayExpr="name"
+          valueExpr="key"
+          dataSource={targetSource}
           onSelectionChanged={(e) => {
-            setValue(e.selectedItem['value']);
+            setTarget(e.selectedItem);
           }}
         />
-      </div>
-      <div style={{ padding: 5 }}>
-        <span>条件*：</span>
-        <FilterBuilder
-          fields={props.fields}
-          value={condition}
-          groupOperations={['and', 'or']}
+        <div>
+          <SelectBox
+            width={'60%'}
+            value={showType}
+            label="类型"
+            showClearButton
+            labelMode="outside"
+            displayExpr="label"
+            valueExpr="value"
+            style={{ display: 'inline-block' }}
+            dataSource={[
+              { label: '是否展示', value: 'visible' },
+              {
+                label: '是否必填',
+                value: 'isRequired',
+                visible: target?.typeName == '主表',
+              },
+            ]}
+            onSelectionChanged={(e) => {
+              setShowType(e.selectedItem['value']);
+            }}
+          />
+          <SelectBox
+            width={'40%'}
+            value={value}
+            label="值"
+            showClearButton
+            labelMode="outside"
+            style={{ display: 'inline-block' }}
+            dataSource={[
+              { label: '是', value: true },
+              { label: '否', value: false },
+            ]}
+            displayExpr="label"
+            valueExpr="value"
+            onSelectionChanged={(e) => {
+              setValue(e.selectedItem['value']);
+            }}
+          />
+        </div>
+        <div>
+          <span>条件：</span>
+          <FilterBuilder
+            fields={props.fields}
+            value={condition}
+            groupOperations={['and', 'or']}
+            onValueChanged={(e) => {
+              setCondition(e.value);
+            }}
+          />
+        </div>
+        <TextArea
+          label="备注"
+          labelMode="outside"
           onValueChanged={(e) => {
-            setCondition(e.value);
+            setRemark(e.value);
           }}
+          value={remark}
         />
-      </div>
-      <TextArea
-        label="备注"
-        labelMode="floating"
-        onValueChanged={(e) => {
-          setRemark(e.value);
-        }}
-        value={remark}
-      />
+      </Space>
     </Modal>
   );
 };

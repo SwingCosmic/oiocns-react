@@ -348,7 +348,7 @@ const loadGatewayNodes = (
   node: model.WorkNodeModel,
   memberNodes: model.WorkNodeModel[],
 ) => {
-  if (node.type == '网关') {
+  if (node.type == '网关' || node.type == '自由节点') {
     memberNodes.push(node);
   }
   if (node.children) {
@@ -362,7 +362,7 @@ const loadGatewayNodes = (
   return memberNodes;
 };
 
-const jsonParse = (val: any, defaultVal = null) => {
+const jsonParse = (val: any, defaultVal: any = null) => {
   if (!val || typeof val !== 'string') {
     // console.warn('JSON.parse need string param');
     return defaultVal;

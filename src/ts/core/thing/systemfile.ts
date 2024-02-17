@@ -1,5 +1,5 @@
 import { model, schema } from '@/ts/base';
-import { encodeKey, formatSize, generateUuid } from '../../base/common';
+import { encodeKey, formatDate, formatSize, generateUuid } from '../../base/common';
 import { BucketOpreates, FileItemModel, FileItemShare } from '../../base/model';
 import { FileInfo, IFile, IFileInfo } from './fileinfo';
 import { IDirectory } from './directory';
@@ -18,7 +18,7 @@ export const fileToEntity = (
     version: directory.version,
     icon: JSON.stringify(data),
     belong: directory.belong,
-    belongId: directory.belongId,
+    belongId: data.belongId ?? directory.belongId,
     shareId: directory.shareId,
     typeName: data.contentType ?? '文件',
     createTime: data.dateCreated,
@@ -26,8 +26,9 @@ export const fileToEntity = (
     directoryId: directory.id,
     createUser: directory.createUser,
     updateUser: directory.updateUser,
+    isLinkFile: data.isLinkFile,
     remark: `${data.name}(${formatSize(data.size)})`,
-  };
+  } as schema.XStandard;
 };
 
 /** 系统文件接口 */
@@ -64,6 +65,9 @@ export class SysFileInfo extends FileInfo<schema.XEntity> implements ISysFileInf
     }
     return [...gtags, '文件'];
   }
+  get belongId(): string {
+    return this.filedata.belongId ?? this.target.belongId;
+  }
   filedata: FileItemModel;
   shareInfo(): model.FileItemShare {
     return {
@@ -92,21 +96,37 @@ export class SysFileInfo extends FileInfo<schema.XEntity> implements ISysFileInf
     return false;
   }
   async delete(): Promise<boolean> {
-    const res = await this.directory.resource.bucketOpreate<FileItemModel[]>({
-      key: encodeKey(this.filedata.key),
-      operate: BucketOpreates.Delete,
-    });
-    if (res.success) {
-      this.directory.notifyReloadFiles();
-      this.directory.files = this.directory.files.filter((i) => i.key != this.key);
+    if (this.filedata.isLinkFile) {
+      return await this.linkFileDelete();
+    } else {
+      const res = await this.directory.resource.bucketOpreate<FileItemModel[]>({
+        key: encodeKey(this.filedata.key),
+        operate: BucketOpreates.Delete,
+      });
+      if (res.success) {
+        this.directory.notifyReloadFiles();
+        this.directory.files = this.directory.files.filter((i) => i.key != this.key);
+      }
+      return res.success;
     }
-    return res.success;
+  }
+  async linkFileDelete(): Promise<boolean> {
+    await this.directory.resource.fileLinkColl.removeMany([
+      this.filedata as schema.XFileLink,
+    ]);
+    this.directory.files = this.directory.files.filter((i) => i.key != this.key);
+    await this.directory.resource.fileLinkColl.all(true);
+    this.directory.notifyReloadFiles();
+    this.directory.files = this.directory.files.filter((i) => i.key != this.key);
+    return true;
   }
   async hardDelete(): Promise<boolean> {
     return await this.delete();
   }
   async copy(destination: IDirectory): Promise<boolean> {
-    if (destination.id != this.directory.id) {
+    if (destination.spaceId !== this.directory.spaceId) {
+      return await this.linkFileCopy(destination);
+    } else if (destination.id != this.directory.id) {
       const res = await this.directory.resource.bucketOpreate<FileItemModel[]>({
         key: encodeKey(this.filedata.key),
         destination: destination.id,
@@ -119,6 +139,25 @@ export class SysFileInfo extends FileInfo<schema.XEntity> implements ISysFileInf
       return res.success;
     }
     return false;
+  }
+  async linkFileCopy(destination: IDirectory): Promise<boolean> {
+    const params = {
+      ...this.filedata,
+      belongId: this.belongId,
+      directoryId: destination.id,
+      name: this.filedata.name,
+      typeName: this.typeName,
+      dateCreated: formatDate(new Date(), 'yyyy-MM-dd HH:mm:ss.S'),
+      isLinkFile: true,
+      id: 'snowId()',
+    } as unknown as schema.XFileLink;
+    const data = await destination.resource.fileLinkColl.replace(params);
+    if (data) {
+      await destination.resource.fileLinkColl.all(true);
+      destination.notifyReloadFiles();
+      destination.files.push(new SysFileInfo(params, destination));
+    }
+    return true;
   }
   async move(destination: IDirectory): Promise<boolean> {
     if (destination.id != this.directory.id) {

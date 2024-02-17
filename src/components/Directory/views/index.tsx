@@ -40,6 +40,7 @@ const DirectoryView: React.FC<IProps> = (props) => {
         file.name.includes(filterText) ||
         file.remark.includes(filterText) ||
         file.typeName.includes(filterText) ||
+        file.filterTags.filter((i) => i.includes(filterText)).length > 0 ||
         file.groupTags.filter((i) => i.includes(filterText)).length > 0
       );
     };
@@ -54,13 +55,13 @@ const DirectoryView: React.FC<IProps> = (props) => {
         }
         if (filter && success) {
           if (props.currentTag !== '全部' && props.currentTag != '最近') {
-            success = file.groupTags.includes(props.currentTag);
+            success = file.filterTags.includes(props.currentTag);
           } else {
-            success = !file.groupTags.includes('已删除');
+            success = !file.filterTags.includes('已删除');
           }
         }
         if (success && props.accepts && props.accepts.length > 0) {
-          success = file.groupTags.some((i) => props.accepts!.includes(i));
+          success = file.filterTags.some((i) => props.accepts!.includes(i));
         }
         return success;
       };

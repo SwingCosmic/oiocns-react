@@ -65,7 +65,7 @@ const OrgIcons = (props: IProps) => {
         height={size}
         width={size}
         title={props.title}
-        src={`/svg/${svgName}.svg`}
+        src={`/svg/${svgName}.svg?v=1.0.0`}
         style={props.css}
         onClick={props.onClick}
       />
@@ -75,7 +75,7 @@ const OrgIcons = (props: IProps) => {
       <Avatar
         size={size}
         className={props.className}
-        src={`/svg/${svgName}.svg`}
+        src={`/svg/${svgName}.svg?v=1.0.0`}
         onClick={props.onClick}
         style={{ background: 'transparent', color: '#606060', ...props.css }}
       />

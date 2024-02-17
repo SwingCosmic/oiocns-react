@@ -3,11 +3,12 @@ import { Button, Input } from 'antd';
 import message from '@/utils/message';
 import React from 'react';
 import WorkForm from '@/executor/tools/workForm';
-import { schema } from '@/ts/base';
+import { model, schema } from '@/ts/base';
 import { loadGatewayNodes } from '@/utils/tools';
 import FormItem from '@/components/DataStandard/WorkForm/Viewer/formItem';
 import { Emitter } from '@/ts/base/common';
 import orgCtrl from '@/ts/controller';
+import { AddNodeType } from '@/components/Common/FlowDesign/processType';
 // 卡片渲染
 interface IProps {
   apply: IWorkApply;
@@ -35,23 +36,35 @@ const DefaultWayStart: React.FC<IProps> = ({
     return (
       <>
         {gatewayInfos.map((a) => {
+          var field: model.FieldModel = {
+            id: a.id,
+            code: a.code,
+            name: a.name,
+            valueType: '用户型',
+            widget: '人员搜索框',
+            remark: '',
+          };
+          switch (a.type) {
+            case AddNodeType.CUSTOM:
+              // TODO 后续支持身份
+              break;
+            case AddNodeType.GATEWAY:
+              field.valueType = '用户型';
+              field.widget = '成员选择框';
+              field.options = {
+                teamId: target.id,
+              };
+              return;
+            default:
+              return <></>;
+          }
           return (
             <FormItem
               rules={[]}
               key={a.id}
               data={gatewayData}
               numStr={'1'}
-              field={{
-                id: a.id,
-                code: a.code,
-                name: a.name,
-                valueType: '用户型',
-                widget: '成员选择框',
-                remark: '',
-                options: {
-                  teamId: target.id,
-                },
-              }}
+              field={field}
               belong={target.space}
               notifyEmitter={notifyEmitter}
               onValuesChange={(field, data) => {
@@ -113,6 +126,7 @@ const DefaultWayStart: React.FC<IProps> = ({
       </div>
       <WorkForm
         allowEdit
+        target={target}
         belong={apply.belong}
         data={apply.instanceData}
         nodeId={apply.instanceData.node.id}

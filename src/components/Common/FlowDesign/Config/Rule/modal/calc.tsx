@@ -79,13 +79,26 @@ const CalcRuleModal: React.FC<IProps> = (props) => {
       mappingData.length <= 0
     );
   };
+  const modalHeadStyl = {
+    minHeight: '28px',
+    paddingLeft: '0',
+    paddingTop: '0',
+    border: 'none',
+  };
+  const bodyBorderStyl = {
+    border: '1px solid #eee',
+  };
 
+  const labelFontSize = {
+    fontSize: '14px',
+  };
   return (
     <Modal
       destroyOnClose
       title={'计算规则'}
       width={800}
       open={true}
+      bodyStyle={{ border: 'none', padding: 0, marginLeft: '32px', marginRight: '32px' }}
       onOk={() => {
         const trigger: string[] = [];
         mappingData!.forEach((a) => trigger.push(a.trigger));
@@ -106,109 +119,120 @@ const CalcRuleModal: React.FC<IProps> = (props) => {
       okButtonProps={{
         disabled: vaildDisable(),
       }}>
-      <Space direction="vertical" size="middle" style={{ display: 'flex' }}>
-        <TextBox
-          label="名称"
-          labelMode="outside"
-          value={name}
-          onValueChange={(e) => {
-            setName(e);
-          }}
-        />
-        <SelectBox
-          valueExpr="key"
-          label="目标对象"
-          labelMode="outside"
-          value={target?.key}
-          showClearButton
-          displayExpr={(item) => {
-            return item ? `[${item.formName}]${item.name}` : '';
-          }}
-          dataSource={triggers.filter((a) => a.typeName == '对象')}
-          onSelectionChanged={(e) => {
-            setTarget(e.selectedItem);
-          }}
-        />
-        <Card bordered title={'变量维护'} style={{ margin: 10 }}>
-          <>
-            <TextBox
-              width={'30%'}
-              label="变量名称*"
-              labelMode="floating"
-              value={argsCode}
-              onValueChange={setArgsCode}
-              style={{ display: 'inline-block', margin: 2 }}
-            />
-            <SelectBox
-              width={'45%'}
-              label="变量对象*"
-              labelMode="floating"
-              valueExpr="key"
-              value={select?.key}
-              showClearButton
-              displayExpr={(item) => {
-                return item ? `[${item.formName}]${item.name}` : '';
-              }}
-              dataSource={triggers.filter((a) => !mappingData.find((s) => s.id == a.id))}
-              style={{ display: 'inline-block', margin: 2 }}
-              onSelectionChanged={(e) => {
-                setSelect(e.selectedItem);
-              }}
-            />
-            <Button
-              width={'20%'}
-              style={{ display: 'inline-block', margin: 2 }}
-              onClick={() => {
-                if (select && argsCode) {
-                  if (!mappingData.map((a) => a.code).includes(argsCode)) {
-                    setSelect(undefined);
-                    setArgsCode(undefined);
-                    setMappingData([{ ...select, code: argsCode }, ...mappingData]);
+      <>
+        <Space direction="vertical" size={15}>
+          <TextBox
+            label="名称"
+            labelMode="outside"
+            value={name}
+            onValueChange={(e) => {
+              setName(e);
+            }}
+          />
+          <SelectBox
+            valueExpr="key"
+            label="目标对象"
+            labelMode="outside"
+            value={target?.key}
+            showClearButton
+            displayExpr={(item) => {
+              return item ? `[${item.formName}]${item.name}` : '';
+            }}
+            dataSource={triggers.filter((a) => a.typeName == '对象')}
+            onSelectionChanged={(e) => {
+              setTarget(e.selectedItem);
+            }}
+          />
+          <Card
+            title={<div style={{ ...labelFontSize }}>变量维护</div>}
+            bordered={false}
+            headStyle={modalHeadStyl}
+            bodyStyle={{ ...bodyBorderStyl, paddingTop: '30px' }}>
+            <>
+              <TextBox
+                width={'30%'}
+                label="变量名称*"
+                labelMode="outside"
+                value={argsCode}
+                onValueChange={setArgsCode}
+                style={{ display: 'inline-block', margin: 2 }}
+              />
+              <SelectBox
+                width={'45%'}
+                label="变量对象*"
+                labelMode="outside"
+                valueExpr="key"
+                value={select?.key}
+                showClearButton
+                displayExpr={(item) => {
+                  return item ? `[${item.formName}]${item.name}` : '';
+                }}
+                dataSource={triggers.filter(
+                  (a) => !mappingData.find((s) => s.id == a.id),
+                )}
+                style={{ display: 'inline-block', margin: 2 }}
+                onSelectionChanged={(e) => {
+                  setSelect(e.selectedItem);
+                }}
+              />
+              <Button
+                width={'20%'}
+                style={{ display: 'inline-block', margin: 2 }}
+                onClick={() => {
+                  if (select && argsCode) {
+                    if (!mappingData.map((a) => a.code).includes(argsCode)) {
+                      setSelect(undefined);
+                      setArgsCode(undefined);
+                      setMappingData([{ ...select, code: argsCode }, ...mappingData]);
+                    }
+                  }
+                }}>
+                新增
+              </Button>
+            </>
+            <DataGrid
+              allowColumnResizing
+              keyExpr="id"
+              dataSource={mappingData}
+              onSaved={(e) => {
+                for (const change of e.changes) {
+                  if (change.type == 'remove') {
+                    setMappingData(mappingData.filter((a) => a.id != change.key));
                   }
                 }
               }}>
-              新增
-            </Button>
-          </>
-          <DataGrid
-            allowColumnResizing
-            keyExpr="id"
-            dataSource={mappingData}
-            onSaved={(e) => {
-              for (const change of e.changes) {
-                if (change.type == 'remove') {
-                  setMappingData(mappingData.filter((a) => a.id != change.key));
-                }
-              }
-            }}>
-            <Paging enabled={true} pageSize={10} />
-            <Editing mode="row" allowDeleting={true} />
-            <Column dataField="code" caption="变量代码" />
-            <Column dataField="typeName" caption="类型" />
-            <Column dataField="formName" caption="表单名称" />
-            <Column dataField="name" caption="对象名称" />
-          </DataGrid>
-        </Card>
-      </Space>
-      <Space direction="vertical" size="middle" style={{ display: 'flex' }}>
-        <Card title="计算代码" style={{ padding: 5 }}>
-          <CodeMirror
-            aria-label="计算规则"
-            value={formula}
-            height={'100px'}
-            extensions={[javascript()]}
-            onChange={setFormula}
+              <Paging enabled={true} pageSize={10} />
+              <Editing mode="row" allowDeleting={true} texts={'删除'} />
+              <Column dataField="code" caption="变量代码" />
+              <Column dataField="typeName" caption="类型" />
+              <Column dataField="formName" caption="表单名称" />
+              <Column dataField="name" caption="对象名称" />
+            </DataGrid>
+          </Card>
+          <Card
+            title={<div style={{ ...labelFontSize }}>计算代码</div>}
+            bordered={false}
+            bodyStyle={{ ...bodyBorderStyl, paddingTop: '12px' }}
+            headStyle={modalHeadStyl}>
+            <CodeMirror
+              aria-label="计算规则"
+              value={formula}
+              height={'100px'}
+              extensions={[javascript()]}
+              onChange={setFormula}
+            />
+          </Card>
+          <TextArea
+            style={{ marginBottom: '12px' }}
+            label="描述"
+            labelMode="outside"
+            onValueChanged={(e) => {
+              setRemark(e.value);
+            }}
+            value={remark}
           />
-        </Card>
-        <TextArea
-          label="描述"
-          labelMode="outside"
-          onValueChanged={(e) => {
-            setRemark(e.value);
-          }}
-          value={remark}
-        />
-      </Space>
+        </Space>
+      </>
     </Modal>
   );
 };

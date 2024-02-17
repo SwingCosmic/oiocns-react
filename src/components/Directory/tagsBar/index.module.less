@@ -16,9 +16,10 @@
     .tags_item {
       cursor: pointer;
       white-space: nowrap;
-      padding: 4px 12px;
       font-size: 12px;
-      height: 26px;
+      padding: 1px 8px;
+      text-align:center;
+      line-height: 24px;
       border-radius: 6px;
       background-color: #efefef;
       & > * {
@@ -36,9 +37,10 @@
         cursor: not-allowed;
         white-space: nowrap;
         border-radius: 6px;
-        padding: 4px 12px;
+        padding: 1px 8px;
+        text-align:center;
+        line-height: 24px;
         font-size: 12px;
-        height: 26px;
         .item_count {
           font-style: italic;
           transform: scale(0.9);
@@ -48,7 +50,7 @@
           color: @text-color-inverse;
         }
         color: @text-color-inverse;
-        background-color:@focus-background;
+        background-color: @focus-background;
       }
     }
   }

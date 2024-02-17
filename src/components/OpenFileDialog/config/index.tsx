@@ -16,7 +16,7 @@ const createMenu = (target: ITarget, children: MenuItemType[]) => {
     itemType: target.directory.typeName,
     menus: loadFileMenus(target.directory),
     tag: [target.typeName],
-    icon: <EntityIcon notAvatar={true} entityId={target.id} size={18} />,
+    icon: <EntityIcon entityId={target.id} size={18} />,
     children: children,
   };
 };
@@ -149,7 +149,7 @@ export const loadSettingMenu = (rootKey: string, allowInherited: boolean) => {
     itemType: 'Tab',
     item: 'disk',
     children: [getUserMenu(allowInherited), ...getTeamMenu(allowInherited)],
-    icon: <EntityIcon notAvatar={true} entityId={orgCtrl.user.id} size={18} />,
+    icon: <EntityIcon entityId={orgCtrl.user.id} size={18} />,
   };
   const findMenu = findMenuItemByKey(rootMenu, rootKey);
   if (findMenu) {

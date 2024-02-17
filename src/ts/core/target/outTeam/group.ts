@@ -45,6 +45,9 @@ export class Group extends Target implements IGroup {
   keys: string[];
   relations: string[];
   private _childrenLoaded: boolean = false;
+  get filterTags(): string[] {
+    return ['集群'];
+  }
   findChat(id: string): ISession | undefined {
     return this.user.companys.find((i) => i.id === id)?.session;
   }

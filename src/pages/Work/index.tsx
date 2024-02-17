@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { IFile, IWork, IWorkTask, TaskStatus, TaskTypeName } from '@/ts/core';
 import { command } from '@/ts/base';
 import orgCtrl from '@/ts/controller';
-import { Spin, message } from 'antd';
+import { Spin, message, Image } from 'antd';
 import DirectoryViewer from '@/components/Directory/views';
 import { loadFileMenus } from '@/executor/fileOperate';
 import { cleanMenus } from '@/utils/tools';
@@ -13,8 +13,6 @@ import { useFlagCmdEmitter } from '@/hooks/useCtrlUpdate';
 import { useKeyPress } from 'react-use';
 import SelectWork from './select';
 import FullScreenModal from '@/components/Common/fullScreen';
-import { RiMore2Fill } from 'react-icons/ri';
-import { Theme } from '@/config/theme';
 
 /**
  * 办事-事项清单
@@ -38,7 +36,7 @@ const WorkContent: React.FC = () => {
   const [submitHanlder, clearHanlder] = useTimeoutHanlder();
   const [, key] = useFlagCmdEmitter('_commons', () => loadContent('常用'));
   useEffect(() => {
-    const id = orgCtrl.work.notity.subscribe(() => loadContent('常用'));
+    const id = orgCtrl.work.notity.subscribe(() => loadContent('待办'));
     return () => {
       orgCtrl.work.notity.unsubscribe(id);
     };
@@ -158,30 +156,32 @@ const WorkContent: React.FC = () => {
   const renderMore = () => {
     if (currentTag === '常用') {
       return (
-        <RiMore2Fill
-          fontSize={22}
-          color={Theme.FocusColor}
-          title={'选择事项'}
-          style={{ cursor: 'pointer' }}
-          onClick={() => {
-            setSelectOpen(true);
-          }}
-        />
+        <div className="chat-leftBar-search_more">
+          <Image
+            preview={false}
+            height={24}
+            width={24}
+            onClick={() => {
+              setSelectOpen(true);
+            }}
+            src={`/svg/toto-left-search_more.svg?v=1.0.0`}
+          />
+        </div>
       );
     }
     return <></>;
   };
-
   return (
     <AppLayout previewFlag={'work'}>
       <Spin spinning={!loaded} tip={'加载中...'}>
         <div key={key} style={{ marginLeft: 10, padding: 2, fontSize: 16 }}>
-          <OrgIcons work />
-          <span style={{ paddingLeft: 10 }}>待办</span>
+          <OrgIcons type="navbar/work" />
+          <span style={{ paddingLeft: 10 }}>办事</span>
         </div>
         <DirectoryViewer
           extraTags={false}
           currentTag={currentTag}
+          height={'calc(100% - 110px)'}
           selectFiles={[]}
           focusFile={focusFile}
           content={content}

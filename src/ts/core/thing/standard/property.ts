@@ -23,10 +23,10 @@ export class Property extends StandardFileInfo<schema.XProperty> implements IPro
   get groupTags(): string[] {
     const tags = [this.metadata.valueType, ...super.groupTags];
     if (this.metadata.isChangeTarget) {
-      tags.push("可记录的");
+      tags.push('可记录的');
     }
     if (this.metadata.isChangeSource) {
-      tags.push("变更源");
+      tags.push('变更源');
     }
     return tags;
   }

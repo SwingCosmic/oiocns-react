@@ -5,6 +5,8 @@ import EntityIcon from '@/components/Common/GlobalComps/entityIcon';
 import { generateUuid } from '@/ts/base/common';
 import { ellipsisText, formatDate } from '@/utils';
 import { Button } from 'antd';
+import { jsonParse } from '@/utils/tools';
+import { XThing } from '@/ts/base/schema';
 
 /** 使用form生成表单列 */
 export const GenerateColumn = (
@@ -61,6 +63,35 @@ export const GenerateColumn = (
       };
       cellRender.calcText = (value: string) => {
         return (field.lookups || []).find((i) => i.value === value)?.text || value;
+      };
+      break;
+    case '引用型':
+      props.dataType = 'string';
+      props.width = 200;
+      props.allowHeaderFiltering = false;
+      cellRender.render = (data: any) => {
+        const arrData = jsonParse(data.value, data.value);
+        if (arrData?.length) {
+          return arrData.map((item: XThing, i: number) => {
+            return (
+              <Button
+                type="link"
+                key={i}
+                title={item.text}
+                onClick={async () => {
+                  command.emitter(
+                    'executor',
+                    'open',
+                    { ...item, typeName: field.valueType, key: item.id },
+                    'preview',
+                  );
+                }}>
+                {ellipsisText(item.text || '-', 10)}
+              </Button>
+            );
+          });
+        }
+        return '';
       };
       break;
     case '数值型':

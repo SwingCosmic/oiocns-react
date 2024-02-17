@@ -22,7 +22,9 @@ const GatewayInfo: React.FC<IGprops> = ({ current, node }) => {
   const [identity, setIdentity] = useState<schema.XIdentity>();
   const [define, setDefine] = useState<schema.XWorkDefine>();
   useEffect(() => {
-    const gateway = current.gatewayInfo!.find((a) => a.nodeId == node.id);
+    const gateway = current.gatewayInfo!.find(
+      (a) => a.nodeId == node.id && a.targetId == current.directory.target.space.id,
+    );
     setIdentity(gateway?.identity);
     setDefine(gateway?.define);
   }, []);

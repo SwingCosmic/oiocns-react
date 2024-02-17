@@ -173,9 +173,9 @@ function formatTimeAgo(ms: any) {
  * @returns 格式化的数字
  */
 export function formatNumber(
-  number: string | number | null | undefined, 
-  decimalPlaces: number | null = 2, 
-  showThousandSeparator = false, 
+  number: string | number | null | undefined,
+  decimalPlaces: number | null = 2,
+  showThousandSeparator = false,
   asPercentage = false
 ) {
   if (number === null || number === undefined || number === '') {
@@ -194,7 +194,7 @@ export function formatNumber(
   let formatted = String(number);
 
   if (typeof decimalPlaces === "number") {
-    formatted = (Math.round(number * 10 ** decimalPlaces) / 10 ** decimalPlaces).toFixed(decimalPlaces);    
+    formatted = (Math.round(number * 10 ** decimalPlaces) / 10 ** decimalPlaces).toFixed(decimalPlaces);
   }
 
   if (showThousandSeparator) {
@@ -381,6 +381,24 @@ function assignment(oldObj: { [key: string]: any }, newObj: { [key: string]: any
   });
 }
 
+/**
+ * 对象数组中 根据key,进行除重
+ * @param arr 数据源
+ * @param key 过滤凭证
+ */
+function uniqueArrayBy<T>(arr: T[], key: keyof T): T[] {
+  const uniqueValues = new Set<T[keyof T]>();
+  const result: T[] = [];
+
+  for (const item of arr) {
+    const findValue = uniqueValues.has(item[key]);
+    if (!findValue) {
+      uniqueValues.add(item[key]);
+      result.push(item);
+    }
+  }
+  return result;
+}
 export {
   assignment,
   ellipsisText,
@@ -393,5 +411,6 @@ export {
   isEmoji,
   isSpecialChar,
   sortObjByKeys,
+  uniqueArrayBy,
   visitTree,
 };

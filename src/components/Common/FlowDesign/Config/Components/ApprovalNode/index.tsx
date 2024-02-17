@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { AiOutlineUser } from 'react-icons/ai';
-import { Button, Col, Radio, Form, InputNumber, Card, Divider } from 'antd';
+import { Col, Radio, Form, InputNumber, Card, Divider } from 'antd';
 import cls from './index.module.less';
 import { NodeModel } from '@/components/Common/FlowDesign/processType';
 import ShareShowComp, { FormOption } from '@/components/Common/ShareShowComp';
@@ -141,7 +141,7 @@ const ApprovalNode: React.FC<IProps> = (props) => {
                       props.current.num = 1;
                       props.current.destId = '1';
                       props.current.destName = '发起人';
-                      props.current.destType = '发起人';
+                      props.current.destType = '人员';
                       setCurrentData({ id: '1', name: '发起人' });
                       break;
                     default:
@@ -215,15 +215,16 @@ const ApprovalNode: React.FC<IProps> = (props) => {
             </div>
           }
           className={cls[`card-info`]}
+          bodyStyle={{ padding: '12px' }}
           extra={
             <>
-              <Button
+              <a
                 type="link"
                 onClick={() => {
                   setExecutorModal(true);
                 }}>
                 + 添加
-              </Button>
+              </a>
             </>
           }>
           {executors && executors.length > 0 && (

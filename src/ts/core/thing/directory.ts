@@ -44,7 +44,7 @@ export interface IDirectory extends IStandardFileInfo<schema.XDirectory> {
   /** 加载文件 */
   loadFiles(reload?: boolean): Promise<ISysFileInfo[]>;
   /** 上传文件 */
-  createFile(file: Blob, p?: OnProgress): Promise<ISysFileInfo | undefined>;
+  createFile(name: string, file: Blob, p?: OnProgress): Promise<ISysFileInfo | undefined>;
   /** 加载全部应用 */
   loadAllApplication(): Promise<IApplication[]>;
   /** 加载目录资源 */
@@ -235,22 +235,36 @@ export class Directory extends StandardFileInfo<schema.XDirectory> implements ID
             return new SysFileInfo(item, this);
           });
       }
+      // 查询是否包含引用文件
+      const fileLinks = this.resource.fileLinkColl.cache.filter(
+        (i) => i.directoryId === this.id,
+      );
+      if (Array.isArray(fileLinks) && fileLinks.length > 0) {
+        const linkFiles = fileLinks.map((item) => {
+          return new SysFileInfo(item, this);
+        });
+        this.files.push(...linkFiles);
+      }
     }
     return this.files;
   }
-  async createFile(file: Blob, p?: OnProgress): Promise<ISysFileInfo | undefined> {
+  async createFile(
+    name: string,
+    file: Blob,
+    p?: OnProgress,
+  ): Promise<ISysFileInfo | undefined> {
     while (this.taskList.filter((i) => i.finished < i.size).length > 2) {
       await sleep(1000);
     }
     p?.apply(this, [0]);
     const task: model.TaskModel = {
-      name: file.name,
+      name: name,
       finished: 0,
       size: file.size,
       createTime: new Date(),
     };
     this.taskList.push(task);
-    const data = await this.resource.fileUpdate(file, `${this.id}/${file.name}`, (pn) => {
+    const data = await this.resource.fileUpdate(file, `${this.id}/${name}`, (pn) => {
       task.finished = pn;
       p?.apply(this, [pn]);
       this.taskEmitter.changCallback();
@@ -367,6 +381,10 @@ export class Directory extends StandardFileInfo<schema.XDirectory> implements ID
       destDirectory.id,
       isSameBelong,
     );
+    await directory.loadFiles();
+    for (const file of await directory.files) {
+      await file.copy(destDirectory);
+    }
     for (const app of await directory.standard.applications) {
       await app.copy(destDirectory);
     }

@@ -67,11 +67,9 @@ const EntityPreview: React.FC<{ flag?: string }> = (props) => {
       command.unsubscribe(id);
     };
   }, [props]);
-
   const renderEntityBody = (entity: any, children?: React.ReactNode) => {
     return <PreviewLayout entity={entity}>{children && children}</PreviewLayout>;
   };
-
   if (entity && typeof entity != 'string') {
     if ('filedata' in entity) {
       return renderEntityBody(entity, <FilePreview key={entity.key} file={entity} />);
@@ -112,6 +110,7 @@ const EntityPreview: React.FC<{ flag?: string }> = (props) => {
           return <></>;
       }
     }
+
     if ('node' in entity) {
       return renderEntityBody(entity, <TaskStart key={entity.key} current={entity} />);
     }

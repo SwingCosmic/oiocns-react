@@ -12,7 +12,7 @@ import {
   XStandard,
   XTarget,
   XThing,
-  XTagFilter
+  XTagFilter,
 } from './schema';
 // 请求类型定义
 export type ReqestType = {
@@ -660,7 +660,7 @@ export type WorkGatewayInfoModel = {
   // 网关节点ID
   nodeId: string;
   // 关联组织ID
-  TargetId: string;
+  targetId: string;
 };
 
 export type InstanceDataModel = {
@@ -691,6 +691,8 @@ export type FieldModel = {
   name: string;
   /** 代码(属性代码) */
   code: string;
+  /** 代码(原始特性代码) */
+  info?: string;
   /** 类型(属性类型) */
   valueType: string;
   /** 规则(特性规则) */
@@ -832,7 +834,7 @@ export type speciesListItem = {
   // 筛选名称
   name: string;
   // 分类名称
-  typeName: string
+  typeName: string;
   // 编码
   code: string;
   // 值
@@ -919,7 +921,7 @@ export type speciesFilter = {
   // 条件文本
   remark: string;
   // 分类数据
-  speciesList: XTagFilter[]
+  speciesList: XTagFilter[];
 };
 
 export type MappingData = {
@@ -1112,6 +1114,10 @@ export type FileItemModel = {
   isDirectory: boolean;
   /** 是否包含子目录 */
   hasSubDirectories: boolean;
+  /** 归属id */
+  belongId: string;
+  // /** 是否引用文件 */
+  isLinkFile?: boolean;
 } & FileItemShare;
 
 /** 桶支持的操作 */

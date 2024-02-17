@@ -1,7 +1,7 @@
 import { Modal } from 'antd';
 import React from 'react';
 import { kernel, model, schema } from '@/ts/base';
-import { IBelong } from '@/ts/core';
+import { IBelong, ITarget } from '@/ts/core';
 import WorkFormViewer from '@/components/DataStandard/WorkForm/Viewer';
 
 interface IFormEditProps {
@@ -11,6 +11,7 @@ interface IFormEditProps {
   create: boolean;
   initialValues?: any;
   onSave: (values: any) => void;
+  target?: ITarget;
 }
 
 const FormEditModal = ({
@@ -20,6 +21,7 @@ const FormEditModal = ({
   create,
   initialValues,
   onSave,
+  target,
 }: IFormEditProps) => {
   const editData: any = { ...initialValues };
   const modal = Modal.confirm({
@@ -38,6 +40,7 @@ const FormEditModal = ({
           fields={fields}
           data={editData}
           belong={belong}
+          target={target}
         />
       </div>
     ),

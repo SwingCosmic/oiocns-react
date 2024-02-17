@@ -8,6 +8,9 @@ export class Cohort extends Target implements ICohort {
   constructor(_metadata: schema.XTarget, _space: IBelong, relationId: string) {
     super([_space.key], _metadata, [relationId], _space, _space.user);
   }
+  get filterTags(): string[] {
+    return ['群组'];
+  }
   findChat(id: string): ISession | undefined {
     return this.user.memberChats.find((i) => i.id === id);
   }

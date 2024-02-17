@@ -82,9 +82,9 @@ export class WorkApply implements IWorkApply {
               }
             }
           }
-          if (isRequired && valueIsNull(data[item.id])) {
-            return false;
-          }
+        }
+        if (isRequired && valueIsNull(data[item.id])) {
+          return false;
         }
       }
     }
@@ -99,7 +99,7 @@ export class WorkApply implements IWorkApply {
     gateways.forEach((v, k) => {
       gatewayInfos.push({
         nodeId: k,
-        TargetId: v,
+        targetId: v,
       });
     });
     const hideFormIds = this.getHideForms();
@@ -131,7 +131,7 @@ export class WorkApply implements IWorkApply {
     gateways.forEach((v, k) => {
       gatewayInfos.push({
         nodeId: k,
-        TargetId: v,
+        targetId: v,
       });
     });
     const hideFormIds = this.getHideForms();

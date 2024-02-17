@@ -35,6 +35,15 @@ const PassportLogin: React.FC<{ to: (flag: string) => void }> = ({ to }) => {
             setLoading(false);
             if (res.success) {
               history.push('/home');
+              if (!localStorage.getItem('userRandomBg') && !res.data.target.icon) {
+                const randomBg = ['blue', 'green', 'red', 'orange'][
+                  Math.floor(Math.random() * 4)
+                ];
+                localStorage.setItem('userRandomBg', randomBg);
+              }
+              if (res.data.target.icon && localStorage.getItem('userRandomBg')) {
+                localStorage.removeItemItem('userRandomBg');
+              }
             }
           } else {
             message.warning('请填写账号和密码 ！');

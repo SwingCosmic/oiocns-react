@@ -374,7 +374,6 @@ export class Session extends Entity<schema.XEntity> implements ISession {
         if (this.chatdata.noReadCount > 0) {
           logger.msg(`[${this.chatdata.chatName}]:${imsg.msgTitle}`);
         }
-        command.emitterFlag('session');
       } else if (!imsg.isReaded) {
         this.tagMessage([imsg.id], '已读');
       }
@@ -387,6 +386,7 @@ export class Session extends Entity<schema.XEntity> implements ISession {
         this.messages[index] = imsg;
       }
     }
+    command.emitterFlag('session');
     this.messageNotify?.apply(this, [this.messages]);
   }
 

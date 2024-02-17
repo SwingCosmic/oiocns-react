@@ -174,7 +174,7 @@ const loadSettingMenu = (target: ITarget): MenuItemType => {
         label: item.name,
         itemType: '角色',
         menus: loadMenus(item),
-        icon: <EntityIcon notAvatar={true} entity={item.metadata} size={18} />,
+        icon: <EntityIcon entity={item.metadata} size={18} />,
         children: [],
       };
     }),

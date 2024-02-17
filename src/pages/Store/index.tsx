@@ -69,12 +69,12 @@ const FileBrowser: React.FC = () => {
         )}
         {current != 'disk' ? (
           <>
-            <EntityIcon entity={current.metadata} notAvatar disInfo size={22} />
+            <EntityIcon entity={current.metadata} disInfo size={22} />
             <span style={{ paddingLeft: 6 }}>{current.name}</span>
           </>
         ) : (
           <>
-            <OrgIcons store />
+            <OrgIcons type="navbar/store" />
             <span style={{ paddingLeft: 6 }}>管理</span>
           </>
         )}

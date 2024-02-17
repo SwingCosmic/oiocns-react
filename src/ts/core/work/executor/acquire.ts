@@ -45,13 +45,15 @@ export class Acquire extends Executor {
         const thingColl = company.resource.thingColl;
         let take = 500;
         let skip = 0;
-        while (true) {
+        let done = false;
+        while (!done) {
           const things = await this.loadThing(take, skip, work, false);
           await thingColl.replaceMany(things.data);
           skip += things.data.length;
           loaded += things.data.length;
           onProgress(loaded);
           if (things.data.length == 0) {
+            done = true;
             break;
           }
         }
@@ -102,7 +104,10 @@ export class Acquire extends Executor {
                 const response = await fetch(file.shareInfo().shareLink ?? '');
                 if (response.ok) {
                   const blob = await response.blob();
-                  fileDir.createFile(new File([blob], file.name, { type: blob.type }));
+                  fileDir.createFile(
+                    file.name,
+                    new File([blob], file.name, { type: blob.type }),
+                  );
                 }
               }
             }

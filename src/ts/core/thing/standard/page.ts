@@ -3,10 +3,14 @@ import { IDirectory } from '../directory';
 import { IStandardFileInfo, StandardFileInfo } from '../fileinfo';
 import { ISpecies, Species } from './species';
 import { IWork } from '../../work';
-import { IForm } from '../..';
+import { IForm, TargetType } from '../..';
 import { Form } from './form';
 
 export interface IPageTemplate extends IStandardFileInfo<schema.XPageTemplate> {
+  /** 来源名称 */
+  title?: string;
+  /** 数据来源 */
+  fromPath?: string;
   /** 触发器 */
   command: Command;
   /** 关系 */
@@ -43,6 +47,26 @@ export class PageTemplate
       this.belongId +
       ':' +
       [this.directory.target.spaceId, this.directory.target.id].join('-')
+    );
+  }
+  get title() {
+    const companyName = this.directory.target.user.findShareById(
+      this.directory.target.spaceId,
+    ).name;
+    const { name: targetName, typeName: targetTypeName } = this.directory.target;
+    return companyName === targetName || targetTypeName === TargetType.Group
+      ? `(${targetName})`
+      : `(${companyName}-${targetName})`;
+  }
+  get fromPath() {
+    return (
+      this.directory.target.typeName +
+      '-' +
+      this.directory.target.id +
+      '-' +
+      this.belongId +
+      '-' +
+      this.id
     );
   }
   async copy(destination: IDirectory): Promise<boolean> {

@@ -55,6 +55,7 @@ const TaskApproval: React.FC<TaskDetailType> = ({ task, finished, fromData }) =>
             item.options?.isRequired &&
             valueIsNull(data[item.id])
           ) {
+            console.error('表单检验信息', item);
             return false;
           }
         }

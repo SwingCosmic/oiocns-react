@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Button, Card, Divider } from 'antd';
+import { Card, Divider } from 'antd';
 import cls from './index.module.less';
 import { NodeModel } from '../../../processType';
 import ShareShowComp, { FormOption } from '@/components/Common/ShareShowComp';
@@ -31,7 +31,9 @@ const RootNode: React.FC<IProps> = (props) => {
   const [primaryForms, setPrimaryForms] = useState(props.current.primaryForms);
   const [detailForms, setDetailForms] = useState(props.current.detailForms);
   const [applyType, setApplyType] = useState<string>(rule.applyType ?? '默认');
-  const [executors, setExecutors] = useState<model.Executor[]>(props.current.executors ?? []);
+  const [executors, setExecutors] = useState<model.Executor[]>(
+    props.current.executors ?? [],
+  );
   const [executorModal, setExecutorModal] = useState(false);
   const formViewer = React.useCallback((form: schema.XForm) => {
     command.emitter(
@@ -115,7 +117,7 @@ const RootNode: React.FC<IProps> = (props) => {
             </div>
           }
           className={cls[`card-info`]}
-          bodyStyle={{ padding: '12px' }}
+          bodyStyle={{ padding: detailForms.length ? '12px' : '0' }}
           extra={
             <a
               onClick={() => {
@@ -124,7 +126,7 @@ const RootNode: React.FC<IProps> = (props) => {
               + 添加
             </a>
           }>
-          {detailForms && detailForms.length > 0 && (
+          {detailForms.length > 0 && (
             <span>
               <ShareShowComp
                 departData={detailForms}
@@ -157,16 +159,15 @@ const RootNode: React.FC<IProps> = (props) => {
             </div>
           }
           className={cls[`card-info`]}
+          bodyStyle={{ padding: executors && executors.length ? '24px' : '0' }}
           extra={
             <>
-              <Button
-                type="link"
-                style={{ display: 'inline-block' }}
+              <a
                 onClick={() => {
                   setExecutorModal(true);
                 }}>
                 + 添加
-              </Button>
+              </a>
             </>
           }>
           {executors && executors.length > 0 && (

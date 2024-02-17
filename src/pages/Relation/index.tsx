@@ -95,12 +95,12 @@ const RelationBrowser: React.FC = () => {
         )}
         {current != 'disk' ? (
           <>
-            <EntityIcon entity={current.metadata} notAvatar disInfo size={22} />
+            <EntityIcon entity={current.metadata} disInfo size={22} />
             <span style={{ paddingLeft: 6 }}>{current.name}</span>
           </>
         ) : (
           <>
-            <OrgIcons relation />
+            <OrgIcons type="navbar/relation" />
             <span style={{ paddingLeft: 6 }}>设置</span>
           </>
         )}

@@ -29,7 +29,7 @@ const TagsBar: React.FC<IProps> = (props) => {
     }
     if (props.extraTags) {
       props.entitys.forEach((entity) => {
-        entity.groupTags.forEach((tag) => {
+        entity.filterTags.forEach((tag) => {
           if (!props.excludeTags.includes(tag)) {
             const index = tags.findIndex((i) => i.tag === tag);
             if (index > -1) {
@@ -74,7 +74,7 @@ const TagsBar: React.FC<IProps> = (props) => {
       {props.showBack && (
         <Button type="link" title="返回" icon={<ImUndo2 />} onClick={props.onBack} />
       )}
-      <Space className={cls.tags_bar_content} size={10}>
+      <Space style={{ paddingTop: '2px' }} className={cls.tags_bar_content} size={10}>
         {groupTags().map((item) => loadBarItem(item.tag, item.count))}
       </Space>
     </div>

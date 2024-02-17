@@ -143,6 +143,9 @@ const View: React.FC<Omit<IProps, 'data'>> = (props) => {
                 if (props.work?.id) {
                   const work = await props.ctx.view.pageInfo.loadWork(props.work.id);
                   const node = await work?.loadNode();
+                  if (!keys.length) {
+                    return message.warning('未选择商品，发起失败！');
+                  }
                   if (work && node) {
                     const instance: model.InstanceDataModel = {
                       data: {},

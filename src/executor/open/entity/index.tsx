@@ -133,8 +133,8 @@ const EntityPreview: React.FC<Iprops> = ({ entity, finished }) => {
     <SchemaForm<TargetModel>
       open
       title={
-        <div style={{ display: 'flex', flexWrap: 'nowrap' }}>
-          <TypeIcon iconType={entity.typeName} size={20} />
+        <div style={{ display: 'flex', flexWrap: 'nowrap', alignItems: 'center' }}>
+          <TypeIcon iconType={entity.typeName} size={24} />
           {entity.name}
         </div>
       }

@@ -44,7 +44,9 @@ li {
 .fs12 {
   font-size: 12px!important;
 }
-
+.primary-color {
+  color: @primary-color
+}
 .ellipsis1 {
   display: inline-block;
   white-space: nowrap;
@@ -493,23 +495,23 @@ h3 {
       display: flex;
       flex-direction: column;
       overflow-y: scroll;
-      height: calc(100vh - 140px);
+      height: calc(100vh - 30px);
       border-radius: 4px;
       padding: 8px;
       min-width: 500px;
+      gap: 2px;
       background: @component-background;
       &-selected {
         cursor: pointer;
-        // padding: 8px;
-        // margin: 8px;
-        // border-radius: 16px;
+        padding: 8px;
+        border-radius: 6px;
         border: 1px solid @border-color;
         background-color: @active-background;
       }
 
       &-item {
         cursor: pointer;
-        // padding: 8px;
+        padding: 8px;
         border-radius: 6px;
         border-bottom: 1px solid @border-color-base;
         &:hover {
@@ -722,7 +724,7 @@ h3 {
     }
   }
   .commonItem {
-    padding: 8px 20px;
+    padding: 8px;
     background: #fcfcfc;
     .common-header {
       font-size: 14px;
@@ -784,7 +786,7 @@ h3 {
 }
 
 .cardItem-viewer {
-  padding-top: 20px;
+  padding-top: 12px;
   min-height: 100px;
   .linkBtn {
     height: 45px;
@@ -831,16 +833,19 @@ h3 {
     }
   }
 }
+.common-cardItem-viewer {
+  padding-top: 0;
+}
 
 .appCard {
   width: auto;
-  padding: 12px;
+  padding: 12px 12px 10px 8px;
   text-align: center;
   cursor: pointer;
   min-width: 120px;
   .appName {
     font-size: 14px;
-    font-weight: bold;
+    font-weight: medium;
     width: 100px;
     overflow: hidden;
     white-space: nowrap;
@@ -1025,6 +1030,7 @@ h3 {
 .entityIcon {
   padding: 2px 1px;
   display: inline-block;
+  position: relative;
   .pickupName {
     color: @primary-color;
     margin-left: 6px;
@@ -1036,8 +1042,36 @@ h3 {
     background: 'transparent';
     color: '#606060';
   }
+  .user-wrap {
+    width: 35px;
+    height: 35px;
+    border-radius: 5px;
+    color: #fff;
+    line-height: 35px;
+    text-align: center;
+    vertical-align: middle;
+    font-size: 12px;
+    font-weight: bold;
+  }
+  .user-wrap-bg_blue {
+    background: linear-gradient(135deg, #0062FF 0%, #0094FF 100%);
+  }
+  .user-wrap-bg_green {
+    background: linear-gradient(135deg, #00A76D 0%, #00D26E 100%);
+  }
+  .user-wrap-bg_red {
+    background: linear-gradient(135deg, #E73938 0%, #F00 100%);
+  }
+  .user-wrap-bg_orange {
+    background: linear-gradient(135deg, #F55600 0%, #FF6700 100%);
+  }
+  .user-wrap-bg_asset {
+    background: linear-gradient(135deg, #3838b9 0%, #7b7bff 100%);
+  }
+  .user-wrap-bg_purple {
+    background: linear-gradient(135deg, #4100b5 0%, #a16cff 100%);
+  }
 }
-
 // 左侧目录清单栏样式
 .inventory-search-area {
   width: 100%;
@@ -1071,7 +1105,7 @@ h3 {
       background-color: #fcfcfc;
       position: relative;
       &-warp {
-        padding: 10px;
+        padding: 2px;
         transition: all 0.7s;
         .chat-space-time {
           margin: 0 auto;
@@ -1097,7 +1131,9 @@ h3 {
         }
 
         .con_body {
-          max-width: 60%;
+          max-width: 40vw;
+          display: -webkit-box;
+          display: -ms-flexbox;
           display: flex;
           -webkit-box-orient: horizontal;
           -webkit-box-direction: normal;
@@ -1123,12 +1159,14 @@ h3 {
           .con_content {
             max-width: 50%;
             .name {
-              font-size: 12px;
+              font-size: 10px;
+              margin-top: -2px;
               padding-left: 4px;
               color: #888;
             }
             .con_content_txt,
             .con_content_forward_txt {
+              word-break:break-all;
               cursor: pointer;
               text-align: left;
               min-height: 30px;
@@ -1225,6 +1263,7 @@ h3 {
             justify-content: flex-end;
             .con_content_txt,
             .con_content_forward_txt {
+              word-break:break-all;
               background-color: @portal-background;
               max-width: 100%;
               box-shadow: inset 0 0 1px #cacaca;
@@ -1252,6 +1291,7 @@ h3 {
               box-shadow: inset 0 0 1px #9292ff;
               border-radius: var(--spacing-1, 8px);
               background: var(--color-brand-Disabled, #b5c7ff);
+              word-break:break-all
             }
             .information {
               padding-right: 10px;
@@ -1296,7 +1336,7 @@ h3 {
     border: 1px solid @color-surface;
     background: #fff;
     padding: 9px 16px;
-    margin: 8px;
+    margin: 2px;
   }
   &-send-box-main {
     display: flex;
@@ -1343,6 +1383,16 @@ h3 {
       }
     }
   }
+}
+.chat-leftBar-search_more {
+  width: 40px;
+  height: 40px;
+  background-color: #F7F8FA;
+  line-height: 40px;
+  vertical-align: middle;
+  text-align: center;
+  border-radius: 8px;
+  cursor: pointer;
 }
 .chat-at-list {
   max-height: 400px;
@@ -1535,36 +1585,6 @@ h3 {
   align-items: center;
   margin-right: 16px;
 }
-
-.ogo-menu-vertical.ogo-menu-sub,
-.ogo-menu-vertical-left.ogo-menu-sub,
-.ogo-menu-vertical-right.ogo-menu-sub {
-  min-width: 200px;
-  max-height: 500px;
-}
-
-.ogo-menu:not(.ogo-menu-horizontal) .ogo-menu-item-selected {
-  color: white;
-  background-color: @focus-background;
-}
-
-.ogo-menu-submenu-selected {
-  color: white;
-  background-color: @focus-background;
-}
-.ogo-menu-vertical .ogo-menu-submenu-selected,
-.ogo-menu-vertical-left .ogo-menu-submenu-selected,
-.ogo-menu-vertical-right .ogo-menu-submenu-selected {
-  color: white;
-  :hover {
-    color: white;
-  }
-
-  .ogo-menu-submenu-expand-icon,
-  .ogo-menu-submenu-arrow {
-    color: white;
-  }
-}
 .ogo-tabs-primary .ogo-tabs-nav {
   padding-right: 200px;
   box-sizing: border-box;
@@ -1606,4 +1626,10 @@ h3 {
     flex-wrap: wrap;
     margin: 20px 0;
   }
+}
+.divider {
+  height: 16px;
+  border-width: 4px;
+  border-color: @focus-background;
+  margin-left: 0px;
 }

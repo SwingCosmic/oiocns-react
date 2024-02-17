@@ -15,6 +15,7 @@ import { IEntity, ISysFileInfo, TargetType } from '@/ts/core';
 import JoinApply from './task/joinApply';
 import { model, schema } from '@/ts/base';
 import TemplateView from './page';
+import ThingPreview from './thing';
 const audioExt = ['.mp3', '.wav', '.ogg'];
 
 const officeExt = ['.md', '.pdf', '.xls', '.xlsx', '.doc', '.docx', '.ppt', '.pptx'];
@@ -93,6 +94,14 @@ const ExecutorOpen: React.FC<IOpenProps> = (props: IOpenProps) => {
           <TaskContent
             key={props.entity.key}
             current={props.entity as any}
+            finished={props.finished}
+          />
+        );
+      case '引用型':
+        return (
+          <ThingPreview
+            key={props.entity.key}
+            entity={props.entity as any}
             finished={props.finished}
           />
         );

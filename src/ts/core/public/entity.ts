@@ -40,6 +40,8 @@ export interface IEntity<T> extends Emitter {
   belong: model.ShareIcon;
   /** 分组标签 */
   groupTags: string[];
+  /** 过滤标签 */
+  filterTags: string[];
   /** 查找元数据 */
   findMetadata<U>(id: string): U | undefined;
   /** 更新元数据 */
@@ -124,6 +126,9 @@ export abstract class Entity<T extends schema.XEntity>
       return ['已删除'];
     }
     return this._gtags;
+  }
+  get filterTags(): string[] {
+    return this.groupTags;
   }
   setMetadata(_metadata: T): void {
     if (_metadata.id === this.id) {

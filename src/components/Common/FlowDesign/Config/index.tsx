@@ -11,6 +11,7 @@ import { IWork } from '@/ts/core';
 import { model } from '@/ts/base';
 import { Card } from 'antd';
 import { TextBox } from 'devextreme-react';
+import CustomNode from './Components/Custom';
 /**
  * @description: 流程设置抽屉
  * @return {*}
@@ -49,6 +50,15 @@ const Config: React.FC<IProps> = (props) => {
       case AddNodeType.APPROVAL:
         return (
           <ApprovalNode
+            work={props.define}
+            current={props.node}
+            belong={belong}
+            refresh={props.refresh}
+          />
+        );
+      case AddNodeType.CUSTOM:
+        return (
+          <CustomNode
             work={props.define}
             current={props.node}
             belong={belong}
