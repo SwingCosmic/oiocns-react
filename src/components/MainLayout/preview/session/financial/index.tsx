@@ -11,8 +11,8 @@ import { Button, Card, DatePicker, Space, Tag } from 'antd';
 import React, { ReactNode, useEffect, useRef, useState } from 'react';
 import Depreciation from './depreciation';
 import { DepreciationTemplate } from './depreciation/template';
-import { Closing } from './widgets/closing';
 import Ledger from './widgets/ledger';
+import { Closing } from './closing';
 
 interface IProps {
   financial: IFinancial;
