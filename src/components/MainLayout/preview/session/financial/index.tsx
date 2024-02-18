@@ -11,7 +11,7 @@ import { Button, Card, DatePicker, Space, Tag } from 'antd';
 import React, { ReactNode, useEffect, useRef, useState } from 'react';
 import Depreciation from './depreciation';
 import { DepreciationTemplate } from './depreciation/template';
-import Ledger from './widgets/ledger';
+import Ledger from './ledger/ledger';
 import { Closing } from './closing';
 
 interface IProps {
@@ -303,7 +303,7 @@ const Periods: React.FC<IProps> = ({ financial }) => {
                               title={'月结账'}
                               onFinished={() => setCenter(<></>)}
                               onCancel={() => setCenter(<></>)}>
-                              <Closing financial={financial} />
+                              <Closing financial={financial} current={item} />
                             </FullScreen>,
                           )
                         }>

@@ -23,6 +23,8 @@ export interface IPeriod extends IEntity<schema.XPeriod> {
   financial: IFinancial;
   /** 元数据 */
   metadata: schema.XPeriod;
+  /** 资产负债表 */
+  balanceSheet: schema.XThing | undefined;
   /** 年度 */
   annual: string;
   /** 月度 */
@@ -35,12 +37,18 @@ export interface IPeriod extends IEntity<schema.XPeriod> {
   closed: boolean;
   /** 汇总接口 */
   summary: ISummary;
+  /** 结账科目 */
+  closings: schema.XClosing[];
+  /** 科目集合 */
+  closingsColl: XCollection<schema.XClosing>;
   /** 获取上一个月日期 */
   getPrePeriod(): string;
   /** 获取下一个月日期 */
   getNextPeriod(): string;
   /** 计提折旧 */
   depreciation(type: Operation): Promise<XOperationLog | undefined>;
+  /** 获取折旧科目 */
+  loadClosings(reload?: boolean): Promise<schema.XClosing[]>;
   /** 月结账 */
   monthlySettlement(): Promise<void>;
   /** 试算平衡 */
@@ -60,11 +68,17 @@ export class Period extends Entity<schema.XPeriod> implements IPeriod {
     this.financial = financial;
     this.operationColl = this.space.resource.genColl('operation-log');
     this.summary = new Summary(financial.space);
+    this.closings = [];
+    this.closingsColl = financial.space.resource.genColl('financial-closings');
   }
+  closings: schema.XClosing[];
+  balanceSheet: schema.XThing | undefined;
   operationColl: XCollection<schema.XOperationLog>;
   space: IBelong;
   financial: IFinancial;
   summary: ISummary;
+  closingsColl: XCollection<schema.XClosing>;
+  closingLoaded: boolean = false;
   get annual(): string {
     return this.metadata.period.substring(0, 4);
   }
@@ -124,6 +138,19 @@ export class Period extends Entity<schema.XPeriod> implements IPeriod {
     await this.trialBalance();
     await this.update({ ...this.metadata, closed: true });
     await this.toNextPeriod();
+  }
+  async loadClosings(reload?: boolean | undefined): Promise<schema.XClosing[]> {
+    if (reload || !this.closingLoaded) {
+      const result = await this.closingsColl.loadResult({
+        options: {
+          match: { periodId: this.metadata.id },
+        },
+      });
+      if (result.success) {
+        this.closings = result.data;
+      }
+    }
+    return this.closings;
   }
   async trialBalance(): Promise<void> {
     await this.update({ ...this.metadata });

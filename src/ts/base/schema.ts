@@ -917,6 +917,32 @@ export interface XConfiguration extends Xbase {
   usefulLife: XProperty;
 }
 
+// 结账科目配置
+export interface XClosingOption extends XEntity {
+  // 会计科目字段
+  accounting: XProperty;
+  // 会计科目值
+  accountingValue: string;
+  // 金额字段（原值、累计折旧）
+  amount: XProperty;
+  // 资产负债表字段
+  financial: XProperty;
+}
+
+// 结账科目
+export interface XClosing extends XClosingOption {
+  // 期数主键
+  periodId: string;
+  // 对账状态
+  balanced: boolean;
+  // 期初资产账
+  assetStartAmount: number;
+  // 期末资产账
+  assetEndAmount: number;
+  // 期末财务账
+  financialAmount: number;
+}
+
 // 汇总方案
 export interface XSummary {
   // 分类维度

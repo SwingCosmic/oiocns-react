@@ -3,12 +3,12 @@ import { common, schema } from '@/ts/base';
 import { Node } from '@/ts/base/common';
 import { IFinancial } from '@/ts/core';
 import { IPeriod, Operation, OperationStatus } from '@/ts/core/work/financial/period';
-import { SumItem } from '@/ts/core/work/financial/summary';
 import { formatNumber } from '@/utils';
 import { Button, Progress, Table, Tag } from 'antd';
 import moment from 'moment';
 import React, { useEffect, useState } from 'react';
 import { DepreciationTemplate } from './template';
+import { SumItem } from '@/ts/core/work/financial/statistics/summary';
 
 interface IProps {
   financial: IFinancial;

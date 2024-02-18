@@ -2,6 +2,7 @@ import { IBelong, IForm, XCollection } from '../..';
 import { List, common, kernel, model, schema } from '../../../base';
 import { XObject } from '../../public/object';
 import { Form } from '../../thing/standard/form';
+import { ClosingOptions, IClosingOptions } from './config/closing';
 import { Configuration, IConfiguration } from './config/depreciation';
 import { IPeriod, Period } from './period';
 import { IQuery, Query } from './statistics/query';
@@ -32,6 +33,8 @@ export interface IFinancial extends common.Emitter {
   current: string | undefined;
   /** 折旧配置 */
   configuration: IConfiguration;
+  /** 结账科目配置 */
+  closingOptions: IClosingOptions;
   /** 缓存 */
   financialCache: XObject<schema.Xbase>;
   /** 账期集合 */
@@ -86,6 +89,7 @@ export class Financial extends common.Emitter implements IFinancial {
     this.space = belong;
     this.metadata = {} as schema.XFinancial;
     this.configuration = new Configuration(this);
+    this.closingOptions = new ClosingOptions(this);
     this.financialCache = new XObject(
       belong.metadata,
       'target-financial',
@@ -136,6 +140,7 @@ export class Financial extends common.Emitter implements IFinancial {
   form: IForm | undefined;
   query: IQuery | undefined;
   configuration: IConfiguration;
+  closingOptions: IClosingOptions;
   financialCache: XObject<schema.Xbase>;
   metadata: schema.XFinancial;
   space: IBelong;
@@ -162,6 +167,7 @@ export class Financial extends common.Emitter implements IFinancial {
       this.metadata = financial;
     }
     await this.configuration.loadContent();
+    await this.closingOptions.loadOptions();
     this.financialCache.subscribe('financial', (res: schema.XFinancial) => {
       this.metadata = res;
       this.changCallback();
