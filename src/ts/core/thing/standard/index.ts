@@ -1,3 +1,4 @@
+import { XForm, XProperty } from '@/ts/base/schema';
 import { model, schema } from '../../../base';
 import { Directory, IDirectory } from '../directory';
 import { IStandard } from '../fileinfo';
@@ -47,6 +48,7 @@ export class StandardFiles {
       subscribeNotity(this.directory);
     }
     (window as any).batchUpdateFormCollection = (a: any,b: any) => this.batchUpdateFormCollection(a,b);
+    (window as any).updateFormPropertiesByFormCodes = (a: any) => this.updateFormPropertiesByFormCodes(a);
   }
   get id(): string {
     return this.directory.directoryId;
@@ -105,6 +107,51 @@ export class StandardFiles {
       },
     });
   }
+
+  async updateFormPropertiesByFormCodes(formCodes: string[]) {
+    const forms = await this.resource.formColl.loadSpace({
+      options: {
+        match: {
+          code: {
+            _in_: formCodes
+          }
+        },
+      }
+    });
+    await this.updateFormProperties(forms);
+  }
+
+  async updateFormProperties(forms: XForm[]) {
+    const propertyIds = forms.flatMap(f => f.attributes.map(a => a.propId), 1);
+    const properties = await this.resource.propertyColl.loadSpace({
+      options: {
+        match: { 
+          id: {
+            _in_: propertyIds
+          }
+        },
+      }
+    });
+    const map = properties.reduce<Dictionary<XProperty>>((a, v) => {
+      a[v.id] = v;
+      return a;
+    }, {});
+
+    for (const form of forms) {
+      for (const attr of form.attributes) {
+        let p = map[attr.propId];
+        if (!p) {
+          attr.name += "（属性已删除）";
+        } else {
+          attr.property = p;
+        }
+      }
+    }
+
+    await this.resource.formColl.replaceMany(forms);
+  }
+
+
   async loadPropertys(reload: boolean = false): Promise<IProperty[]> {
     if (this.propertysLoaded === false || reload) {
       this.propertysLoaded = true;

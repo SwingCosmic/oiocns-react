@@ -8,6 +8,7 @@ import Toolbar, { Item } from 'devextreme-react/toolbar';
 import FormItem from './formItem';
 import { ItemDragging } from 'devextreme-react/list';
 import { Emitter } from '@/ts/base/common';
+import message from '@/utils/message';
 
 const FormRender: React.FC<{
   current: IForm;
@@ -23,6 +24,11 @@ const FormRender: React.FC<{
     const fromAttr = current.metadata.attributes.splice(e.fromIndex, 1);
     current.metadata.attributes.splice(e.toIndex, 0, ...fromAttr);
   }, []);
+
+  async function updateProperties() {
+    await current.directory.standard.updateFormProperties([current.metadata]);
+    message.info("更新成功")
+  }
   return (
     <div style={{ padding: 16 }}>
       <Toolbar height={60}>
@@ -41,6 +47,15 @@ const FormRender: React.FC<{
           render={() => (
             <Button type="primary" onClick={showDialog}>
               + 添加属性
+            </Button>
+          )}
+        />
+        <Item
+          location="after"
+          locateInMenu="never"
+          render={() => (
+            <Button onClick={updateProperties}>
+              更新特性的属性信息
             </Button>
           )}
         />
