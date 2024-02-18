@@ -2,7 +2,7 @@ import { XOperationLog } from '@/ts/base/schema';
 import { IBelong, IEntity, IFinancial, XCollection } from '../..';
 import { common, kernel, schema } from '../../../base';
 import { Entity } from '../../public';
-import { ISummary, SumItem, Summary } from './summary';
+import { ISummary, SumItem, Summary } from './statistics/summary';
 
 export type Operation = 'Calculate' | 'Confirm' | 'Revoke';
 export enum OperationStatus {

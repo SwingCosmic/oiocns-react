@@ -1,6 +1,6 @@
-import { IFinancial } from '.';
-import { schema, model } from '../../../base';
-import { XObject } from '../../public/object';
+import { IFinancial } from '..';
+import { schema, model } from '../../../../base';
+import { XObject } from '../../../public/object';
 
 /** 配置字段 */
 export type ConfigField = keyof schema.XConfiguration;

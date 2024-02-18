@@ -5,8 +5,7 @@ import { common, model, schema } from '@/ts/base';
 import { Node } from '@/ts/base/common';
 import { IFinancial } from '@/ts/core';
 import { IPeriod } from '@/ts/core/work/financial/period';
-import { IQuery } from '@/ts/core/work/financial/query';
-import { SumItem } from '@/ts/core/work/financial/summary';
+import { IQuery } from '@/ts/core/work/financial/statistics/query';
 import { formatNumber } from '@/utils';
 import {
   ProFormColumnsType,
@@ -19,6 +18,7 @@ import moment from 'moment';
 import React, { useEffect, useRef, useState } from 'react';
 import cls from './ledger.module.less';
 import { LedgerModal } from './ledgerModel';
+import { SumItem } from '@/ts/core/work/financial/statistics/summary';
 
 export interface SummaryColumn {
   label: string;
@@ -352,7 +352,7 @@ async function loadColumn(
     children: [],
   };
   query.summary.summaryRecursion<ColumnGroupType<Node<SumItem>>>({
-    dimensionsItems: await query.loadSpecies(),
+    speciesItems: await query.loadSpecies(),
     dimensions: query.dimensions.map((item) => item.id),
     dimensionPath: 'root',
     context: root,
