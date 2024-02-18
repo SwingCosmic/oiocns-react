@@ -27,22 +27,22 @@ export class ClosingOptions extends Emitter implements IClosingOptions {
   constructor(financial: IFinancial) {
     super();
     this.financial = financial;
-    this.options = [];
+    this._options = [];
     this.optionsColl = financial.space.resource.genColl('financial-closing-options');
     this.optionsColl.subscribe([this.key], (result) => {
       switch (result.operate) {
         case 'insert':
-          this.options.unshift(result.data);
+          this._options.unshift(result.data);
           break;
         case 'update':
-          this.options.forEach((item) => {
+          this._options.forEach((item) => {
             if (result.data.id == item.id) {
               Object.assign(item, result.data);
             }
           });
           break;
         case 'remove':
-          this.options = this.options.filter((item) => item.id != result.data.id);
+          this._options = this._options.filter((item) => item.id != result.data.id);
           break;
       }
       this.changCallback();
@@ -51,10 +51,13 @@ export class ClosingOptions extends Emitter implements IClosingOptions {
   get key() {
     return this.financial.key + '-closing-options';
   }
-  options: schema.XClosingOption[];
+  _options: schema.XClosingOption[];
   financial: IFinancial;
   optionsColl: XCollection<schema.XClosingOption>;
   optionLoaded: boolean = false;
+  get options() {
+    return this._options.sort().reverse();
+  }
   async loadOptions(
     reload?: boolean | undefined,
     skip = 0,
@@ -62,7 +65,7 @@ export class ClosingOptions extends Emitter implements IClosingOptions {
     if (reload || !this.optionLoaded) {
       this.optionLoaded = true;
       if (skip == 0) {
-        this.options = [];
+        this._options = [];
       }
       const take = 100;
       const res = await this.optionsColl.loadResult({
@@ -71,9 +74,9 @@ export class ClosingOptions extends Emitter implements IClosingOptions {
       });
       if (res.success) {
         if (res.data && res.data.length > 0) {
-          this.options.push(...res.data);
-          if (this.options.length < res.totalCount && res.data.length === take) {
-            await this.loadOptions(true, this.options.length);
+          this._options.push(...res.data);
+          if (this._options.length < res.totalCount && res.data.length === take) {
+            await this.loadOptions(true, this._options.length);
           }
         }
       }
@@ -101,7 +104,7 @@ export class ClosingOptions extends Emitter implements IClosingOptions {
   async remove(option: schema.XClosingOption): Promise<boolean> {
     const result = await this.optionsColl.remove(option);
     if (result) {
-      return await this.optionsColl.notity({ data: result, operate: 'remove' });
+      return await this.optionsColl.notity({ data: option, operate: 'remove' });
     }
     return result;
   }

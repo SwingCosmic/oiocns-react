@@ -46,16 +46,6 @@ const ClosingForm: React.FC<FormProps> = (props: FormProps) => {
   }, []);
   const columns: ProFormColumnsType<schema.XClosingOption>[] = [
     {
-      title: '会计科目代码',
-      dataIndex: 'code',
-      readonly: props.formType === 'update',
-    },
-    {
-      title: '会计科目名称',
-      dataIndex: 'name',
-      readonly: props.formType === 'update',
-    },
-    {
       title: '会计科目字段',
       dataIndex: 'accounting',
       formItemProps: {
@@ -102,10 +92,33 @@ const ClosingForm: React.FC<FormProps> = (props: FormProps) => {
       },
     },
     {
+      title: '会计科目代码',
+      dataIndex: 'code',
+      formItemProps: {
+        rules: [{ required: true, message: '会计科目代码' }],
+      },
+    },
+    {
+      title: '会计科目名称',
+      dataIndex: 'name',
+      formItemProps: {
+        rules: [{ required: true, message: '会计科目名称' }],
+      },
+    },
+    {
       title: '统计字段（原值、累计折旧）',
       dataIndex: 'amount',
       formItemProps: {
-        rules: [{ required: true, message: '分类维度为必填项' }],
+        rules: [{ required: true, message: '统计字段（原值、累计折旧）为必填项' }],
+      },
+      renderFormItem: (_, __, form) => {
+        return (
+          <Input
+            allowClear
+            onClick={() => setNeedType('amount')}
+            value={form.getFieldValue('amount')?.name}
+          />
+        );
       },
     },
     {
@@ -131,6 +144,8 @@ const ClosingForm: React.FC<FormProps> = (props: FormProps) => {
         return ['变更源'];
       case 'amount':
         return ['可记录的'];
+      case 'financial':
+        return ['数值型'];
     }
     return [];
   };
@@ -186,6 +201,7 @@ const ClosingForm: React.FC<FormProps> = (props: FormProps) => {
                   }
                   break;
                 case 'amount':
+                case 'financial':
                   ref.current?.setFieldValue(needType, files[0].metadata);
                   break;
               }
