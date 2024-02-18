@@ -1,5 +1,5 @@
-import { IBelong } from '../..';
-import { common, kernel, schema } from '../../../base';
+import { IBelong } from '../../..';
+import { common, kernel, schema } from '../../../../base';
 
 export type DataMap<T> = Map<string, DataMap<T> | any>;
 
@@ -13,7 +13,7 @@ export interface SummaryParams {
 
 export interface SummaryRecursion<T> {
   dimensions: string[];
-  dimensionsItems: { [key: string]: schema.XSpeciesItem[] };
+  speciesItems: { [key: string]: schema.XSpeciesItem[] };
   dimensionPath: string;
   index?: number;
   context?: T;
@@ -100,7 +100,7 @@ export class Summary implements ISummary {
       return;
     }
     const current = params.dimensions[params.index];
-    const items = params.dimensionsItems[current] ?? [];
+    const items = params.speciesItems[current] ?? [];
     for (const item of items) {
       const next = params.context ? params.buildNext?.(item, params.context) : undefined;
       this.summaryRecursion({
@@ -128,7 +128,7 @@ export class Summary implements ISummary {
         speciesData.set(column.key, summaryData.get(column.key)?.get(value) ?? {});
       }
       this.summaryRecursion<DataMap<any>>({
-        dimensionsItems: params.speciesItems,
+        speciesItems: params.speciesItems,
         dimensions: params.dimensions,
         dimensionPath: 'root',
         context: speciesData,
@@ -164,7 +164,7 @@ export class Summary implements ISummary {
     );
     tree.summary((previous, current) => {
       this.summaryRecursion({
-        dimensionsItems: params.speciesItems,
+        speciesItems: params.speciesItems,
         dimensions: params.dimensions,
         dimensionPath: 'root',
         summary: (path) => {

@@ -1,7 +1,7 @@
-import { IFinancial } from '.';
-import { IBelong, IEntity, XCollection } from '../..';
-import { common, model, schema } from '../../../base';
-import { Entity } from '../../public';
+import { IFinancial } from '..';
+import { IBelong, IEntity, XCollection } from '../../..';
+import { common, model, schema } from '../../../../base';
+import { Entity } from '../../../public';
 import { ISummary, SumItem, Summary } from './summary';
 
 export type DimensionMap<T> = Map<string, DimensionMap<T> | any>;

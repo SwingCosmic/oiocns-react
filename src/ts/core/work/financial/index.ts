@@ -2,10 +2,10 @@ import { IBelong, IForm, XCollection } from '../..';
 import { List, common, kernel, model, schema } from '../../../base';
 import { XObject } from '../../public/object';
 import { Form } from '../../thing/standard/form';
-import { Configuration, IConfiguration } from './config';
+import { Configuration, IConfiguration } from './config/depreciation';
 import { IPeriod, Period } from './period';
-import { IQuery, Query } from './query';
-import { SumItem } from './summary';
+import { IQuery, Query } from './statistics/query';
+import { SumItem } from './statistics/summary';
 
 /** 变动参数 */
 export interface ChangeParams {
