@@ -915,12 +915,12 @@ export interface XConfiguration extends Xbase {
   accruedMonths: XProperty;
   // 使用年限
   usefulLife: XProperty;
+  // 会计科目字段
+  accounting: XProperty;
 }
 
 // 结账科目配置
 export interface XClosingOption extends XEntity {
-  // 会计科目字段
-  accounting: XProperty;
   // 会计科目值
   accountingValue: string;
   // 金额字段（原值、累计折旧）
@@ -933,14 +933,20 @@ export interface XClosingOption extends XEntity {
 export interface XClosing extends XClosingOption {
   // 期数主键
   periodId: string;
-  // 对账状态
-  balanced: boolean;
+  // 会计科目主键
+  accountingId: string;
   // 期初资产账
   assetStartAmount: number;
+  // 增加资产账
+  assetAddAmount: number;
+  // 减少资产账
+  assetSubAmount: number;
   // 期末资产账
   assetEndAmount: number;
   // 期末财务账
   financialAmount: number;
+  // 对账状态
+  balanced: boolean;
 }
 
 // 汇总方案

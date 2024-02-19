@@ -14,12 +14,16 @@ export interface IConfiguration {
   dimensions: model.FieldModel[];
   /** 折旧字段 */
   accumulatedDepreciation: model.FieldModel | undefined;
+  /** 会计科目字段 */
+  accounting: model.FieldModel | undefined;
   /** 加载内容 */
   loadContent(): Promise<void>;
   /** 检查折旧配置 */
   checkConfig(): void;
   /** 设置元数据 */
   setMetadata(config: schema.XConfiguration): Promise<void>;
+  /** 设置会计科目字段 */
+  setAccounting(prop: schema.XProperty): Promise<void>;
   /** 加载分类 */
   loadSpecies(reload?: boolean): Promise<{ [key: string]: schema.XSpeciesItem[] }>;
 }
@@ -51,6 +55,14 @@ export class Configuration implements IConfiguration {
         }
       : undefined;
   }
+  get accounting() {
+    return this.metadata?.accounting
+      ? {
+          ...this.metadata.accounting,
+          id: 'T' + this.metadata.accounting.id,
+        }
+      : undefined;
+  }
   async loadContent(): Promise<void> {
     const config = await this.cache.get<schema.XConfiguration>('');
     if (config) {
@@ -58,6 +70,13 @@ export class Configuration implements IConfiguration {
     }
     this.cache.subscribe('average', (res: schema.XConfiguration) => {
       this.metadata = res;
+      this.financial.changCallback();
+    });
+    this.cache.subscribe('accounting', (res: schema.XProperty) => {
+      if (!this.metadata) {
+        this.metadata = {} as schema.XConfiguration;
+      }
+      this.metadata.accounting = res;
       this.financial.changCallback();
     });
   }
@@ -88,14 +107,17 @@ export class Configuration implements IConfiguration {
       await this.cache.notity('average', config, true, false);
     }
   }
+  async setAccounting(prop: schema.XProperty): Promise<void> {
+    if (await this.cache.set('accounting', prop)) {
+      await this.cache.notity('accounting', prop, true, false);
+    }
+  }
   async loadSpecies(
     reload: boolean = false,
   ): Promise<{ [key: string]: schema.XSpeciesItem[] }> {
     if (!this.speciesLoaded || reload) {
       this.speciesLoaded = true;
-      const speciesIds = this.metadata?.dimensions.map(
-        (item) => item.speciesId,
-      );
+      const speciesIds = this.metadata?.dimensions.map((item) => item.speciesId);
       this.speciesItems = await this.financial.loadSpecies(speciesIds ?? []);
     }
     return this.speciesItems;

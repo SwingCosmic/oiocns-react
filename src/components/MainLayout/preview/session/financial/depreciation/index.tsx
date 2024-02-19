@@ -8,6 +8,7 @@ import { Button, Progress, Table, Tag } from 'antd';
 import moment from 'moment';
 import React, { useEffect, useState } from 'react';
 import { DepreciationTemplate } from './template';
+import '../index.less';
 import { SumItem } from '@/ts/core/work/financial/statistics/summary';
 
 interface IProps {

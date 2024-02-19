@@ -78,7 +78,7 @@ export interface IFinancial extends common.Emitter {
   /** 创建查询 */
   createQuery(metadata: schema.XQuery): Promise<schema.XQuery | undefined>;
   /** 生成账期 */
-  createPeriod(period: string): Promise<void>;
+  createPeriod(period: string): Promise<schema.XPeriod | undefined>;
   /** 生成快照 */
   createSnapshots(period: string): Promise<void>;
 }
@@ -98,8 +98,8 @@ export class Financial extends common.Emitter implements IFinancial {
     );
     this.changeColl = this.space.resource.genColl('_system-things-changed');
     this.periodColl = this.space.resource.genColl('financial-period');
-    this.queryColl = this.space.resource.genColl('data-query');
-    this.periodColl.subscribe([this.key + '-period'], (result) => {
+    this.queryColl = this.space.resource.genColl('financial-query');
+    this.periodColl.subscribe([this.key + '-period'], async (result) => {
       switch (result.operate) {
         case 'insert':
           this.periods.unshift(new Period(result.data, this));
@@ -233,6 +233,8 @@ export class Financial extends common.Emitter implements IFinancial {
     }
     const change = this.space.resource.genColl('_system-things-changed');
     change.removeMatch({});
+    const closings = this.space.resource.genColl('financial-closings');
+    closings.removeMatch({});
   }
   async createQuery(metadata: schema.XQuery): Promise<schema.XQuery | undefined> {
     const result = await this.queryColl.insert({
@@ -356,15 +358,17 @@ export class Financial extends common.Emitter implements IFinancial {
     }
     return res;
   }
-  async createPeriod(period: string): Promise<void> {
+  async createPeriod(period: string): Promise<schema.XPeriod | undefined> {
     const result = await this.periodColl.insert({
       period: period,
       depreciated: false,
       closed: false,
     } as schema.XPeriod);
     if (result) {
+      await this.closingOptions.generatePeriodOptions(result.id);
       await this.periodColl.notity({ data: result, operate: 'insert' });
     }
+    return result;
   }
   getOffsetPeriod(period: string, offsetMonth: number): string {
     const currentMonth = new Date(period);

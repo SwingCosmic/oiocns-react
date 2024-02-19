@@ -1,12 +1,13 @@
 import { DatePicker } from '@/components/Common/StringDatePickers/DatePicker';
+import { XClosing } from '@/ts/base/schema';
 import { IFinancial } from '@/ts/core';
 import { IPeriod } from '@/ts/core/work/financial/period';
-import { Button, Tag } from 'antd';
+import { Button, Table, Tag } from 'antd';
 import moment from 'moment';
 import React, { useEffect, useState } from 'react';
-import { useEffectOnce } from 'react-use';
-import './index.less';
+import '../index.less';
 import { ClosingTemplate } from './template';
+import { formatNumber } from '@/utils';
 
 interface IProps {
   financial: IFinancial;
@@ -14,19 +15,16 @@ interface IProps {
 }
 
 export const Closing: React.FC<IProps> = ({ financial, current }) => {
-  const [loading, setLoading] = useState(false);
-
   const [period, setPeriod] = useState(current);
   const [closed, setClosed] = useState(current.closed);
   const [center, setCenter] = useState(<></>);
+  const [data, setData] = useState(current.closings);
 
-  async function init() {}
+  async function loadData() {
+    setData(await current.loadClosings());
+    await current.closingSummary();
+  }
 
-  async function loadData() {}
-
-  useEffectOnce(() => {
-    init();
-  });
   useEffect(() => {
     loadData();
   }, [period]);
@@ -40,7 +38,6 @@ export const Closing: React.FC<IProps> = ({ financial, current }) => {
             <Tag color={closed ? 'green' : 'red'}>{closed ? '已结账' : '未结账'}</Tag>
             <div className="flex-auto"></div>
             <Button
-              loading={loading}
               onClick={() =>
                 setCenter(
                   <ClosingTemplate
@@ -51,6 +48,18 @@ export const Closing: React.FC<IProps> = ({ financial, current }) => {
                 )
               }>
               月结模板配置
+            </Button>
+            <Button
+              onClick={() =>
+                setCenter(
+                  <ClosingTemplate
+                    financial={financial}
+                    onFinished={() => setCenter(<></>)}
+                    onCancel={() => setCenter(<></>)}
+                  />,
+                )
+              }>
+              试算平衡
             </Button>
             <div>期间</div>
             <DatePicker
@@ -78,7 +87,90 @@ export const Closing: React.FC<IProps> = ({ financial, current }) => {
                 return false;
               }}
             />
+            <Button onClick={() => loadData()}>刷新</Button>
           </div>
+          <Table<XClosing>
+            rowKey={'id'}
+            sticky
+            columns={[
+              {
+                title: '会计科目代码',
+                dataIndex: 'code',
+              },
+              {
+                title: '会计科目名称',
+                dataIndex: 'name',
+              },
+              {
+                title: '期初值',
+                align: 'right',
+                children: [
+                  {
+                    title: '资产账',
+                    dataIndex: 'assetStartAmount',
+                    align: 'right',
+                    render: (_, row) => {
+                      return formatNumber(row.assetStartAmount ?? 0, 2, true);
+                    },
+                  },
+                ],
+              },
+              {
+                title: '本期增加',
+                align: 'right',
+                dataIndex: 'assetStartAmount',
+                render: (_, row) => {
+                  return formatNumber(row.assetStartAmount ?? 0, 2, true);
+                },
+              },
+              {
+                title: '本期减少',
+                align: 'right',
+                dataIndex: 'assetSubAmount',
+                render: (_, row) => {
+                  return formatNumber(row.assetSubAmount ?? 0, 2, true);
+                },
+              },
+              {
+                title: '期末值',
+                children: [
+                  {
+                    title: '资产账',
+                    dataIndex: 'assetEndAmount',
+                    align: 'right',
+                    render: (_, row) => {
+                      return formatNumber(row.assetEndAmount ?? 0, 2, true);
+                    },
+                  },
+                  {
+                    title: '财务账',
+                    dataIndex: 'financialAmount',
+                    align: 'right',
+                    render: (_, row) => {
+                      return formatNumber(row.financialAmount ?? 0, 2, true);
+                    },
+                  },
+                ],
+              },
+              {
+                title: '对账状态',
+                align: 'center',
+                dataIndex: 'balanced',
+                render: (value) => {
+                  return value ? (
+                    <Tag color="green">已平</Tag>
+                  ) : (
+                    <Tag color="red">未平</Tag>
+                  );
+                },
+              },
+            ]}
+            pagination={false}
+            bordered
+            size="small"
+            dataSource={data}
+            scroll={{ y: 'calc(100%)' }}
+          />
         </div>
       </div>
       {center}

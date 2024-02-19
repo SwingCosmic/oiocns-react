@@ -100,7 +100,7 @@ export const DepreciationTemplate: React.FC<TemplateProps> = (props) => {
       }}>
       <AntForm<schema.XConfiguration>
         form={form}
-        initialValues={props.financial.configuration}>
+        initialValues={props.financial.configuration.metadata}>
         <Card title="平均年限法">
           <Card title={'公式定义'}>
             <Space direction="vertical">

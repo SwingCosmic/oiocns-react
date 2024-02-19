@@ -113,10 +113,13 @@ export class Summary implements ISummary {
   }
   async summaries(params: SummaryColumns): Promise<common.Tree<SumItem>> {
     const summaryData: DataMap<any> = new Map();
-    for (const column of params.columns) {
-      const data = await this.summary(column.params);
-      summaryData.set(column.key, data);
-    }
+    await Promise.all(
+      params.columns.map((column) => {
+        return this.summary(column.params).then((res) =>
+          summaryData.set(column.key, res),
+        );
+      }),
+    );
 
     const nodes: SumItem[] = [];
     const speciesItems = params.speciesItems[params.speciesId] ?? [];

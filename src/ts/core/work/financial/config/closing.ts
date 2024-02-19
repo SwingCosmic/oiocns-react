@@ -1,10 +1,8 @@
 import { schema } from '@/ts/base';
 import { IFinancial } from '..';
 import { XCollection } from '@/utils/excel';
-import { Emitter } from '@/ts/base/common';
-import { IPeriod } from '../period';
 
-export interface IClosingOptions extends Emitter {
+export interface IClosingOptions {
   /** 元数据 */
   options: schema.XClosingOption[];
   /** 财务 */
@@ -20,15 +18,15 @@ export interface IClosingOptions extends Emitter {
   /** 删除一个科目 */
   remove(option: schema.XClosingOption): Promise<boolean>;
   /** 生成账期科目 */
-  generatePeriodOptions(period: IPeriod): Promise<schema.XClosing[]>;
+  generatePeriodOptions(periodId: string): Promise<schema.XClosing[]>;
 }
 
-export class ClosingOptions extends Emitter implements IClosingOptions {
+export class ClosingOptions implements IClosingOptions {
   constructor(financial: IFinancial) {
-    super();
     this.financial = financial;
     this._options = [];
     this.optionsColl = financial.space.resource.genColl('financial-closing-options');
+    this.closingsColl = financial.space.resource.genColl('financial-closings');
     this.optionsColl.subscribe([this.key], (result) => {
       switch (result.operate) {
         case 'insert':
@@ -45,7 +43,7 @@ export class ClosingOptions extends Emitter implements IClosingOptions {
           this._options = this._options.filter((item) => item.id != result.data.id);
           break;
       }
-      this.changCallback();
+      this.financial.changCallback();
     });
   }
   get key() {
@@ -55,6 +53,7 @@ export class ClosingOptions extends Emitter implements IClosingOptions {
   financial: IFinancial;
   optionsColl: XCollection<schema.XClosingOption>;
   optionLoaded: boolean = false;
+  closingsColl: XCollection<schema.XClosing>;
   get options() {
     return this._options.sort().reverse();
   }
@@ -108,20 +107,25 @@ export class ClosingOptions extends Emitter implements IClosingOptions {
     }
     return result;
   }
-  async generatePeriodOptions(period: IPeriod): Promise<schema.XClosing[]> {
+  async generatePeriodOptions(periodId: string): Promise<schema.XClosing[]> {
     await this.loadOptions();
-    return this.options.map((item) => {
-      return {
-        accounting: item.accounting,
-        accountingValue: item.accountingValue,
-        amount: item.amount,
-        financial: item.financial,
-        periodId: period.id,
-        balanced: false,
-        assetStartAmount: 0,
-        assetEndAmount: 0,
-        financialAmount: 0,
-      } as schema.XClosing;
-    });
+    return this.closingsColl.insertMany(
+      this.options.map((item) => {
+        return {
+          code: item.code,
+          name: item.name,
+          accountingValue: item.accountingValue,
+          amount: item.amount,
+          financial: item.financial,
+          periodId: periodId,
+          balanced: false,
+          assetStartAmount: 0,
+          assetAddAmount: 0,
+          assetSubAmount: 0,
+          assetEndAmount: 0,
+          financialAmount: 0,
+        } as schema.XClosing;
+      }),
+    );
   }
 }

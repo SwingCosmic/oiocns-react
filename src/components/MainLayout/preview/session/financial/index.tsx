@@ -38,9 +38,8 @@ const Financial: React.FC<IProps> = ({ financial }) => {
               onClick={async () => {
                 setLoading(true);
                 await financial.createSnapshots(metadata.initialized!);
-                await financial.createPeriod(
-                  financial.getOffsetPeriod(metadata.initialized!, 1),
-                );
+                const next = financial.getOffsetPeriod(metadata.initialized!, 1);
+                await financial.createPeriod(next);
                 setLoading(false);
               }}>
               生成期初账期

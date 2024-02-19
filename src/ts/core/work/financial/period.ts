@@ -59,6 +59,8 @@ export interface IPeriod extends IEntity<schema.XPeriod> {
   loadMetadata(): Promise<schema.XPeriod | undefined>;
   /** 折旧统计 */
   depreciationSummary(species: schema.XProperty): Promise<common.Tree<SumItem>>;
+  /** 月结统计 */
+  closingSummary(): Promise<schema.XClosing[]>;
 }
 
 export class Period extends Entity<schema.XPeriod> implements IPeriod {
@@ -239,5 +241,89 @@ export class Period extends Entity<schema.XPeriod> implements IPeriod {
         },
       ],
     });
+  }
+  async closingSummary(): Promise<schema.XClosing[]> {
+    const accounting = this.financial.configuration.metadata?.accounting;
+    if (!accounting) {
+      throw new Error('未配置会计科目！');
+    }
+    const result: schema.XClosing[] = [];
+    const closings = await this.loadClosings();
+    const speciesItems = await this.financial.loadSpeciesItems(accounting.speciesId);
+    const start = this.financial.getOffsetPeriod(this.period, -1);
+    for (const item of common.deepClone(closings)) {
+      const amountId = "T" + item.amount.id;
+      const answer = await this.summary.summaries({
+        speciesId: accounting.speciesId,
+        speciesItems: { [accounting.speciesId]: speciesItems },
+        dimensions: [],
+        fields: [amountId],
+        columns: [
+          {
+            key: 'current',
+            title: '期初',
+            params: {
+              collName: '_system-things_' + start,
+              match: {
+                belongId: this.space.id,
+                [accounting.id]: item.id,
+              },
+              dimensions: [],
+              sumFields: [amountId],
+              limit: speciesItems.length,
+            },
+          },
+          {
+            key: 'plus',
+            title: '本期增加',
+            params: {
+              collName: '_system-things-changed',
+              match: {
+                belongId: this.space.id,
+                propId: amountId,
+                changeTime: this.period,
+                [accounting.id]: item.id,
+                symbol: 1,
+              },
+              dimensions: [],
+              sumFields: ['change'],
+              limit: speciesItems.length,
+            },
+          },
+          {
+            key: 'minus',
+            title: '本期减少',
+            params: {
+              collName: '_system-things-changed',
+              match: {
+                belongId: this.space.id,
+                propId: amountId,
+                changeTime: this.period,
+                symbol: -1,
+              },
+              dimensions: [],
+              sumFields: ['change'],
+              limit: speciesItems.length,
+            },
+          },
+          {
+            key: 'end',
+            title: '期末',
+            params: {
+              collName: '_system-things',
+              match: {
+                belongId: this.space.id,
+                [accounting.id]: item.id,
+              },
+              dimensions: [],
+              sumFields: [amountId],
+              limit: speciesItems.length,
+            },
+          },
+        ],
+      });
+      console.log(answer);
+    } 
+    return result;
   }
 }

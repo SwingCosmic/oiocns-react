@@ -3,17 +3,19 @@ import SchemaForm from '@/components/SchemaForm';
 import { schema } from '@/ts/base';
 import { IFinancial } from '@/ts/core';
 import { IClosingOptions } from '@/ts/core/work/financial/config/closing';
+import { IConfiguration } from '@/ts/core/work/financial/config/depreciation';
 import {
   ProFormColumnsType,
   ProFormInstance,
   ProTable,
 } from '@ant-design/pro-components';
-import { Button, Input, Select, Space } from 'antd';
+import { Button, Input, Modal, Select, Space, Tag } from 'antd';
 import React, { useEffect, useRef, useState } from 'react';
 import { FullScreen } from '..';
 
 interface FormProps {
   closingOptions: IClosingOptions;
+  accounting: schema.XProperty;
   current: schema.XClosingOption | undefined;
   formType: string;
   finished: () => void;
@@ -35,12 +37,8 @@ const ClosingForm: React.FC<FormProps> = (props: FormProps) => {
   }
   useEffect(() => {
     if (props.formType === 'update') {
-      if (
-        props.current &&
-        props.current.accounting &&
-        props.current.accounting.speciesId
-      ) {
-        loadSpeciesItems(props.current.accounting.speciesId);
+      if (props.accounting.speciesId) {
+        loadSpeciesItems(props.accounting.speciesId);
       }
     }
   }, []);
@@ -214,6 +212,43 @@ const ClosingForm: React.FC<FormProps> = (props: FormProps) => {
   );
 };
 
+interface AccountingProps {
+  configuration: IConfiguration;
+  finished: () => void;
+}
+
+const AccountingForm: React.FC<AccountingProps> = (props: AccountingProps) => {
+  const [center, setCenter] = useState(<></>);
+  return (
+    <>
+      <Modal title="绑定" open>
+        <Input
+          allowClear
+          placeholder="请绑定会计科目字段"
+          onClick={() => {
+            setCenter(
+              <OpenFileDialog
+                accepts={['变更源']}
+                rootKey={props.configuration.financial.space.directory.spaceKey}
+                onOk={(files) => {
+                  if (files.length > 0) {
+                    const result = files[0].metadata as schema.XProperty;
+                    props.configuration.setAccounting(result);
+                    props.finished();
+                  }
+                  setCenter(<></>);
+                }}
+                onCancel={() => setCenter(<></>)}
+              />,
+            );
+          }}
+        />
+      </Modal>
+      {center}
+    </>
+  );
+};
+
 interface TemplateProps {
   financial: IFinancial;
   onFinished?: () => void;
@@ -223,15 +258,41 @@ interface TemplateProps {
 export const ClosingTemplate: React.FC<TemplateProps> = (props) => {
   const [center, setCenter] = useState(<></>);
   const [data, setData] = useState(props.financial.closingOptions.options);
+  const [accounting, setAccounting] = useState(
+    props.financial.configuration.metadata?.accounting,
+  );
   useEffect(() => {
-    const id = props.financial.closingOptions.subscribe(async () => {
-      const data = await props.financial.closingOptions.loadOptions();
-      setData([...data]);
+    const id = props.financial.closingOptions.financial.subscribe(async () => {
+      setData([...(await props.financial.closingOptions.loadOptions())]);
+      setAccounting(props.financial.configuration.metadata?.accounting);
     });
     return () => {
-      props.financial.closingOptions.unsubscribe(id);
+      props.financial.closingOptions.financial.unsubscribe(id);
     };
   }, []);
+  const openForm = (
+    accounting: schema.XProperty,
+    formType: string,
+    current?: schema.XClosingOption,
+  ) => {
+    setCenter(
+      <ClosingForm
+        accounting={accounting}
+        closingOptions={props.financial.closingOptions}
+        current={current}
+        formType={formType}
+        finished={() => setCenter(<></>)}
+      />,
+    );
+  };
+  const openAccountingForm = () => {
+    setCenter(
+      <AccountingForm
+        configuration={props.financial.configuration}
+        finished={() => setCenter(<></>)}
+      />,
+    );
+  };
   return (
     <>
       <FullScreen
@@ -239,17 +300,21 @@ export const ClosingTemplate: React.FC<TemplateProps> = (props) => {
         onFinished={props.onFinished}
         onCancel={props.onCancel}>
         <div style={{ width: '100%', textAlign: 'right' }}>
-          <Space align="end">
+          <Space>
+            {accounting ? <Tag color="green">已绑定</Tag> : <Tag color="red">未绑定</Tag>}
             <Button
               onClick={() => {
-                setCenter(
-                  <ClosingForm
-                    closingOptions={props.financial.closingOptions}
-                    current={undefined}
-                    formType={'new'}
-                    finished={() => setCenter(<></>)}
-                  />,
-                );
+                openAccountingForm();
+              }}>
+              绑定会计分类字段
+            </Button>
+            <Button
+              onClick={() => {
+                if (accounting) {
+                  openForm(accounting, 'new', undefined);
+                } else {
+                  openAccountingForm();
+                }
               }}>
               新增
             </Button>
@@ -293,14 +358,11 @@ export const ClosingTemplate: React.FC<TemplateProps> = (props) => {
                   <Space>
                     <a
                       onClick={() => {
-                        setCenter(
-                          <ClosingForm
-                            closingOptions={props.financial.closingOptions}
-                            current={row}
-                            formType={'update'}
-                            finished={() => setCenter(<></>)}
-                          />,
-                        );
+                        if (accounting) {
+                          openForm(accounting, 'update', row);
+                        } else {
+                          openAccountingForm();
+                        }
                       }}>
                       修改
                     </a>
