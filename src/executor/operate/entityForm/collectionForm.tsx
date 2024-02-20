@@ -124,7 +124,10 @@ export const CollectionTable: React.FC<TableProps> = (props) => {
           request={async (params) => {
             const take = params.pageSize ?? 10;
             const skip = ((params.current ?? 1) - 1) * take;
-            const result = await props.space.activated?.dataManager.loadColl(take, skip);
+            const result = await props.space.activated?.dataManager.loadDefinedColl({
+              take,
+              skip,
+            });
             return {
               data: result?.data ?? [],
               success: result?.success,

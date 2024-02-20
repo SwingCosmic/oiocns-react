@@ -955,7 +955,26 @@ export type Executor = {
   changes: FormChange[];
   // 请求地址
   hookUrl: string;
+  // 归属空间（数据申领）
+  belongId: string;
+  // 数据申领
+  acquires: Acquire[];
 };
+
+export type Acquire = {
+  // 主键
+  id: string;
+  // 类型
+  typeName: string;
+  // 集合名称
+  coll: string;
+  // 对象键值
+  objects: string[];
+  // 表单键值
+  forms: string[];
+  // 标签
+  tags: string[];
+}
 
 export type FormChange = {
   // 主键

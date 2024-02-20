@@ -12,6 +12,9 @@ export class Acquire extends Executor {
    * 执行器
    */
   async execute(): Promise<boolean> {
+    if (!this.metadata.belongId) {
+      throw new Error("未设置数据源单位，迁移失败，请联系办事配置人员修改！");
+    }
     await this.task.loadInstance();
     const work = await this.task.findWorkById(this.task.taskdata.defineId);
     if (work) {
@@ -138,8 +141,8 @@ export class Acquire extends Executor {
       filter: ['belongId', '=', this.task.taskdata.applyId],
     };
     return await kernel.loadThing(
-      work.application.belongId,
-      [this.task.taskdata.applyId, work.application.directory.target.id],
+      this.metadata.belongId,
+      [this.task.taskdata.applyId, work.directory.target.id, this.metadata.belongId],
       loadOptions,
     );
   }

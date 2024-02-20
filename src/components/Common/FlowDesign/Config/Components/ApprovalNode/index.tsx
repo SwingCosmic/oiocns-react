@@ -298,7 +298,6 @@ const ApprovalNode: React.FC<IProps> = (props) => {
       {executorModal ? (
         <ExecutorConfigModal
           refresh={(param) => {
-            console.log('params', param);
             if (param) {
               executors.push({
                 id: getUuid(),
@@ -306,6 +305,8 @@ const ApprovalNode: React.FC<IProps> = (props) => {
                 funcName: param.funcName,
                 changes: [],
                 hookUrl: '',
+                belongId: props.belong.id,
+                acquires: [],
               });
               setExecutors([...executors]);
               props.current.executors = executors;

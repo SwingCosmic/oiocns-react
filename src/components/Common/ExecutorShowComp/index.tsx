@@ -1,17 +1,19 @@
+import FormItem from '@/components/DataStandard/WorkForm/Viewer/formItem';
 import SchemaForm from '@/components/SchemaForm';
 import { model, schema } from '@/ts/base';
+import { Emitter, deepClone } from '@/ts/base/common';
+import { FieldModel } from '@/ts/base/model';
 import { IWork } from '@/ts/core';
+import { ShareIdSet } from '@/ts/core/public/entity';
 import { ProFormInstance } from '@ant-design/pro-form';
 import ProTable from '@ant-design/pro-table';
-import { Button, Card, Checkbox, Empty, Input, Modal, Space } from 'antd';
+import { Button, Card, Checkbox, Empty, Input, Modal, Space, Transfer } from 'antd';
+import { TransferItem } from 'antd/lib/transfer';
 import { SelectBox } from 'devextreme-react';
 import React, { ReactNode, useEffect, useRef, useState } from 'react';
 import { AiOutlineCloseCircle } from 'react-icons/ai';
+import EntityIcon from '../GlobalComps/entityIcon';
 import cls from './index.module.less';
-import { Emitter, deepClone } from '@/ts/base/common';
-import FormItem from '@/components/DataStandard/WorkForm/Viewer/formItem';
-import { ShareIdSet } from '@/ts/core/public/entity';
-import { FieldModel } from '@/ts/base/model';
 
 interface IProps {
   work: IWork;
@@ -30,9 +32,12 @@ const ExecutorShowComp: React.FC<IProps> = (props) => {
           switch (item.funcName) {
             case '数据申领':
               return (
-                <Common key={index} executor={item} deleteFuc={props.deleteFuc}>
-                  用于子单位向群管理单位申领数据使用
-                </Common>
+                <Acquire
+                  key={index}
+                  executor={item}
+                  deleteFuc={props.deleteFuc}
+                  work={props.work}
+                />
               );
             case '归属权变更':
               return (
@@ -60,10 +65,13 @@ const ExecutorShowComp: React.FC<IProps> = (props) => {
   );
 };
 
-interface ExecutorProps {
+interface CommonProps {
   executor: model.Executor;
   deleteFuc: (id: string) => void;
-  children?: ReactNode;
+}
+
+interface ExecutorProps extends CommonProps {
+  children?: ReactNode | ReactNode[];
   extra?: ReactNode[];
 }
 
@@ -84,6 +92,76 @@ const Common: React.FC<ExecutorProps> = (props) => {
       }>
       {props.children}
     </Card>
+  );
+};
+
+interface AcquireProps extends CommonProps {
+  work: IWork;
+}
+
+const Acquire: React.FC<AcquireProps> = (props) => {
+  const [center, setCenter] = useState(<></>);
+  return (
+    <Common executor={props.executor} deleteFuc={props.deleteFuc}>
+      <Space direction="vertical">
+        用于子单位向群管理单位申领数据使用
+        <Space>
+          <span>数据源单位</span>
+          <EntityIcon entityId={props.executor.belongId} showName />
+          <Button
+            size="small"
+            onClick={() =>
+              setCenter(<Configuration {...props} finished={() => setCenter(<></>)} />)
+            }>
+            配置
+          </Button>
+        </Space>
+      </Space>
+      {center}
+    </Common>
+  );
+};
+
+interface ConfigurationProps extends AcquireProps {
+  finished: () => void;
+}
+
+const Configuration: React.FC<ConfigurationProps> = (props) => {
+  const [targetKeys, setTargetKeys] = useState<string[]>([]);
+  const [data, setData] = useState<TransferItem[]>([]);
+  const loadData = async () => {
+    const activated = props.work.directory.target.space.activated;
+    if (activated) {
+      const belongId = props.executor.belongId;
+      const data = (await activated.dataManager.loadCollections(belongId)).map((item) => {
+        return {
+          key: item,
+          title: item,
+          description: item,
+          disabled: false,
+        } as TransferItem;
+      });
+      setData(data);
+    }
+  };
+  useEffect(() => {
+    loadData();
+  }, []);
+  return (
+    <Modal width={1200} title={'迁移配置'} open onCancel={props.finished}>
+      <Transfer
+        listStyle={{ width: '100%', height: '60%' }}
+        dataSource={data}
+        titles={['原集合', '待迁移集合']}
+        targetKeys={targetKeys}
+        render={(item) => {
+          return <span>{item.title}</span>;
+        }}
+        onChange={(data) => {
+          setTargetKeys(data);
+        }}
+      />
+    </Modal>
   );
 };
 

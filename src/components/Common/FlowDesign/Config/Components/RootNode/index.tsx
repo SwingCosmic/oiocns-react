@@ -54,7 +54,7 @@ const RootNode: React.FC<IProps> = (props) => {
               { text: '默认', value: '默认' },
               { text: '选择', value: '选择' },
               { text: '列表', value: '列表' },
-              { text: '财务', value: "财务"}
+              { text: '财务', value: '财务' },
             ]}
             displayExpr={'text'}
             valueExpr={'value'}
@@ -241,6 +241,8 @@ const RootNode: React.FC<IProps> = (props) => {
                   funcName: param.funcName,
                   changes: [],
                   hookUrl: '',
+                  belongId: props.belong.id,
+                  acquires: [],
                 });
                 setExecutors([...executors]);
                 props.current.executors = executors;

@@ -47,8 +47,14 @@ export class StandardFiles {
     if (this.directory.parent === undefined) {
       subscribeNotity(this.directory);
     }
-    (window as any).batchUpdateFormCollection = (a: any,b: any) => this.batchUpdateFormCollection(a,b);
-    (window as any).updateFormPropertiesByFormCodes = (a: any) => this.updateFormPropertiesByFormCodes(a);
+    (window as any).batchUpdateFormCollection = {
+      ...(window as any).batchUpdateFormCollection,
+      [this.directory.target.space.name]: (a: any, b: any) => this.batchUpdateFormCollection(a, b),
+    };
+    (window as any).updateFormPropertiesByFormCodes = {
+      ...(window as any).updateFormPropertiesByFormCodes,
+      [this.directory.target.space.name]: () => this.updateFormPropertiesByFormCodes(),
+    };
   }
   get id(): string {
     return this.directory.directoryId;
@@ -89,48 +95,53 @@ export class StandardFiles {
     return this.forms;
   }
 
-  async batchUpdateFormCollection(formCodes: string[], collection: string = "formdata-business") {
+  async batchUpdateFormCollection(
+    formCodes: string[],
+    collection: string = 'formdata-business',
+  ) {
     const res = await this.resource.formColl.loadSpace({
       options: {
         match: {
           code: {
-            _in_: formCodes
-          }
+            _in_: formCodes,
+          },
         },
-      }
+      },
     });
-    console.warn("forms:", res)
-    const ids = res.map(f => f.id);
+    console.warn('forms:', res);
+    const ids = res.map((f) => f.id);
     await this.resource.formColl.updateMany(ids, {
-      _set_: { 
-        collName: collection
+      _set_: {
+        collName: collection,
       },
     });
   }
 
-  async updateFormPropertiesByFormCodes(formCodes: string[]) {
-    const forms = await this.resource.formColl.loadSpace({
-      options: {
-        match: {
-          code: {
-            _in_: formCodes
-          }
-        },
+  async updateFormPropertiesByFormCodes() {
+    let skip = 0, take = 5;
+    while(true) {
+      const forms = await this.resource.formColl.loadSpace({
+        take: take,
+        skip: skip,
+      });
+      if (forms.length == 0) {
+        break;
       }
-    });
-    await this.updateFormProperties(forms);
+      await this.updateFormProperties(forms);
+      skip += take;
+    }   
   }
 
   async updateFormProperties(forms: XForm[]) {
-    const propertyIds = forms.flatMap(f => f.attributes.map(a => a.propId), 1);
+    const propertyIds = forms.flatMap((f) => f.attributes.map((a) => a.propId), 1);
     const properties = await this.resource.propertyColl.loadSpace({
       options: {
-        match: { 
+        match: {
           id: {
-            _in_: propertyIds
-          }
+            _in_: propertyIds,
+          },
         },
-      }
+      },
     });
     const map = properties.reduce<Dictionary<XProperty>>((a, v) => {
       a[v.id] = v;
@@ -141,16 +152,15 @@ export class StandardFiles {
       for (const attr of form.attributes) {
         let p = map[attr.propId];
         if (!p) {
-          attr.name += "（属性已删除）";
+          attr.name += '（属性已删除）';
         } else {
           attr.property = p;
         }
       }
+      await this.resource.formColl.replace(form);
+      console.log(form);
     }
-
-    await this.resource.formColl.replaceMany(forms);
   }
-
 
   async loadPropertys(reload: boolean = false): Promise<IProperty[]> {
     if (this.propertysLoaded === false || reload) {
@@ -294,7 +304,6 @@ export class StandardFiles {
       ...data,
       directoryId: this.id,
     });
-    console.log(result)
     if (result) {
       await this.resource.reportTreeColl.notity({ data: result, operate: 'insert' });
       return result;
