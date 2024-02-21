@@ -1,10 +1,11 @@
 import FormItem from '@/components/DataStandard/WorkForm/Viewer/formItem';
+import OpenFileDialog from '@/components/OpenFileDialog';
 import SchemaForm from '@/components/SchemaForm';
+import { CollectionTable } from '@/executor/operate/entityForm/collectionForm';
 import { model, schema } from '@/ts/base';
-import { Emitter, deepClone } from '@/ts/base/common';
+import { Emitter, deepClone, generateUuid } from '@/ts/base/common';
 import { FieldModel } from '@/ts/base/model';
 import { IWork } from '@/ts/core';
-import { collections } from '@/ts/core/public/consts';
 import { ShareIdSet } from '@/ts/core/public/entity';
 import { ProFormInstance } from '@ant-design/pro-form';
 import ProTable from '@ant-design/pro-table';
@@ -16,9 +17,7 @@ import {
   Input,
   Modal,
   Space,
-  Tag,
-  Transfer,
-  Tree,
+  Table
 } from 'antd';
 import { SelectBox } from 'devextreme-react';
 import React, { ReactNode, useEffect, useRef, useState } from 'react';
@@ -138,51 +137,277 @@ interface ConfigurationProps extends AcquireProps {
 }
 
 const Configuration: React.FC<ConfigurationProps> = (props) => {
-  const [targetKeys, setTargetKeys] = useState<string[]>([]);
-  return (
-    <Modal
-      width={1200}
-      bodyStyle={{ height: '60vh' }}
-      title={'迁移配置'}
-      open
-      onCancel={props.finished}>
-      <Transfer
-        style={{ height: '100%' }}
-        titles={['数据源', '已配置数据源']}
-        targetKeys={targetKeys}
-        render={(item) => item.title ?? ''}
-        onChange={(data) => setTargetKeys(data)}>
-        {({ direction }) => {
-          if (direction == 'left') {
-            return (
-              <Tree
-                style={{ height: '50vh', overflow: 'scroll' }}
-                defaultExpandAll
-                treeData={collections}
-                checkable
-                titleRender={(node: any) => {
-                  const tags: ReactNode[] = [];
-                  if (node.disabled) {
-                    tags.push(<Tag color="red">关闭的</Tag>);
-                  }
-                  if (node.tags && Array.isArray(node.tags)) {
-                    for (const tag of node.tags) {
-                      tags.push(<Tag color="green">{tag}</Tag>);
-                    }
-                  }
-                  return (
-                    <Space>
-                      <span>{`${node.title}（${node.key}）`}</span>
-                      {...tags}
-                    </Space>
-                  );
-                }}
-              />
-            );
+  const [acquires, setAcquires] = useState(props.executor.acquires ?? []);
+  const [center, setCenter] = useState(<></>);
+  const updateChecked = (id: string, checked: boolean) => {
+    const acquire = props.executor.acquires.find((item) => item.id == id);
+    if (acquire) {
+      acquire.enable = checked;
+      setAcquires([...props.executor.acquires]);
+    }
+  };
+  const openSelect = (typeName: string, accepts: string[], multiple: boolean = false) => {
+    setCenter(
+      <OpenFileDialog
+        accepts={accepts}
+        rootKey={props.work.directory.spaceKey}
+        excludeIds={acquires.map((item) => item.id)}
+        multiple={multiple}
+        onOk={(files) => {
+          if (files.length > 0) {
+            const file = files[0];
+            const acquire: model.Acquire = {
+              id: file.id,
+              typeName: typeName,
+              code: file.code,
+              name: file.name,
+              enable: true,
+            };
+            props.executor.acquires.push(acquire);
+            setAcquires([...props.executor.acquires]);
           }
+          setCenter(<></>);
         }}
-      </Transfer>
-    </Modal>
+        onCancel={() => setCenter(<></>)}
+      />,
+    );
+  };
+  const openCollection = (typeName: string) => {
+    setCenter(
+      <CollectionTable
+        multiple={true}
+        space={props.work.directory.target.space}
+        finished={(coll) => {
+          console.log(coll);
+          if (coll && Array.isArray(coll)) {
+            for (const item of coll) {
+              const acquire: model.Acquire = {
+                id: generateUuid(),
+                typeName: typeName,
+                code: item.id,
+                name: item.alias,
+                enable: true,
+              };
+              props.executor.acquires.push(acquire);
+              setAcquires([...props.executor.acquires]);
+            }
+          }
+          setCenter(<></>);
+        }}
+      />,
+    );
+  };
+  return (
+    <>
+      <Modal
+        width={1200}
+        bodyStyle={{ height: '60vh' }}
+        title={'迁移配置'}
+        open
+        onOk={props.finished}
+        onCancel={props.finished}>
+        <Table
+          rowKey={'typeName'}
+          size="small"
+          columns={[
+            { key: 'typeName', title: '迁移类型', render: (item) => item.typeName },
+            {
+              title: '迁移项数量',
+              render: (item) => {
+                return acquires.filter((i) => i.typeName == item.typeName).length;
+              },
+            },
+            {
+              key: 'operate',
+              title: '操作',
+              render: (_, row) => {
+                let binding = <></>;
+                switch (row.typeName) {
+                  case '标准':
+                    binding = (
+                      <a onClick={() => openSelect(row.typeName, ['目录'])}>添加</a>
+                    );
+                    break;
+                  case '应用':
+                    binding = (
+                      <a onClick={() => openSelect(row.typeName, ['应用'])}>添加</a>
+                    );
+                    break;
+                  case '资产':
+                    binding = (
+                      <a
+                        onClick={() => {
+                          props.executor.acquires.push(
+                            {
+                              id: generateUuid(),
+                              typeName: row.typeName,
+                              name: '资产',
+                              code: '_system-things',
+                              enable: true,
+                            },
+                            {
+                              id: generateUuid(),
+                              typeName: row.typeName,
+                              name: '资产的变更明细',
+                              code: '_system-things-changed',
+                              enable: true,
+                            },
+                            {
+                              id: generateUuid(),
+                              typeName: row.typeName,
+                              code: '_system-things-snapshot',
+                              name: '资产的快照（单个）',
+                              enable: true,
+                            },
+                            {
+                              id: generateUuid(),
+                              typeName: row.typeName,
+                              code: '_system-things_{period}',
+                              name: '资产的月快照（批量）',
+                              enable: true,
+                            },
+                          );
+                          setAcquires([...props.executor.acquires]);
+                        }}>
+                        生成资产模板
+                      </a>
+                    );
+                    break;
+                  case '财务':
+                    binding = (
+                      <a
+                        onClick={() => {
+                          props.executor.acquires.push(
+                            {
+                              id: generateUuid(),
+                              typeName: row.typeName,
+                              name: '财务结账科目项模板',
+                              code: 'financial-closing-options',
+                              enable: true,
+                            },
+                            {
+                              id: generateUuid(),
+                              typeName: row.typeName,
+                              name: '财务结账科目项',
+                              code: 'financial-closing',
+                              enable: true,
+                            },
+                            {
+                              id: generateUuid(),
+                              typeName: row.typeName,
+                              code: 'financial-period',
+                              name: '财务账期',
+                              enable: true,
+                            },
+                            {
+                              id: generateUuid(),
+                              typeName: row.typeName,
+                              code: 'financial-query',
+                              name: '财务总账查询方案',
+                              enable: true,
+                            },
+                          );
+                          setAcquires([...props.executor.acquires]);
+                        }}>
+                        生成财务模板
+                      </a>
+                    );
+                    break;
+                  case '办事':
+                    binding = (
+                      <Space>
+                        <a onClick={() => openSelect(row.typeName, ['表单'], true)}>
+                          按表单迁移
+                        </a>
+                        <a onClick={() => openCollection(row.typeName)}>按集合迁移</a>
+                      </Space>
+                    );
+                    break;
+                }
+                return binding;
+              },
+            },
+          ]}
+          expandable={{
+            expandedRowRender: (row) => {
+              switch (row.typeName) {
+                case '标准':
+                case '应用':
+                case '财务':
+                case '资产':
+                case '办事':
+                  return (
+                    <Table
+                      rowKey={'id'}
+                      size="small"
+                      columns={[
+                        { key: 'name', title: '编码', dataIndex: 'code', width: 300 },
+                        { key: 'name', title: '名称', dataIndex: 'name', width: 300 },
+                        {
+                          key: 'enable',
+                          title: '是否迁移',
+                          dataIndex: 'enable',
+                          render: (_, item) => {
+                            return (
+                              <Checkbox
+                                checked={item.enable}
+                                onChange={(v) => {
+                                  updateChecked(item.id, v.target.checked);
+                                }}
+                              />
+                            );
+                          },
+                        },
+                        {
+                          key: 'operate',
+                          title: '操作',
+                          render: (_, item) => {
+                            return (
+                              <a
+                                onClick={() => {
+                                  props.executor.acquires =
+                                    props.executor.acquires.filter(
+                                      (i) => i.id != item.id,
+                                    );
+                                  setAcquires([...props.executor.acquires]);
+                                }}>
+                                删除
+                              </a>
+                            );
+                          },
+                        },
+                      ]}
+                      dataSource={acquires.filter(
+                        (item) => item.typeName == row.typeName,
+                      )}
+                      pagination={false}
+                    />
+                  );
+              }
+            },
+          }}
+          pagination={false}
+          dataSource={[
+            {
+              typeName: '标准',
+            },
+            {
+              typeName: '应用',
+            },
+            {
+              typeName: '资产',
+            },
+            {
+              typeName: '财务',
+            },
+            {
+              typeName: '办事',
+            },
+          ]}
+        />
+      </Modal>
+      {center}
+    </>
   );
 };
 

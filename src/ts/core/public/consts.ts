@@ -166,28 +166,17 @@ export const collections = [
       {
         key: 'financial-period',
         title: '财务账期',
-        defaultTag: ['归属的'],
+        tags: ['归属的'],
       },
       {
         key: 'financial-query',
         title: '财务查询方案',
-        defaultTag: ['全部的'],
+        tags: ['全部的'],
       },
       {
         key: 'financial-depreciation',
         title: '折旧临时集合',
-        disabled: false,
-      },
-    ],
-  },
-  {
-    key: 'log',
-    title: '日志相关',
-    disableCheckbox: true,
-    children: [
-      {
-        key: 'operation-log',
-        title: '操作日志',
+        disabled: true,
       },
     ],
   },
@@ -199,7 +188,7 @@ export const collections = [
       {
         key: 'resource-directory',
         title: '资源目录',
-
+        tags: ['选择的']
       },
       {
         key: 'resource-directory-temp',
@@ -208,6 +197,7 @@ export const collections = [
       {
         key: 'resource-file-link',
         title: '文件链接',
+        disabled: true,
       },
     ],
   },
@@ -261,6 +251,18 @@ export const collections = [
       {
         key: 'work-task',
         title: '办事任务',
+        disabled: true,
+      },
+    ],
+  },
+  {
+    key: 'log',
+    title: '日志相关',
+    disableCheckbox: true,
+    children: [
+      {
+        key: 'operation-log',
+        title: '操作日志',
         disabled: true,
       },
     ],

@@ -16,14 +16,9 @@ export const CollectionForm: React.FC<IProps> = (props) => {
       open
       title={'创建集合'}
       onOk={async () => {
-        await form.validateFields();
         const value = await form.validateFields();
         try {
-          for (const storage of props.space.storages) {
-            if (storage.isActivate) {
-              await storage.dataManager.createColl(value);
-            }
-          }
+          await props.space.activated?.dataManager.createColl(value);
           props.finished();
         } catch (error) {
           message.error((error as Error).message);
@@ -50,11 +45,13 @@ export const CollectionForm: React.FC<IProps> = (props) => {
 
 interface TableProps {
   space: IBelong;
-  finished: (coll?: string) => void;
+  finished: (coll?: schema.XDefinedColl[]) => void;
+  multiple?: boolean;
 }
 
 export const CollectionTable: React.FC<TableProps> = (props) => {
   const [selected, setSelected] = useState<React.Key[]>([]);
+  const [selectedRows, setSelectedRows] = useState<schema.XDefinedColl[]>([]);
   const [center, setCenter] = useState(<></>);
   const actionRef = useRef<ActionType>();
   return (
@@ -64,7 +61,7 @@ export const CollectionTable: React.FC<TableProps> = (props) => {
         title={'集合管理'}
         width={1024}
         onOk={() => {
-          props.finished(selected.length > 0 ? selected[0].toString() : undefined);
+          props.finished(selectedRows);
         }}
         onCancel={() => props.finished()}>
         <Space>
@@ -92,8 +89,11 @@ export const CollectionTable: React.FC<TableProps> = (props) => {
           options={false}
           rowSelection={{
             selectedRowKeys: selected,
-            onChange: setSelected,
-            type: 'radio',
+            onChange: (selected, rows) => {
+              setSelected(selected);
+              setSelectedRows(rows);
+            },
+            type: props.multiple ? 'checkbox' : 'radio',
           }}
           columns={[
             {

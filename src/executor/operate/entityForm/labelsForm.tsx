@@ -118,9 +118,9 @@ const LabelsForm = (props: Iprops) => {
               setCenter(
                 <CollectionTable
                   space={space}
-                  finished={(collName) => {
-                    if (collName) {
-                      form.setFieldValue('collName', collName);
+                  finished={(collections) => {
+                    if (collections && collections.length == 1) {
+                      form.setFieldValue('collName', collections[0].id);
                     }
                     setCenter(<></>);
                   }}
