@@ -116,7 +116,7 @@ export const DepreciationTemplate: React.FC<TemplateProps> = (props) => {
                       .getFieldValue('dimensions')
                       ?.map((item: any) => item.name)
                       .join(',')}
-                    onSelect={(key) => onMethodSelected(key, false)}
+                    onSelect={(key) => onMethodSelected(key, true)}
                     form={form}
                   />
                 </FormItem>
