@@ -217,10 +217,10 @@ export const DepreciationTemplate: React.FC<TemplateProps> = (props) => {
                 </FormItem>
                 <SymbolText value="-" />
                 <FormItem
-                  name="monthlyDepreciationAmount"
+                  name="accumulatedDepreciation"
                   rules={[{ required: true, message: '请绑定累计折旧！' }]}>
                   <FieldText
-                    field="monthlyDepreciationAmount"
+                    field="accumulatedDepreciation"
                     label="累计折旧"
                     onSelect={onSelect}
                     form={form}
@@ -263,10 +263,10 @@ export const DepreciationTemplate: React.FC<TemplateProps> = (props) => {
               </Space>
               <Space>
                 <FormItem
-                  name="monthlyDepreciationAmount"
+                  name="accumulatedDepreciation"
                   rules={[{ required: true, message: '请绑定累计折旧！' }]}>
                   <FieldText
-                    field="monthlyDepreciationAmount"
+                    field="accumulatedDepreciation"
                     label="累计折旧"
                     onSelect={onSelect}
                     form={form}
@@ -285,10 +285,10 @@ export const DepreciationTemplate: React.FC<TemplateProps> = (props) => {
                 </FormItem>
                 <SymbolText value="+" />
                 <FormItem
-                  name="accumulatedDepreciation"
+                  name="monthlyDepreciationAmount"
                   rules={[{ required: true, message: '请绑定月折旧额！' }]}>
                   <FieldText
-                    field="accumulatedDepreciation"
+                    field="monthlyDepreciationAmount"
                     label="月折旧额"
                     onSelect={onSelect}
                     form={form}
