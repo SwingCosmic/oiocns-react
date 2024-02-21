@@ -49,7 +49,8 @@ export class StandardFiles {
     }
     (window as any).batchUpdateFormCollection = {
       ...(window as any).batchUpdateFormCollection,
-      [this.directory.target.space.name]: (a: any, b: any) => this.batchUpdateFormCollection(a, b),
+      [this.directory.target.space.name]: (a: any, b: any) =>
+        this.batchUpdateFormCollection(a, b),
     };
     (window as any).updateFormPropertiesByFormCodes = {
       ...(window as any).updateFormPropertiesByFormCodes,
@@ -99,27 +100,28 @@ export class StandardFiles {
     formCodes: string[],
     collection: string = 'formdata-business',
   ) {
-    const res = await this.resource.formColl.loadSpace({
-      options: {
-        match: {
-          code: {
-            _in_: formCodes,
+    for (const formCode of formCodes) {
+      const res = await this.resource.formColl.loadSpace({
+        options: {
+          match: {
+            code: formCode,
           },
         },
-      },
-    });
-    console.warn('forms:', res);
-    const ids = res.map((f) => f.id);
-    await this.resource.formColl.updateMany(ids, {
-      _set_: {
-        collName: collection,
-      },
-    });
+      });
+      console.warn('forms:', res);
+      const ids = res.map((f) => f.id);
+      await this.resource.formColl.updateMany(ids, {
+        _set_: {
+          collName: collection,
+        },
+      });
+    }
   }
 
   async updateFormPropertiesByFormCodes() {
-    let skip = 0, take = 5;
-    while(true) {
+    let skip = 0,
+      take = 5;
+    while (true) {
       const forms = await this.resource.formColl.loadSpace({
         take: take,
         skip: skip,
@@ -129,7 +131,7 @@ export class StandardFiles {
       }
       await this.updateFormProperties(forms);
       skip += take;
-    }   
+    }
   }
 
   async updateFormProperties(forms: XForm[]) {
