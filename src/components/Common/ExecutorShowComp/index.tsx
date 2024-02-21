@@ -4,11 +4,22 @@ import { model, schema } from '@/ts/base';
 import { Emitter, deepClone } from '@/ts/base/common';
 import { FieldModel } from '@/ts/base/model';
 import { IWork } from '@/ts/core';
+import { collections } from '@/ts/core/public/consts';
 import { ShareIdSet } from '@/ts/core/public/entity';
 import { ProFormInstance } from '@ant-design/pro-form';
 import ProTable from '@ant-design/pro-table';
-import { Button, Card, Checkbox, Empty, Input, Modal, Space, Transfer } from 'antd';
-import { TransferItem } from 'antd/lib/transfer';
+import {
+  Button,
+  Card,
+  Checkbox,
+  Empty,
+  Input,
+  Modal,
+  Space,
+  Tag,
+  Transfer,
+  Tree,
+} from 'antd';
 import { SelectBox } from 'devextreme-react';
 import React, { ReactNode, useEffect, useRef, useState } from 'react';
 import { AiOutlineCloseCircle } from 'react-icons/ai';
@@ -128,39 +139,49 @@ interface ConfigurationProps extends AcquireProps {
 
 const Configuration: React.FC<ConfigurationProps> = (props) => {
   const [targetKeys, setTargetKeys] = useState<string[]>([]);
-  const [data, setData] = useState<TransferItem[]>([]);
-  const loadData = async () => {
-    const activated = props.work.directory.target.space.activated;
-    if (activated) {
-      const belongId = props.executor.belongId;
-      const data = (await activated.dataManager.loadCollections(belongId)).map((item) => {
-        return {
-          key: item,
-          title: item,
-          description: item,
-          disabled: false,
-        } as TransferItem;
-      });
-      setData(data);
-    }
-  };
-  useEffect(() => {
-    loadData();
-  }, []);
   return (
-    <Modal width={1200} title={'迁移配置'} open onCancel={props.finished}>
+    <Modal
+      width={1200}
+      bodyStyle={{ height: '60vh' }}
+      title={'迁移配置'}
+      open
+      onCancel={props.finished}>
       <Transfer
-        listStyle={{ width: '100%', height: '60%' }}
-        dataSource={data}
-        titles={['原集合', '待迁移集合']}
+        style={{ height: '100%' }}
+        titles={['数据源', '已配置数据源']}
         targetKeys={targetKeys}
-        render={(item) => {
-          return <span>{item.title}</span>;
+        render={(item) => item.title ?? ''}
+        onChange={(data) => setTargetKeys(data)}>
+        {({ direction }) => {
+          if (direction == 'left') {
+            return (
+              <Tree
+                style={{ height: '50vh', overflow: 'scroll' }}
+                defaultExpandAll
+                treeData={collections}
+                checkable
+                titleRender={(node: any) => {
+                  const tags: ReactNode[] = [];
+                  if (node.disabled) {
+                    tags.push(<Tag color="red">关闭的</Tag>);
+                  }
+                  if (node.tags && Array.isArray(node.tags)) {
+                    for (const tag of node.tags) {
+                      tags.push(<Tag color="green">{tag}</Tag>);
+                    }
+                  }
+                  return (
+                    <Space>
+                      <span>{`${node.title}（${node.key}）`}</span>
+                      {...tags}
+                    </Space>
+                  );
+                }}
+              />
+            );
+          }
         }}
-        onChange={(data) => {
-          setTargetKeys(data);
-        }}
-      />
+      </Transfer>
     </Modal>
   );
 };

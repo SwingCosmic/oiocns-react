@@ -869,6 +869,8 @@ export interface XSnapshot extends XThing {
 export interface XChange extends Xbase {
   // 流程实例
   instanceId: string;
+  // 办事名称
+  name: string;
   // 业务账期
   changeTime: string;
   // 物 ID
