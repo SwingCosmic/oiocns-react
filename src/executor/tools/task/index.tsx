@@ -22,9 +22,9 @@ import useAsyncLoad from '@/hooks/useAsyncLoad';
 import TaskApproval from './approval';
 import { getNodeByNodeId } from '@/utils/tools';
 import { model } from '@/ts/base';
-import { IExecutor } from '@/ts/core/work/executor';
 import { generateUuid } from '@/utils/excel';
 import { Controller } from '@/ts/controller';
+import { Executors } from './executor';
 
 export interface TaskDetailType {
   current: IWorkTask;
@@ -105,7 +105,13 @@ const TaskContent: React.FC<TaskDetailType> = ({ current, finished }) => {
                               />
                             )}
                           </Collapse>
-                          <Executors nodeId={item.nodeId} trigger={'after'} />
+                          <Executors
+                            nodeId={item.nodeId}
+                            trigger={'after'}
+                            current={current}
+                            formData={formData}
+                            command={command.current}
+                          />
                         </Card>
                       </Timeline.Item>
                     );
@@ -128,7 +134,13 @@ const TaskContent: React.FC<TaskDetailType> = ({ current, finished }) => {
                         </div>
                         <div style={{ color: 'red' }}>待审批</div>
                       </div>
-                      <Executors nodeId={item.nodeId} trigger={'before'} />
+                      <Executors
+                        nodeId={item.nodeId}
+                        trigger={'before'}
+                        current={current}
+                        formData={formData}
+                        command={command.current}
+                      />
                     </Card>
                   </Timeline.Item>
                 </div>
@@ -138,48 +150,6 @@ const TaskContent: React.FC<TaskDetailType> = ({ current, finished }) => {
       );
     }
     return <></>;
-  };
-
-  const Executors = ({ nodeId, trigger }: { nodeId: string; trigger: string }) => {
-    const node = getNodeByNodeId(nodeId, current.instanceData!.node);
-    const executors: IExecutor[] = node ? current.loadExecutors(node) : [];
-    return (
-      <Space
-        style={{ paddingLeft: 20, paddingTop: 10, width: '100%' }}
-        direction="vertical">
-        {executors
-          .filter((item) => item.metadata.trigger == trigger)
-          .filter((item) => ['数据申领', 'Webhook'].includes(item.metadata.funcName))
-          .map((item, index) => {
-            const [loading, setLoading] = useState(false);
-            const [progress, setProgress] = useState(item.progress);
-            useEffect(() => {
-              const id = item.command.subscribe(() => setProgress(item.progress));
-              return () => item.command.unsubscribe(id);
-            }, []);
-            return (
-              <div
-                style={{ display: 'flex', justifyContent: 'space-around' }}
-                key={index}>
-                <Tag>{item.metadata.funcName}</Tag>
-                <Progress style={{ flex: 1, marginRight: 10 }} percent={progress} />
-                <Button
-                  size="small"
-                  loading={loading}
-                  type="primary"
-                  onClick={async () => {
-                    setLoading(true);
-                    await item.execute(formData);
-                    command.current.changCallback();
-                    setLoading(false);
-                  }}>
-                  执行
-                </Button>
-              </div>
-            );
-          })}
-      </Space>
-    );
   };
 
   const loadItems = () => {
