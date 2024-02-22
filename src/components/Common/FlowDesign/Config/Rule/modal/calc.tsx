@@ -5,7 +5,7 @@ import { model, schema } from '@/ts/base';
 import { getUuid } from '@/utils/tools';
 import CodeMirror from '@uiw/react-codemirror';
 import { javascript } from '@codemirror/lang-javascript';
-import { Column, Editing, Paging } from 'devextreme-react/data-grid';
+import VariableMapping from './VariableMapping';
 
 interface IProps {
   primarys: schema.XForm[];
@@ -17,9 +17,9 @@ interface IProps {
 
 const CalcRuleModal: React.FC<IProps> = (props) => {
   const [name, setName] = useState<string>();
-  const [argsCode, setArgsCode] = useState<string>();
+  // const [argsCode, setArgsCode] = useState<string>();
   const [triggers, setTriggers] = useState<model.MappingData[]>([]);
-  const [select, setSelect] = useState<model.MappingData>();
+  // const [select, setSelect] = useState<model.MappingData>();
   const [remark, setRemark] = useState<string>();
   const [formula, setFormula] = useState<string>();
   const [mappingData, setMappingData] = useState<model.MappingData[]>([]);
@@ -143,72 +143,11 @@ const CalcRuleModal: React.FC<IProps> = (props) => {
               setTarget(e.selectedItem);
             }}
           />
-          <Card
-            title={<div style={{ ...labelFontSize }}>变量维护</div>}
-            bordered={false}
-            headStyle={modalHeadStyl}
-            bodyStyle={{ ...bodyBorderStyl, paddingTop: '30px' }}>
-            <>
-              <TextBox
-                width={'30%'}
-                label="变量名称*"
-                labelMode="outside"
-                value={argsCode}
-                onValueChange={setArgsCode}
-                style={{ display: 'inline-block', margin: 2 }}
-              />
-              <SelectBox
-                width={'45%'}
-                label="变量对象*"
-                labelMode="outside"
-                valueExpr="key"
-                value={select?.key}
-                showClearButton
-                displayExpr={(item) => {
-                  return item ? `[${item.formName}]${item.name}` : '';
-                }}
-                dataSource={triggers.filter(
-                  (a) => !mappingData.find((s) => s.id == a.id),
-                )}
-                style={{ display: 'inline-block', margin: 2 }}
-                onSelectionChanged={(e) => {
-                  setSelect(e.selectedItem);
-                }}
-              />
-              <Button
-                width={'20%'}
-                style={{ display: 'inline-block', margin: 2 }}
-                onClick={() => {
-                  if (select && argsCode) {
-                    if (!mappingData.map((a) => a.code).includes(argsCode)) {
-                      setSelect(undefined);
-                      setArgsCode(undefined);
-                      setMappingData([{ ...select, code: argsCode }, ...mappingData]);
-                    }
-                  }
-                }}>
-                新增
-              </Button>
-            </>
-            <DataGrid
-              allowColumnResizing
-              keyExpr="id"
-              dataSource={mappingData}
-              onSaved={(e) => {
-                for (const change of e.changes) {
-                  if (change.type == 'remove') {
-                    setMappingData(mappingData.filter((a) => a.id != change.key));
-                  }
-                }
-              }}>
-              <Paging enabled={true} pageSize={10} />
-              <Editing mode="row" allowDeleting={true} texts={'删除'} />
-              <Column dataField="code" caption="变量代码" />
-              <Column dataField="typeName" caption="类型" />
-              <Column dataField="formName" caption="表单名称" />
-              <Column dataField="name" caption="对象名称" />
-            </DataGrid>
-          </Card>
+          <VariableMapping 
+            mappingData={mappingData}
+            onChange={v => setMappingData(v)}
+            triggers={triggers}
+          />
           <Card
             title={<div style={{ ...labelFontSize }}>计算代码</div>}
             bordered={false}
