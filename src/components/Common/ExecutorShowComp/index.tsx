@@ -341,7 +341,7 @@ const Configuration: React.FC<ConfigurationProps> = (props) => {
                       rowKey={'id'}
                       size="small"
                       columns={[
-                        { key: 'name', title: '编码', dataIndex: 'code', width: 300 },
+                        { key: 'code', title: '编码', dataIndex: 'code', width: 300 },
                         { key: 'name', title: '名称', dataIndex: 'name', width: 300 },
                         {
                           key: 'enable',
