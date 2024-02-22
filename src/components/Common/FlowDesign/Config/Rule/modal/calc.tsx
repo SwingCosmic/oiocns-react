@@ -6,6 +6,8 @@ import { getUuid } from '@/utils/tools';
 import CodeMirror from '@uiw/react-codemirror';
 import { javascript } from '@codemirror/lang-javascript';
 import { Column, Editing, Paging } from 'devextreme-react/data-grid';
+import { isValidVariableName } from '@/utils/script';
+import message from '@/utils/message';
 
 interface IProps {
   primarys: schema.XForm[];
@@ -179,12 +181,17 @@ const CalcRuleModal: React.FC<IProps> = (props) => {
                 width={'20%'}
                 style={{ display: 'inline-block', margin: 2 }}
                 onClick={() => {
-                  if (select && argsCode) {
-                    if (!mappingData.map((a) => a.code).includes(argsCode)) {
-                      setSelect(undefined);
-                      setArgsCode(undefined);
-                      setMappingData([{ ...select, code: argsCode }, ...mappingData]);
-                    }
+                  if (!select || !argsCode) {
+                    return;
+                  }
+                  if (!isValidVariableName(argsCode)) {
+                    message.error("变量名非法");
+                    return;
+                  }
+                  if (!mappingData.map((a) => a.code).includes(argsCode)) {
+                    setSelect(undefined);
+                    setArgsCode(undefined);
+                    setMappingData([{ ...select, code: argsCode }, ...mappingData]);
                   }
                 }}>
                 新增
