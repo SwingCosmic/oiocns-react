@@ -1,7 +1,7 @@
 import React from 'react';
 import { IForm } from '@/ts/core';
 import FullScreenModal from '@/components/Common/fullScreen';
-import ReportDesign from '@/components/Common/ReportDesign';
+import ReportDesign from '@/components/DataStandard/ReportForm';
 interface IProps {
   current: IForm;
   finished: () => void;

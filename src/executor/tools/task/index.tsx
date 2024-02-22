@@ -1,15 +1,4 @@
-import {
-  Button,
-  Card,
-  Collapse,
-  Empty,
-  Progress,
-  Space,
-  Spin,
-  Tabs,
-  Tag,
-  Timeline,
-} from 'antd';
+import { Card, Collapse, Empty, Spin, Tabs, Timeline } from 'antd';
 import React, { useEffect, useRef, useState } from 'react';
 import cls from './index.module.less';
 import { IWorkTask } from '@/ts/core';
@@ -168,7 +157,7 @@ const TaskContent: React.FC<TaskDetailType> = ({ current, finished }) => {
             <div className={cls['content']}>
               {/** 时间轴 */}
               {loadTimeline()}
-              {!existForm && (
+              {!existForm && current.typeName !== '子流程' && (
                 <TaskApproval task={current} fromData={formData} finished={finished} />
               )}
             </div>
@@ -205,7 +194,9 @@ const TaskContent: React.FC<TaskDetailType> = ({ current, finished }) => {
               nodeId={current.taskdata.nodeId}
               data={current.instanceData!}
             />
-            <TaskApproval task={current} fromData={formData} finished={finished} />
+            {current.typeName !== '子流程' && (
+              <TaskApproval task={current} fromData={formData} finished={finished} />
+            )}
           </>
         );
       };

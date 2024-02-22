@@ -29,26 +29,19 @@ const TaskStart: React.FC<IProps> = ({ current, data, finished }) => {
     );
   }
   if (apply) {
+    if ('taskdata' in current) {
+      return <DefaultWayStart apply={apply} work={current} finished={finished} />;
+    }
     switch (apply.applyType) {
       case '列表':
         return <MultitabTable current={current as IWork} finished={finished!} />;
       case '选择':
-        return (
-          <WorkSelect
-            target={current.directory.target}
-            apply={apply}
-            finished={finished}
-          />
-        );
+        return <WorkSelect work={current as IWork} apply={apply} finished={finished} />;
       case '财务':
         return <BelongFinancial belong={current.directory.target.space} />;
       default:
         return (
-          <DefaultWayStart
-            apply={apply}
-            target={current.directory.target}
-            finished={finished}
-          />
+          <DefaultWayStart apply={apply} work={current as IWork} finished={finished} />
         );
     }
   }

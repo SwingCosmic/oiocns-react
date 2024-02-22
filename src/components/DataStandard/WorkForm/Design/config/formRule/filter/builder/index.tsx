@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useState } from 'react';
+import React, { useCallback, useState } from 'react';
 import { Field } from 'devextreme/ui/filter_builder';
 import { CustomOperation, FilterBuilder } from 'devextreme-react/filter-builder';
 import { DropDownBox, TreeView } from 'devextreme-react';

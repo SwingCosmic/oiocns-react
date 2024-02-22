@@ -1,6 +1,5 @@
 import React, { useEffect, useState } from 'react';
 import ApprovalNode from './Components/ApprovalNode';
-import WorkFlowNode from './Components/WorkFlowNode';
 import CcNode from './Components/CcNode';
 import RootNode from './Components/RootNode';
 import ConcurrentNode from './Components/ConcurrentNode';
@@ -10,7 +9,7 @@ import { AddNodeType, NodeModel } from '../processType';
 import { IWork } from '@/ts/core';
 import { model } from '@/ts/base';
 import { Card } from 'antd';
-import { TextBox } from 'devextreme-react';
+import { SelectBox, TextBox } from 'devextreme-react';
 import CustomNode from './Components/Custom';
 /**
  * @description: 流程设置抽屉
@@ -25,6 +24,7 @@ interface IProps {
 
 const Config: React.FC<IProps> = (props) => {
   const belong = props.define.directory.target.space;
+  const [dataSource, setDataSource] = useState<{ value: string; label: string }[]>([]);
   const [conditions, setConditions] = useState<model.FieldModel[]>([]);
   useEffect(() => {
     if (props.define && props.node.type == AddNodeType.CONDITION) {
@@ -35,6 +35,21 @@ const Config: React.FC<IProps> = (props) => {
       setConditions(fields);
     }
   }, [props.define]);
+
+  useEffect(() => {
+    switch (props.node.type) {
+      case AddNodeType.CC:
+      case AddNodeType.APPROVAL:
+        setDataSource([
+          { value: '审批', label: '审批' },
+          { value: '抄送', label: '抄送' },
+        ]);
+        break;
+      default:
+        setDataSource([{ value: props.node.type, label: props.node.type }]);
+        break;
+    }
+  }, [props.node]);
 
   const loadContent = () => {
     switch (props.node.type) {
@@ -50,6 +65,15 @@ const Config: React.FC<IProps> = (props) => {
       case AddNodeType.APPROVAL:
         return (
           <ApprovalNode
+            work={props.define}
+            current={props.node}
+            belong={belong}
+            refresh={props.refresh}
+          />
+        );
+      case AddNodeType.CC:
+        return (
+          <CcNode
             work={props.define}
             current={props.node}
             belong={belong}
@@ -74,17 +98,6 @@ const Config: React.FC<IProps> = (props) => {
             define={props.define}
           />
         );
-      case AddNodeType.CHILDWORK:
-        return (
-          <WorkFlowNode
-            current={props.node}
-            belong={belong}
-            define={props.define}
-            refresh={props.refresh}
-          />
-        );
-      case AddNodeType.CC:
-        return <CcNode current={props.node} belong={belong} refresh={props.refresh} />;
       case AddNodeType.CONDITION:
         return (
           <ConditionNode
@@ -104,17 +117,34 @@ const Config: React.FC<IProps> = (props) => {
       style={{ border: 'none', backgroundColor: '#fff' }}
       headStyle={{ borderBottom: 'none' }}
       title={
-        <TextBox
-          height={32}
-          placeholder="节点名称*"
-          value={props.node.name}
-          label="流程名称"
-          labelMode="floating"
-          onValueChange={(e) => {
-            props.node.name = e;
-            props.refresh();
-          }}
-        />
+        <>
+          <SelectBox
+            value={props.node.type}
+            valueExpr={'value'}
+            displayExpr={'label'}
+            style={{ width: '30%', display: 'inline-block' }}
+            onSelectionChanged={(e) => {
+              if (props.node.type != e.selectedItem.value) {
+                props.node.type = e.selectedItem.value;
+                props.node.name = e.selectedItem.value;
+                props.refresh();
+              }
+            }}
+            dataSource={dataSource}
+          />
+          <TextBox
+            style={{ paddingLeft: 10, width: '70%', display: 'inline-block' }}
+            height={32}
+            placeholder="节点名称*"
+            value={props.node.name}
+            label="流程名称"
+            labelMode="floating"
+            onValueChange={(e) => {
+              props.node.name = e;
+              props.refresh();
+            }}
+          />
+        </>
       }>
       {loadContent()}
     </Card>

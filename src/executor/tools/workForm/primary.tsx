@@ -4,6 +4,7 @@ import { useState } from 'react';
 import React from 'react';
 import { Tabs } from 'antd';
 import WorkFormViewer from '@/components/DataStandard/WorkForm/Viewer';
+import WorkReportViewer from '@/components/DataStandard/ReportForm/Viewer';
 import { useEffectOnce } from 'react-use';
 
 interface IProps {
@@ -41,31 +42,62 @@ const PrimaryForm: React.FC<IProps> = (props) => {
     }
   });
   if (!fields || !formData || !data) return <></>;
-  return (
-    <WorkFormViewer
-      form={form}
-      info={info}
-      fields={fields}
-      data={data}
-      formData={formData}
-      changedFields={props.changedFields}
-      rules={props.data.rules}
-      belong={props.belong}
-      readonly={!props.allowEdit}
-      onValuesChange={(field, value, data) => {
-        if (props.allowEdit) {
-          if (value === undefined || value === null) {
-            delete props.data.primary[field];
-          } else {
-            props.data.primary[field] = value;
+  if (form.typeName === '表单') {
+    return (
+      <WorkFormViewer
+        form={form}
+        info={info}
+        fields={fields}
+        data={data}
+        formData={formData}
+        changedFields={props.changedFields}
+        rules={props.data.rules}
+        belong={props.belong}
+        readonly={!props.allowEdit}
+        onValuesChange={(field, value, data) => {
+          if (props.allowEdit) {
+            if (value === undefined || value === null) {
+              delete props.data.primary[field];
+            } else {
+              props.data.primary[field] = value;
+            }
+            data.name = form.name;
+            formData.after = [data];
+            props.onChanged?.apply(this, [form.id, formData, field, value]);
           }
-          data.name = form.name;
-          formData.after = [data];
-          props.onChanged?.apply(this, [form.id, formData, field, value]);
-        }
-      }}
-    />
-  );
+        }}
+      />
+    );
+  } else {
+    return (
+      <WorkReportViewer
+        form={form}
+        info={info}
+        fields={fields}
+        data={data}
+        formData={formData}
+        changedFields={props.changedFields}
+        rules={props.data.rules}
+        belong={props.belong}
+        readonly={!props.allowEdit}
+        onValuesChange={(field, value, data) => {
+          if (props.allowEdit) {
+            if (value === undefined || value === null) {
+              delete props.data.primary[field];
+            } else {
+              props.data.primary[field] = value;
+            }
+            for (let key in props.data.primary) {
+              data[key] = props.data.primary[key];
+            }
+            data.name = form.name;
+            formData.after = [data];
+            props.onChanged?.apply(this, [form.id, formData, field, value]);
+          }
+        }}
+      />
+    );
+  }
 };
 
 const PrimaryForms: React.FC<IProps> = (props) => {

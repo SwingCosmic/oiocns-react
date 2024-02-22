@@ -117,7 +117,7 @@ const ShowRuleModal: React.FC<IProps> = (props) => {
       <Space direction="vertical" size={15}>
         <TextBox
           label="名称"
-          labelMode="outside"
+          labelMode="floating"
           value={name}
           onValueChange={(e) => {
             setName(e);
@@ -125,7 +125,7 @@ const ShowRuleModal: React.FC<IProps> = (props) => {
         />
         <SelectBox
           label="目标对象"
-          labelMode="outside"
+          labelMode="floating"
           value={target?.key}
           showClearButton
           displayExpr="name"
@@ -141,7 +141,7 @@ const ShowRuleModal: React.FC<IProps> = (props) => {
             value={showType}
             label="类型"
             showClearButton
-            labelMode="outside"
+            labelMode="floating"
             displayExpr="label"
             valueExpr="value"
             style={{ display: 'inline-block' }}
@@ -162,7 +162,7 @@ const ShowRuleModal: React.FC<IProps> = (props) => {
             value={value}
             label="值"
             showClearButton
-            labelMode="outside"
+            labelMode="floating"
             style={{ display: 'inline-block' }}
             dataSource={[
               { label: '是', value: true },
@@ -188,7 +188,7 @@ const ShowRuleModal: React.FC<IProps> = (props) => {
         </div>
         <TextArea
           label="备注"
-          labelMode="outside"
+          labelMode="floating"
           onValueChanged={(e) => {
             setRemark(e.value);
           }}

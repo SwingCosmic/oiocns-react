@@ -14,6 +14,7 @@ interface IProps {
 }
 
 const TaskRecord: React.FC<IProps> = ({ apply, typeName }) => {
+  const mainFormFields = apply.primaryForms![0]?.fields ?? [];
   const [selectTask, setSelectTask] = useState<IWorkTask>();
   const loadFields = () => {
     return [
@@ -80,6 +81,7 @@ const TaskRecord: React.FC<IProps> = ({ apply, typeName }) => {
           visible: true,
         },
       },
+      ...mainFormFields,
     ];
   };
   const getMatch = () => {

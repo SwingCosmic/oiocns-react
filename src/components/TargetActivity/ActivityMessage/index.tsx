@@ -1,5 +1,4 @@
 import React, { useEffect, useState } from 'react';
-// import cls from './index.module.less';
 import { Button, Divider, Image, Input, List, Space, Tag, Typography } from 'antd';
 import { IActivity, IActivityMessage, MessageType } from '@/ts/core';
 import { parseHtmlToText, showChatTime } from '@/utils/tools';
@@ -8,7 +7,7 @@ import { XEntity } from '@/ts/base/schema';
 import ActivityResource from '../ActivityResource';
 import ActivityComment from '../ActivityComment';
 import EntityIcon from '@/components/Common/GlobalComps/entityIcon';
-import { AiOutlineDelete, AiOutlineLike, AiOutlineMessage } from 'react-icons/ai';
+import OrgIcons from '@/components/Common/GlobalComps/orgIcons';
 
 interface ActivityItemProps {
   hideResource?: boolean;
@@ -71,27 +70,25 @@ export const ActivityMessage: React.FC<ActivityItemProps> = ({
         <Space split={<Divider type="vertical" />} wrap size={2}>
           <Button
             type="text"
-            size="small"
             onClick={async () => {
               await item.like();
             }}>
             {metadata.likes.includes(orgCtrl.user.id) ? (
               <>
-                {/* <LikeOutlined className={cls.likeColor} /> <span>取消</span> */}
-                <AiOutlineLike style={{ color: '#cb4747' }} size={18} /> <span>取消</span>
+                <OrgIcons type="/toolbar/likeFull" size={18} /> <span>取消</span>
               </>
             ) : (
               <>
-                <AiOutlineLike size={18} /> <span>点赞</span>
+                <OrgIcons type="/toolbar/like" size={18} /> <span>点赞</span>
               </>
             )}
           </Button>
-          <Button type="text" size="small" onClick={() => handleReply()}>
-            <AiOutlineMessage size={18} /> <span>评论</span>
+          <Button type="text" onClick={() => handleReply()}>
+            <OrgIcons type="/toolbar/comment" size={18} /> <span>评论</span>
           </Button>
           {item.canDelete && (
-            <Button type="text" size="small" onClick={() => item.delete()}>
-              <AiOutlineDelete size={18} /> <span>删除</span>
+            <Button type="text" onClick={() => item.delete()}>
+              <OrgIcons type="/toolbar/delete" size={18} /> <span>删除</span>
             </Button>
           )}
         </Space>
@@ -116,13 +113,13 @@ export const ActivityMessage: React.FC<ActivityItemProps> = ({
             <div className={'activityItem-footer-likes'}>
               {metadata.likes.length > 0 && (
                 <span style={{ fontSize: 18, color: '#888' }}>
-                  <AiOutlineLike className="likeColor" size={18} />
+                  <OrgIcons type="/toolbar/likeFull" size={18} />
                   <b style={{ marginLeft: 6 }}>{metadata.likes.length}</b>
                 </span>
               )}
               {metadata.comments.length > 0 && (
                 <span style={{ fontSize: 18, color: '#888' }}>
-                  <AiOutlineMessage style={{ color: '#4747cb' }} size={18} />
+                  <OrgIcons type="/toolbar/comment" size={18} />
                   <b style={{ marginLeft: 6 }}>{metadata.comments.length}</b>
                 </span>
               )}
@@ -145,7 +142,7 @@ export const ActivityMessage: React.FC<ActivityItemProps> = ({
         <div
           className={'activityItem-footer-likes'}
           style={{ display: metadata.likes.length ? 'flex' : 'none' }}>
-          <AiOutlineLike className="likeColor" size={18} />
+          <OrgIcons type="/toolbar/likeFull" size={18} />
           {metadata.likes.map((userId) => {
             return (
               <div key={userId} style={{ alignItems: 'center', display: 'flex' }}>
@@ -206,7 +203,7 @@ export const ActivityMessage: React.FC<ActivityItemProps> = ({
             })}
           </div>
         }
-        avatar={<EntityIcon entity={activity.metadata} size={50} />}
+        avatar={<EntityIcon entity={activity.metadata} size={40} />}
         description={
           <div className={'activityItem'}>
             <div>

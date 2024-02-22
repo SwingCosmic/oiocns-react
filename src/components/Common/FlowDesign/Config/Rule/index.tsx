@@ -10,7 +10,6 @@ import { Field } from 'devextreme/ui/filter_builder';
 import { Form } from '@/ts/core/thing/standard/form';
 import { IWork } from '@/ts/core';
 import useAsyncLoad from '@/hooks/useAsyncLoad';
-import useObjectUpdate from '@/hooks/useObjectUpdate';
 import ExecutorRuleModal from './modal/executor';
 import cls from './index.module.less';
 import { Theme } from '@/config/theme';
@@ -22,8 +21,8 @@ interface IProps {
 }
 
 const NodeRule: React.FC<IProps> = (props) => {
-  const { formRules, primaryForms, detailForms } = props.current;
-  const [key, rulesUpdate] = useObjectUpdate(formRules ?? []);
+  const { primaryForms, detailForms } = props.current;
+  const [formRules, setFormRules] = useState<model.Rule[]>(props.current.formRules ?? []);
   const [fields, setFields] = useState<Field[]>([]);
   const [openType, setOpenType] = useState(0);
   const [select, setSelect] = useState<model.Rule>();
@@ -86,7 +85,6 @@ const NodeRule: React.FC<IProps> = (props) => {
     }
     setFields(fields);
   }, [props.primaryForms, props.detailForms]);
-  if (!loaded) return <></>;
   /** 展示规则信息列 */
   const ruleColumns: ProColumns<model.Rule>[] = [
     { title: '序号', valueType: 'index', width: 50 },
@@ -145,7 +143,7 @@ const NodeRule: React.FC<IProps> = (props) => {
                 props.current.formRules = (formRules ?? []).filter(
                   (a) => a.id != record.id,
                 );
-                rulesUpdate();
+                setFormRules([...props.current.formRules]);
               }}>
               删除
             </Button>
@@ -154,120 +152,126 @@ const NodeRule: React.FC<IProps> = (props) => {
       },
     },
   ];
-  return (
-    <>
-      <Card
-        type="inner"
-        title={
-          <div>
-            <Divider
-              type="vertical"
-              style={{
-                height: '16px',
-                borderWidth: '4px',
-                borderColor: Theme.FocusColor,
-                marginLeft: '0px',
-              }}
-              className={cls['flowDesign-rule-divider']}
-            />
-            <span>规则配置</span>
-          </div>
-        }
-        bodyStyle={{ padding: formRules && formRules.length > 0 ? '12px' : 0 }}
-        extra={
-          <>
-            <Popover
-              trigger="click"
-              placement="bottomLeft"
-              content={
-                <>
-                  {fields && fields?.length > 0 && (
-                    <>
-                      <a
-                        style={{ padding: 5 }}
-                        onClick={() => {
-                          setSelect(undefined);
-                          setOpenType(1);
-                        }}>
-                        + 添加渲染规则
-                      </a>
-                      <Divider style={{ margin: 6 }} />
-                      <a
-                        style={{ padding: 5 }}
-                        onClick={() => {
-                          setSelect(undefined);
-                          setOpenType(2);
-                        }}>
-                        + 添加计算规则
-                      </a>
-                    </>
-                  )}
-                </>
-              }>
-              <a className="primary-color">+ 添加</a>
-            </Popover>
-          </>
-        }>
-        {formRules && formRules.length > 0 ? (
-          <CardOrTableComp<model.Rule>
-            key={key}
-            rowKey={'id'}
-            dataSource={formRules ?? []}
-            scroll={{ y: 'calc(60vh - 150px)' }}
-            columns={ruleColumns}
+  const openDialog = (type: number) => {
+    switch (type) {
+      case 1:
+        return (
+          <ShowRuleModal
+            fields={fields}
+            primarys={primaryForms}
+            details={detailForms}
+            onCancel={() => setOpenType(0)}
+            current={select as model.NodeShowRule}
+            onOk={(rule) => {
+              setOpenType(0);
+              props.current.formRules = [
+                rule,
+                ...(formRules ?? []).filter((a) => a.id != rule.id),
+              ];
+              setFormRules([...props.current.formRules]);
+            }}
           />
-        ) : null}
-      </Card>
-      {openType == 1 && (
-        <ShowRuleModal
-          fields={fields}
-          primarys={primaryForms}
-          details={detailForms}
-          onCancel={() => setOpenType(0)}
-          current={select as model.NodeShowRule}
-          onOk={(rule) => {
-            setOpenType(0);
-            props.current.formRules = [
-              rule,
-              ...(formRules ?? []).filter((a) => a.id != rule.id),
-            ];
-            rulesUpdate();
-          }}
-        />
-      )}
-      {openType == 2 && (
-        <CalcRuleModal
-          primarys={props.primaryForms}
-          details={detailForms}
-          onCancel={() => setOpenType(0)}
-          current={select as model.NodeCalcRule}
-          onOk={(rule) => {
-            setOpenType(0);
-            props.current.formRules = [
-              rule,
-              ...(formRules ?? []).filter((a) => a.id != rule.id),
-            ];
-            rulesUpdate();
-          }}
-        />
-      )}
-      {openType == 3 && (
-        <ExecutorRuleModal
-          fields={fields}
-          details={detailForms}
-          onCancel={() => setOpenType(0)}
-          current={select as model.NodeExecutorRule}
-          onOk={(rule) => {
-            setOpenType(0);
-            props.current.formRules = [
-              rule,
-              ...(formRules ?? []).filter((a) => a.id != rule.id),
-            ];
-            rulesUpdate();
-          }}
-        />
-      )}
-    </>
+        );
+      case 2:
+        return (
+          <CalcRuleModal
+            primarys={props.primaryForms}
+            details={detailForms}
+            onCancel={() => setOpenType(0)}
+            current={select as model.NodeCalcRule}
+            onOk={(rule) => {
+              setOpenType(0);
+              props.current.formRules = [
+                rule,
+                ...(formRules ?? []).filter((a) => a.id != rule.id),
+              ];
+              setFormRules([...props.current.formRules]);
+            }}
+          />
+        );
+      case 3:
+        return (
+          <ExecutorRuleModal
+            fields={fields}
+            details={detailForms}
+            onCancel={() => setOpenType(0)}
+            current={select as model.NodeExecutorRule}
+            onOk={(rule) => {
+              setOpenType(0);
+              props.current.formRules = [
+                rule,
+                ...(formRules ?? []).filter((a) => a.id != rule.id),
+              ];
+              setFormRules([...props.current.formRules]);
+            }}
+          />
+        );
+      default:
+        return <></>;
+    }
+  };
+  if (!loaded) return <></>;
+  return (
+    <Card
+      type="inner"
+      title={
+        <div>
+          <Divider
+            type="vertical"
+            style={{
+              height: '16px',
+              borderWidth: '4px',
+              borderColor: Theme.FocusColor,
+              marginLeft: '0px',
+            }}
+            className={cls['flowDesign-rule-divider']}
+          />
+          <span>规则配置</span>
+        </div>
+      }
+      bodyStyle={{ padding: formRules && formRules.length > 0 ? '12px' : 0 }}
+      extra={
+        <>
+          <Popover
+            trigger="click"
+            placement="bottomLeft"
+            content={
+              <>
+                {fields && fields.length > 0 && (
+                  <>
+                    <a
+                      style={{ padding: 5 }}
+                      onClick={() => {
+                        setSelect(undefined);
+                        setOpenType(1);
+                      }}>
+                      + 添加渲染规则
+                    </a>
+                    <Divider style={{ margin: 6 }} />
+                    <a
+                      style={{ padding: 5 }}
+                      onClick={() => {
+                        setSelect(undefined);
+                        setOpenType(2);
+                      }}>
+                      + 添加计算规则
+                    </a>
+                  </>
+                )}
+              </>
+            }>
+            <a className="primary-color">+ 添加</a>
+          </Popover>
+        </>
+      }>
+      <CardOrTableComp<model.Rule>
+        rowKey={'id'}
+        columns={ruleColumns}
+        dataSource={formRules}
+        scroll={{ y: 'calc(60vh - 150px)' }}
+      />
+      {openDialog(openType)}
+    </Card>
   );
 };
 export default NodeRule;

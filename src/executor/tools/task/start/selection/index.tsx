@@ -1,5 +1,5 @@
 import FullScreenModal from '@/components/Common/fullScreen';
-import { IForm, ITarget, IWorkApply } from '@/ts/core';
+import { IForm, IWork, IWorkApply } from '@/ts/core';
 import { Badge, Button, Empty, Tabs } from 'antd';
 import CustomStore from 'devextreme/data/custom_store';
 import React, { useEffect, useRef, useState } from 'react';
@@ -10,12 +10,12 @@ import { formatDate } from '@/ts/base/common';
 import DefaultWayStart from '../default';
 
 interface IProps {
-  target: ITarget;
+  work: IWork;
   apply: IWorkApply;
   finished?: () => void;
 }
 
-const WorkSelection: React.FC<IProps> = ({ apply, target, finished }) => {
+const WorkSelection: React.FC<IProps> = ({ apply, work, finished }) => {
   const [selected, setSelected] = useState(false);
   const [command] = useState(new Command());
   useEffect(() => {
@@ -52,7 +52,7 @@ const WorkSelection: React.FC<IProps> = ({ apply, target, finished }) => {
       return <Empty></Empty>;
     }
     if (selected) {
-      return <DefaultWayStart apply={apply} target={target} finished={finished} />;
+      return <DefaultWayStart apply={apply} work={work} finished={finished} />;
     }
     const allForms = apply.detailForms.flatMap((item) => [
       { form: item, type: '原始' },

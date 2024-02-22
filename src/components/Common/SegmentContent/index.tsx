@@ -2,8 +2,7 @@ import React, { useRef } from 'react';
 import style from './index.module.less';
 import { Segmented, Space, Divider, Typography, Affix } from 'antd';
 import useStorage from '@/hooks/useStorage';
-import * as fa from 'react-icons/fa';
-import { Theme } from '@/config/theme';
+import OrgIcons from '../GlobalComps/orgIcons';
 
 type segmentedTypes = 'icon' | 'table' | 'list';
 
@@ -40,21 +39,11 @@ const SegmentContent: React.FC<IProps> = ({
           options={[
             {
               value: 'list',
-              icon: (
-                <fa.FaList
-                  fontSize={20}
-                  color={segmented === 'list' ? 'blue' : Theme.FocusColor}
-                />
-              ),
+              icon: <OrgIcons type={'icons/list'} size={22} />,
             },
             {
               value: 'icon',
-              icon: (
-                <fa.FaTh
-                  fontSize={20}
-                  color={segmented === 'icon' ? 'blue' : Theme.FocusColor}
-                />
-              ),
+              icon: <OrgIcons type={'icons/icon'} size={22} />,
             },
             // {
             //   value: 'table',

@@ -114,7 +114,6 @@ export class SysFileInfo extends FileInfo<schema.XEntity> implements ISysFileInf
     await this.directory.resource.fileLinkColl.removeMany([
       this.filedata as schema.XFileLink,
     ]);
-    this.directory.files = this.directory.files.filter((i) => i.key != this.key);
     await this.directory.resource.fileLinkColl.all(true);
     this.directory.notifyReloadFiles();
     this.directory.files = this.directory.files.filter((i) => i.key != this.key);
@@ -155,7 +154,6 @@ export class SysFileInfo extends FileInfo<schema.XEntity> implements ISysFileInf
     if (data) {
       await destination.resource.fileLinkColl.all(true);
       destination.notifyReloadFiles();
-      destination.files.push(new SysFileInfo(params, destination));
     }
     return true;
   }

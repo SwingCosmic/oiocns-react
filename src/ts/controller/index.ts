@@ -1,4 +1,12 @@
-import { IApplication, IFile, IPerson, ISession, ITarget, UserProvider } from '@/ts/core';
+import {
+  IApplication,
+  IFile,
+  IPerson,
+  ISession,
+  ITarget,
+  TargetType,
+  UserProvider,
+} from '@/ts/core';
 import { common } from '@/ts/base';
 import { IWorkProvider } from '../core/work/provider';
 import { IPageTemplate } from '../core/thing/standard/page';
@@ -62,7 +70,7 @@ class IndexController extends Controller {
   async loadApplications(): Promise<IApplication[]> {
     const apps: IApplication[] = [];
     for (const directory of this.targets
-      .filter((i) => i.session.isMyChat)
+      .filter((i) => i.session.isMyChat && i.typeName != TargetType.Group)
       .map((a) => a.directory)) {
       apps.push(...(await directory.loadAllApplication()));
     }

@@ -4,8 +4,8 @@ import { IForm, Form } from '../thing/standard/form';
 import { FileInfo, IFile, IFileInfo } from '../thing/fileinfo';
 import { IDirectory } from '../thing/directory';
 import { IWorkApply, WorkApply } from './apply';
-import { entityOperates, fileOperates } from '../public';
-import { getUuid, loadGatewayNodes } from '@/utils/tools';
+import { TargetType, entityOperates, fileOperates } from '../public';
+import { getUuid, isHasApprovalNode, loadGatewayNodes } from '@/utils/tools';
 import { deepClone } from '@/ts/base/common';
 
 export interface IWork extends IFileInfo<schema.XWorkDefine> {
@@ -93,16 +93,19 @@ export class Work extends FileInfo<schema.XWorkDefine> implements IWork {
     return [...tags, ...super.groupTags];
   }
   get isMyWork(): boolean {
-    if (this._metadata.applyAuth?.length > 0) {
-      return (
-        this.target.user.givedIdentitys.filter(
-          (i) =>
-            i.identity?.authId === this._metadata.applyAuth &&
-            i.identity?.belongId === this.target.spaceId,
-        ).length > 0
-      );
+    if (this.target.typeName != TargetType.Group) {
+      if (this._metadata.applyAuth?.length > 0) {
+        return (
+          this.target.user.givedIdentitys.filter(
+            (i) =>
+              i.identity?.authId === this._metadata.applyAuth &&
+              i.identity?.belongId === this.target.spaceId,
+          ).length > 0
+        );
+      }
+      return true;
     }
-    return true;
+    return false;
   }
   allowCopy(destination: IDirectory): boolean {
     return ['应用', '模块'].includes(destination.typeName);
@@ -144,6 +147,7 @@ export class Work extends FileInfo<schema.XWorkDefine> implements IWork {
       const app = destination as unknown as IApplication;
       const isSameBelong = this.directory.target.id === destination.target.id;
       var node = deepClone(await this.loadNode());
+      var hasApprovalNode = isHasApprovalNode(node);
       if (node && node.code) {
         delete node.children;
         delete node.branches;
@@ -164,8 +168,8 @@ export class Work extends FileInfo<schema.XWorkDefine> implements IWork {
         node.children = {
           id: '0',
           num: 0,
-          type: '子流程',
-          destType: '身份',
+          type: hasApprovalNode ? '审批' : '抄送',
+          destType: '其他办事',
           destName: `[${this.target.name}]${this.name}`,
           defineId: '0',
           belongId: '0',
@@ -355,7 +359,7 @@ export class Work extends FileInfo<schema.XWorkDefine> implements IWork {
   override operates(): model.OperateModel[] {
     const operates = super.operates();
     if (this.isInherited) {
-      operates.push({ sort: 3, cmd: 'workForm', label: '查看表单', iconType: '表单' });
+      operates.push({ sort: 3, cmd: 'workForm', label: '查看表单', iconType: 'newForm' });
     }
     if (this.cache.tags?.includes('常用')) {
       operates.unshift(fileOperates.DelCommon);

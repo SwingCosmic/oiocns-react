@@ -84,7 +84,7 @@ const ChatContent: React.FC = () => {
                 sort: 37,
                 cmd: 'selectChat',
                 label: '选择会话',
-                iconType: '群组',
+                iconType: 'selectChat',
               },
             ],
             orgCtrl.user,
@@ -107,7 +107,7 @@ const ChatContent: React.FC = () => {
             preview={false}
             height={24}
             width={24}
-            src={`/svg/chat-left-search_more.svg?v=1.0.0`}
+            src={`/svg/operate/chatMore.svg?v=1.0.1`}
           />
         </div>
       </Dropdown>

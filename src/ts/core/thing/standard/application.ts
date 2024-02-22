@@ -6,7 +6,7 @@ import { IWork, Work } from '../../work';
 import { XCollection } from '../../public/collection';
 import { formatDate } from '@/utils';
 import { deepClone } from '@/ts/base/common';
-import { getUuid } from '@/utils/tools';
+import { getUuid, isHasApprovalNode } from '@/utils/tools';
 
 /** 应用/模块接口类 */
 export interface IApplication extends IStandardFileInfo<schema.XApplication> {
@@ -17,7 +17,7 @@ export interface IApplication extends IStandardFileInfo<schema.XApplication> {
   /** 流程定义 */
   works: IWork[];
   /** 根据id查找办事 */
-  findWork(id: string): Promise<IWork | undefined>;
+  findWork(id: string, applicationId?: string): Promise<IWork | undefined>;
   /** 加载办事 */
   loadWorks(reload?: boolean): Promise<IWork[]>;
   /** 加载所有办事 */
@@ -199,6 +199,7 @@ export class Application
     }
     for (const work of await application.loadWorks()) {
       var node = deepClone(await work.loadNode());
+      var hasApprovalNode = isHasApprovalNode(node);
       if (node && node.code) {
         delete node.children;
         delete node.branches;
@@ -219,8 +220,8 @@ export class Application
         node.children = {
           id: '0',
           num: 0,
-          type: '子流程',
-          destType: '身份',
+          type: hasApprovalNode ? '审批' : '抄送',
+          destType: '其他办事',
           destName: `[${this.target.name}]${this.name}`,
           defineId: '0',
           belongId: '0',
@@ -255,14 +256,16 @@ export class Application
     }
     return false;
   }
-  async findWork(id: string): Promise<IWork | undefined> {
-    await this.loadWorks();
-    const find = this.works.find((i) => i.id === id);
-    if (find) {
-      return find;
+  async findWork(id: string, applicationId?: string): Promise<IWork | undefined> {
+    if (applicationId === undefined || applicationId == this.id) {
+      await this.loadWorks();
+      const find = this.works.find((i) => i.id === id);
+      if (find) {
+        return find;
+      }
     }
     for (const item of this.children) {
-      const find = await item.findWork(id);
+      const find = await item.findWork(id, applicationId);
       if (find) {
         return find;
       }

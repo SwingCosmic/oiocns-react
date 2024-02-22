@@ -1,8 +1,5 @@
 import { TargetType } from '@/ts/core';
 import React from 'react';
-import * as im from 'react-icons/im';
-import * as fa from 'react-icons/fa';
-import { BsHouseAddFill } from 'react-icons/bs';
 import { Theme } from '@/config/theme';
 import { Image } from 'antd';
 interface TypeIconInfo {
@@ -20,114 +17,123 @@ const TypeIcon = (info: TypeIconInfo) => {
       <Image
         width={config.size || 24}
         preview={false}
-        src={`/svg/${name}.svg?v=1.0.0`}
+        src={`/svg/${name}.svg?v=1.0.1`}
         {...config}
       />
+    );
+  };
+  const renderUserByName = (userName: string) => {
+    const name =
+      userName.length > 2 ? userName.substring(1, 3) : userName.substring(0, 2);
+    const randomBg = ['blue', 'green', 'red', 'orange', 'asset', 'purple'].at(
+      name.charCodeAt(1) % 6,
+    );
+    return (
+      <div
+        style={{
+          width: iconSize,
+          height: iconSize,
+          lineHeight: iconSize + 'px',
+          fontSize: iconSize / 3,
+        }}
+        className={`user-wrap user-wrap-bg_${randomBg}`}>
+        {name}
+      </div>
     );
   };
   const loadFileIcon = () => {
     switch (info.iconType) {
       case 'application/pdf':
-        return renderImage('pdf', config);
+        return renderImage('types/files/pdf', config);
       case 'application/x-zip-compressed':
-        return <fa.FaFileArchive {...config} />;
+        return renderImage('types/files/compressed', config);
+      case 'application/vnd.ms-powerpoint':
+      case 'application/vnd.openxmlformats-officedocument.presentationml.presentation':
+        return renderImage('types/files/powerpoint', config);
+      case 'application/vnd.ms-excel':
+      case 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet':
+        return renderImage('types/files/excel', config);
       case 'application/msword':
-        return renderImage('worldFile', config);
-    }
-    if (info.iconType === '页面模板') {
-      return renderImage('template', config);
-    }
-    if (info.iconType === '新建页面模板') {
-      return renderImage('newTemplate', config);
-    }
-    if (~info.iconType?.indexOf('word')) {
-      return renderImage('worldFile', config);
-    }
-    if (~info.iconType?.indexOf('excel') || ~info.iconType?.indexOf('sheet')) {
-      return renderImage('excelFile', config);
+      case 'application/vnd.openxmlformats-officedocument.wordprocessingml.document':
+        return renderImage('types/files/word', config);
     }
     if (info.iconType?.startsWith('application')) {
-      return renderImage('applicationFile', config);
+      return renderImage('types/files/application', config);
     } else if (info.iconType?.startsWith('video')) {
-      return renderImage('videoFile', config);
+      return renderImage('types/files/video', config);
     } else if (info.iconType?.startsWith('image')) {
-      return renderImage('imageFile', config);
+      return renderImage('types/files/picture', config);
     } else if (info.iconType?.startsWith('text')) {
-      return renderImage('textFile', config);
+      return renderImage('types/files/text', config);
     } else if (info.iconType?.startsWith('audio')) {
-      return renderImage('videoFile', config);
+      return renderImage('types/files/audio', config);
     }
-    return renderImage('unknowFile', config);
+    return renderImage('types/files/unknown', config);
   };
 
   const loadIcon = () => {
     switch (info.iconType) {
-      case '动态':
-        return <im.ImSafari {...config} />;
-      case '目录':
-        return renderImage('directory', { ...config, color: 'blue', fill: 'blue' });
-      case '成员目录':
-        return <im.ImBooks {...config} />;
-      case '标准':
-        return <im.ImFileExcel {...config} />;
-      case '字典':
-        return renderImage('dataDictionary', config);
-      case '新建字典':
-        return renderImage('newDict', config);
-      case '分类':
-        return renderImage('classificationFile', config);
-      case '新建分类':
-        return renderImage('newSpecies', config);
-      case '分类项':
-        return <im.ImPriceTags {...config} />;
-      case '属性':
-        return renderImage('dataProperty', config);
-      case 'newProperty':
-        return renderImage('newProperty', config);
-      case '应用':
-        return renderImage('application', config);
-      case '新建应用':
-        return renderImage('addApplication', config);
-      case '模块':
-        return renderImage('newModule', config);
-      case '新建模块':
-        return renderImage('newModule', config);
-      case '办事':
-        return <im.ImShuffle {...config} />;
-      case '表单':
-        return renderImage('formFile', config);
-      case '新建表单':
-        return renderImage('newFormFile', config);
-      case '角色':
-        return <im.ImKey {...config} />;
-      case '权限':
-        return renderImage('permission', config);
-      case '激活':
-        return <im.ImPowerCord {...config} />;
-      case '事项':
-        return <im.ImClipboard {...config} />;
       case '加用户':
-        return <im.ImUserPlus {...config} />;
+      case '加人员':
+        return renderImage('types/joinFriend', config);
+      case '加群组':
+        return renderImage('types/joinCohort', config);
+      case '加单位':
+      case '加大学':
+      case '加医院':
+        return renderImage('types/joinCompany', config);
+      case '加存储资源':
+        return renderImage('types/joinStorage', config);
+      case '加组织群':
+        return renderImage('types/joinGroup', config);
+      case '动态':
+        return renderImage('types/activity', config);
+      case '目录':
+        return renderImage('types/directory', config);
+      case '成员目录':
+        return renderImage('types/cohort', config);
+      case '字典':
+        return renderImage('types/dictionary', config);
+      case '分类':
+        return renderImage('types/species', config);
+      case '分类项':
+        return renderImage('types/workSend', config);
+      case '属性':
+        return renderImage('types/property', config);
+      case '应用':
+        return renderImage('types/application', config);
+      case '模块':
+        return renderImage('types/module', config);
+      case '办事':
+        return renderImage('types/work', config);
+      case '表单':
+        return renderImage('types/form', config);
+      case '角色':
+        return renderImage('types/identity', config);
+      case '权限':
+        return renderImage('types/authority', config);
+      case '激活':
+        return renderImage('operate/setActive', config);
+      case '事项':
+        return renderImage('types/apply', config);
+      case '迁移配置':
+        return renderImage('types/transfer', config);
+      case '页面模板':
+        return renderImage('types/page', config);
       case '子流程':
       case 'setCluster':
-        return renderImage('setCluster', config);
+        return renderImage('types/workSend', config);
       case TargetType.Group:
-        // return <im.ImTree {...config} />;
         return renderImage('types/group', config);
       case TargetType.Company:
-        // return <im.ImOffice {...config} />;
         return renderImage('types/company', config);
       case TargetType.Storage:
-        // return <im.ImDrive {...config} />;
         return renderImage('types/storage', config);
       case TargetType.Station:
-        // return <im.ImAddressBook {...config} />;
         return renderImage('types/station', config);
       case TargetType.Cohort:
-        // return <im.ImBubbles2 {...config} />;
         return renderImage('types/cohort', config);
       case TargetType.Section:
-        // return <im.ImLibrary {...config} />;
         return renderImage('types/section', config);
       case TargetType.Department:
         return renderImage('types/department', config);
@@ -143,87 +149,109 @@ const TypeIcon = (info: TypeIconInfo) => {
         return renderImage('types/working', config);
       case TargetType.Person:
         if (info.name && info.name.length > 1) {
-          const name =
-            info.name.length > 2 ? info.name.substring(1, 3) : info.name.substring(0, 2);
-          const randomBg = ['blue', 'green', 'red', 'orange', 'asset', 'purple'].at(
-            name.charCodeAt(1) % 6,
-          );
-          return (
-            <div
-              style={{
-                width: iconSize,
-                height: iconSize,
-                lineHeight: iconSize + 'px',
-                fontSize: iconSize / 3,
-              }}
-              className={`user-wrap user-wrap-bg_${randomBg}`}>
-              {name}
-            </div>
-          );
+          return renderUserByName(info.name);
         }
-        return <im.ImUserTie {...config} />;
-      case 'chat':
-        return renderImage('chat-select', config);
+        return renderImage('types/person', config);
       case 'newDir':
-        return renderImage('addList', config);
+        return renderImage('operate/newDir', config);
       case 'refresh':
-        return renderImage('refreshList', config);
+        return renderImage('operate/refresh', config);
       case 'remark':
-        return renderImage('info', config);
+        return renderImage('operate/remark', config);
       case 'open':
-        return <im.ImDelicious {...config} />;
+        return renderImage('operate/open', config);
       case 'design':
-        return <im.ImEqualizer {...config} />;
+        return renderImage('operate/design', config);
       case 'copy':
-        return renderImage('copyFile', config);
+        return renderImage('operate/copy', config);
       case 'move':
-        return renderImage('moveFile', config);
+        return renderImage('operate/move', config);
       case 'parse':
-        return <im.ImCoinPound {...config} />;
+        return renderImage('operate/parse', config);
       case 'rename':
-        return renderImage('renameFile', config);
+        return renderImage('operate/rename', config);
       case 'download':
-        return renderImage('renameFile', config);
+        return renderImage('operate/download', config);
       case 'delete':
-        return renderImage('deleteOperate', config);
+        return renderImage('operate/delete', config);
+      case 'hardDelete':
+        return renderImage('operate/hardDelete', config);
       case 'shortcut':
-        return <im.ImLink {...config} />;
+        return renderImage('operate/shortcut', config);
       case 'restore':
-        return <im.ImUndo2 {...config} />;
+        return renderImage('operate/restore', config);
       case 'remove':
-        return renderImage('removeMember', config);
+        return renderImage('operate/removeMember', config);
       case 'update':
-        return renderImage('updateInfo', config);
+        return renderImage('operate/update', config);
       case 'pull':
-        return <im.ImUserPlus {...config} />;
-      case 'qrcode':
-        return renderImage('qrcode', config);
+        return renderImage('operate/pullMember', config);
       case 'joinFriend':
-        return renderImage('addFriend', config);
+        return renderImage('operate/joinFriend', config);
       case 'joinCohort':
-        return <im.ImUsers {...config} />;
+        return renderImage('operate/joinCohort', config);
       case 'joinCompany':
-        return <BsHouseAddFill {...config} />;
+        return renderImage('operate/joinCompany', config);
       case 'joinStorage':
-        return renderImage('joinStorageGroup', config);
+        return renderImage('operate/joinStorage', config);
       case 'joinGroup':
-        return <im.ImEnter {...config} />;
+        return renderImage('operate/joinGroup', config);
+      case 'qrcode':
+        return renderImage('operate/qrcode', config);
+      case 'newCohort':
+        return renderImage('operate/newCohort', config);
+      case 'newCompany':
+        return renderImage('operate/newCompany', config);
+      case 'newStorage':
+        return renderImage('operate/newStorage', config);
+      case 'newGroup':
+        return renderImage('operate/newGroup', config);
+      case 'newDepartment':
+        return renderImage('operate/newDepartment', config);
+      case 'newApp':
+        return renderImage('operate/newApplication', config);
+      case 'newModule':
+        return renderImage('operate/newModule', config);
+      case 'newProperty':
+        return renderImage('operate/newProperty', config);
+      case 'newForm':
+        return renderImage('operate/newForm', config);
+      case 'newWork':
+        return renderImage('operate/newWork', config);
+      case 'newDict':
+        return renderImage('operate/newDict', config);
+      case 'newSpecies':
+        return renderImage('operate/newSpecies', config);
+      case 'newPage':
+        return renderImage('operate/newPage', config);
+      case 'newTransfer':
+        return renderImage('operate/newTransfer', config);
       case 'newFile':
-        return renderImage('uploadFile', config);
+        return renderImage('operate/uploadFile', config);
+      case 'settingStation':
+        return renderImage('types/station', config);
       case 'taskList':
-        return renderImage('uploadList', config);
-      case 'setToping':
-        return <im.ImUpload3 {...config} />;
-      case 'removeToping':
-        return <im.ImDownload3 {...config} />;
+        return renderImage('operate/taskList', config);
+      case 'selectChat':
+        return renderImage('operate/selectChat', config);
+      case 'openChat':
+        return renderImage('operate/openChat', config);
       case 'setReaded':
-        return <im.ImCheckmark {...config} />;
+        return renderImage('operate/setReaded', config);
       case 'setNoReaded':
-        return <im.ImBell {...config} />;
+        return renderImage('operate/setNoReaded', config);
       case 'setCommon':
-        return renderImage('commonlyUsed', config);
+      case 'setToping':
+        return renderImage('operate/setCommon', config);
       case 'delCommon':
-        return <im.ImHeartBroken {...config} />;
+      case 'removeToping':
+        return renderImage('operate/delCommon', config);
+      case 'hslSplit':
+        return renderImage('operate/hslSplit', config);
+      case 'importStandard':
+        return renderImage('operate/importStandard', config);
+      case 'importBusiness':
+        return renderImage('operate/importBusiness', config);
       default:
         return loadFileIcon();
     }

@@ -58,16 +58,28 @@ interface ExecutorProps {
 }
 
 const AcquireExecutor: React.FC<ExecutorProps> = (props) => {
+  const [loading, setLoading] = useState(false);
+  const acquires = props.current.metadata.acquires ?? [];
   return (
     <div style={{ textAlign: 'right' }}>
-      <Button type="primary" size="small" ghost>
+      <Button
+        type="primary"
+        size="small"
+        ghost
+        loading={loading}
+        onClick={async () => {
+          setLoading(true);
+          await props.current.execute(props.formData);
+          props.command.changCallback();
+          setLoading(false);
+        }}>
         批量执行
       </Button>
       <Table<model.Acquire>
         rowKey={'id'}
         style={{ marginTop: 8 }}
         size="small"
-        dataSource={props.current.metadata.acquires.filter((item) => item.enable)}
+        dataSource={acquires.filter((item) => item.enable)}
         pagination={false}
         columns={[
           { key: 'typeName', title: '类型', dataIndex: 'typeName', width: 300 },

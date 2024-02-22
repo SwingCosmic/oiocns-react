@@ -4,7 +4,6 @@ import { ICompany, IStation } from '@/ts/core';
 import EntityIcon from '@/components/Common/GlobalComps/entityIcon';
 import MinLayout from '@/components/MainLayout/minLayout';
 import useMenuUpdate from '@/hooks/useMenuUpdate';
-import * as im from 'react-icons/im';
 import { MenuItemType, OperateMenuType } from 'typings/globelType';
 import StationForm from './subModal/stationForm';
 import SelectMember from '@/components/Common/SelectMember';
@@ -16,6 +15,7 @@ import { IdentityColumn, PersonColumns } from '@/config/column';
 import useObjectUpdate from '@/hooks/useObjectUpdate';
 import EntityInfo from '@/components/Common/EntityInfo';
 import { Controller } from '@/ts/controller';
+import OrgIcons from '@/components/Common/GlobalComps/orgIcons';
 
 interface IProps {
   company: ICompany;
@@ -231,24 +231,24 @@ const loadMenus = (item: ICompany | IStation) => {
       items.push(
         {
           key: '添加角色',
-          icon: <im.ImKey2 />,
+          icon: <OrgIcons type="/types/identity" />,
           label: '添加角色',
           model: 'outside',
         },
         {
           key: '分配成员',
-          icon: <im.ImUserPlus />,
+          icon: <OrgIcons type="/operate/pullMember" />,
           label: '分配成员',
           model: 'outside',
         },
         {
           key: '编辑岗位',
-          icon: <im.ImCog />,
+          icon: <OrgIcons type="/toolbar/edit" />,
           label: '编辑岗位',
         },
         {
           key: '删除岗位',
-          icon: <im.ImBin />,
+          icon: <OrgIcons type="/toolbar/delete" />,
           label: '删除岗位',
           beforeLoad: async () => {
             return await item.delete();
@@ -259,7 +259,7 @@ const loadMenus = (item: ICompany | IStation) => {
   } else if (item.hasRelationAuth()) {
     items.push({
       key: '新增岗位',
-      icon: <im.ImPlus />,
+      icon: <OrgIcons type="/toolbar/add" />,
       label: '新增岗位',
       model: 'outside',
     });

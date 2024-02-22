@@ -8,7 +8,6 @@ import QrCode from 'qrcode.react';
 import { formatZhDate } from '@/utils/tools';
 import orgCtrl from '@/ts/controller';
 import EntityIcon from '@/components/Common/GlobalComps/entityIcon';
-import TypeIcon from '@/components/Common/GlobalComps/typeIcon';
 import { Theme } from '@/config/theme';
 
 interface Iprops {
@@ -134,7 +133,6 @@ const EntityPreview: React.FC<Iprops> = ({ entity, finished }) => {
       open
       title={
         <div style={{ display: 'flex', flexWrap: 'nowrap', alignItems: 'center' }}>
-          <TypeIcon iconType={entity.typeName} size={24} />
           {entity.name}
         </div>
       }

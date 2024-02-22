@@ -57,7 +57,7 @@ const MultitabTable: React.FC<IProps> = ({ current, finished }) => {
       {
         key: '3',
         forceRender: true,
-        label: '已办结',
+        label: '已完结',
         children: <TaskRecord apply={apply!} typeName={'已办结'} />,
       },
     ];
@@ -75,15 +75,17 @@ const MultitabTable: React.FC<IProps> = ({ current, finished }) => {
             selectInstance && (
               <DefaultWayStart
                 apply={apply!}
-                target={current.directory.target}
+                work={current}
                 content={selectInstance?.remark}
                 stagging={selectInstance}
                 onStagging={() => {
+                  setActiveTabKey('1');
                   forceUpdate();
                   setOpenType(0);
                 }}
                 finished={() => {
-                  finished();
+                  setActiveTabKey('2');
+                  setOpenType(0);
                 }}
               />
             )
@@ -98,12 +100,14 @@ const MultitabTable: React.FC<IProps> = ({ current, finished }) => {
           return (
             <DefaultWayStart
               apply={apply!}
-              target={current.directory.target}
+              work={current}
               content={''}
               finished={() => {
-                finished();
+                setActiveTabKey('2');
+                setOpenType(0);
               }}
               onStagging={() => {
+                setActiveTabKey('1');
                 forceUpdate();
                 setOpenType(0);
               }}

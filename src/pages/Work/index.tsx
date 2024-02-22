@@ -164,7 +164,7 @@ const WorkContent: React.FC = () => {
             onClick={() => {
               setSelectOpen(true);
             }}
-            src={`/svg/toto-left-search_more.svg?v=1.0.0`}
+            src={`/svg/operate/todoMore.svg?v=1.0.1`}
           />
         </div>
       );

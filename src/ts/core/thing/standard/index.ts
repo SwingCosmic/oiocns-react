@@ -326,6 +326,10 @@ export class StandardFiles {
         _in_: this.specieses.map((a) => a.id),
       },
     });
+    const fileLinks = this.resource.fileLinkColl.cache.filter(
+      (i) => i.directoryId === this.id,
+    );
+    await this.directory.resource.fileLinkColl.removeMany(fileLinks);
   }
   async moveStandradFile(resource: DataResource): Promise<void> {
     await this.loadStandardFiles();

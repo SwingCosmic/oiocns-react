@@ -16,6 +16,7 @@ import JoinApply from './task/joinApply';
 import { model, schema } from '@/ts/base';
 import TemplateView from './page';
 import ThingPreview from './thing';
+import { PreviewDialog } from '@/components/DataPreview';
 const audioExt = ['.mp3', '.wav', '.ogg'];
 
 const officeExt = ['.md', '.pdf', '.xls', '.xlsx', '.doc', '.docx', '.ppt', '.pptx'];
@@ -71,7 +72,6 @@ const ExecutorOpen: React.FC<IOpenProps> = (props: IOpenProps) => {
       case '页面模板':
         return <TemplateView current={props.entity as any} finished={props.finished} />;
       case '办事':
-      case '子流程':
         return (
           <WorkStart
             key={props.entity.key}
@@ -89,6 +89,24 @@ const ExecutorOpen: React.FC<IOpenProps> = (props: IOpenProps) => {
             />
           </>
         );
+      case '子流程':
+        if (props.cmd === 'open') {
+          return (
+            <WorkStart
+              key={props.entity.key}
+              current={props.entity as any}
+              finished={props.finished}
+            />
+          );
+        } else {
+          return (
+            <TaskContent
+              key={props.entity.key}
+              current={props.entity as any}
+              finished={props.finished}
+            />
+          );
+        }
       case '事项':
         return (
           <TaskContent
@@ -116,9 +134,7 @@ const ExecutorOpen: React.FC<IOpenProps> = (props: IOpenProps) => {
           );
         }
         if (Object.values(TargetType).includes(props.entity.typeName as TargetType)) {
-          return (
-            <EntityForm cmd="remark" entity={props.entity} finished={props.finished} />
-          );
+          return <PreviewDialog entity={props.entity} onCancel={props.finished} />;
         }
     }
   } else {

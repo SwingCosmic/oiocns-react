@@ -34,7 +34,7 @@ export const operatesToMenus = (operates: OperateModel[], file: IDEntity) => {
     }
     return (
       <div style={{ display: 'inline-block' }}>
-        <TypeIcon notAvatar iconType={o.iconType} size={18} />
+        <TypeIcon iconType={o.iconType} size={20} />
       </div>
     );
   };

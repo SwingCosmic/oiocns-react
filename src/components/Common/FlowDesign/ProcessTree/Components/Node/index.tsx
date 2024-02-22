@@ -18,7 +18,6 @@ type NodeProps = {
  */
 const Node: React.FC<NodeProps> = (props: NodeProps) => {
   let isRoot = false;
-  let isJGNode = (props.config.code as string).startsWith('JGNODE');
   let placeholder = '';
   console.log(props);
   switch (props.config.type) {
@@ -30,9 +29,6 @@ const Node: React.FC<NodeProps> = (props: NodeProps) => {
       break;
     case AddNodeType.CC:
       placeholder = '请设置抄送对象';
-      break;
-    case AddNodeType.CHILDWORK:
-      placeholder = '请选择其他办事';
       break;
     case AddNodeType.GATEWAY:
       placeholder = '由成员关联办事';
@@ -81,9 +77,7 @@ const Node: React.FC<NodeProps> = (props: NodeProps) => {
             <div
               style={{ display: 'flex' }}
               onClick={() => {
-                if (!isJGNode) {
-                  props.onSelected();
-                }
+                props.onSelected();
               }}
               title="点击配置">
               <div className={cls['node-body-header']}>{props.config.type}</div>
@@ -96,7 +90,7 @@ const Node: React.FC<NodeProps> = (props: NodeProps) => {
                 </div>
               </div>
             </div>
-            {props.isEdit && !isRoot && !isJGNode && (
+            {props.isEdit && !isRoot && (
               <div className={cls.closeBtn}>
                 <ai.AiOutlineClose onClick={() => props.onDelNode()} title="点击删除" />
               </div>

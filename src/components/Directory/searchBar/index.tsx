@@ -1,8 +1,7 @@
 import React from 'react';
 import { Button, Dropdown, MenuProps, Space } from 'antd';
-import { RiMore2Fill } from 'react-icons/ri';
 import { TextBox } from 'devextreme-react';
-import { Theme } from '@/config/theme';
+import OrgIcons from '@/components/Common/GlobalComps/orgIcons';
 
 interface IProps {
   value: string;
@@ -41,11 +40,7 @@ const SearchBar: React.FC<IProps> = (props) => {
             )}
             placement="bottom"
             trigger={['click', 'contextMenu']}>
-            <RiMore2Fill
-              color={Theme.FocusColor}
-              fontSize={22}
-              style={{ cursor: 'pointer' }}
-            />
+            <OrgIcons type="/toolbar/more" size={22} notAvatar />
           </Dropdown>
         )}
       </Space>

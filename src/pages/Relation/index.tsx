@@ -101,7 +101,7 @@ const RelationBrowser: React.FC = () => {
         ) : (
           <>
             <OrgIcons type="navbar/relation" />
-            <span style={{ paddingLeft: 6 }}>设置</span>
+            <span style={{ paddingLeft: 6 }}>关系</span>
           </>
         )}
       </div>

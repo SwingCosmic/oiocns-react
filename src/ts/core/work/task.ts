@@ -1,7 +1,7 @@
 import { logger } from '@/ts/base/common';
 import { IWork } from '.';
 import { schema, model, kernel } from '../../base';
-import { TaskStatus, entityOperates } from '../public';
+import { PageAll, TaskStatus, entityOperates } from '../public';
 import { IBelong } from '../target/base/belong';
 import { UserProvider } from '../user';
 import { IWorkApply } from './apply';
@@ -85,6 +85,9 @@ export class WorkTask extends FileInfo<schema.XEntity> implements IWorkTask {
       this.taskdata.identityId.length > 5
     ) {
       typeName = '子流程';
+    }
+    if (this.targets.length === 2) {
+      typeName = '加' + this.targets[1].typeName;
     }
     return {
       ...this.taskdata,
@@ -212,11 +215,19 @@ export class WorkTask extends FileInfo<schema.XEntity> implements IWorkTask {
   }
 
   async findWorkById(wrokId: string): Promise<IWork | undefined> {
-    for (var target of this.user.targets) {
-      for (var app of await target.directory.loadAllApplication()) {
-        const work = await app.findWork(wrokId);
-        if (work) {
-          return work;
+    const res = await kernel.queryWorkDefine({
+      id: wrokId,
+      page: PageAll,
+    });
+    if (res.success && res.data && res.data.result && res.data.result.length > 0) {
+      var define = res.data.result[0];
+      var target = this.user.targets.find((i) => i.id === define.shareId);
+      if (target) {
+        for (var app of await target.directory.loadAllApplication()) {
+          const work = await app.findWork(wrokId, define.applicationId);
+          if (work) {
+            return work;
+          }
         }
       }
     }

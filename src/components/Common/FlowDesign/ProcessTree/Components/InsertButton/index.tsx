@@ -77,14 +77,6 @@ const InsertButton: React.FC<InsertButtonProps> = (props: any) => {
           </div>
           <div
             onClick={() => {
-              props.onInsertNode(AddNodeType.CHILDWORK);
-              setOpen(false);
-            }}>
-            <ai.AiOutlineFork color="#af343e" />
-            <span>其他办事</span>
-          </div>
-          <div
-            onClick={() => {
               props.onInsertNode(AddNodeType.GATEWAY);
               setOpen(false);
             }}>

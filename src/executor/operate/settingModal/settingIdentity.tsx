@@ -5,7 +5,6 @@ import EntityIcon from '@/components/Common/GlobalComps/entityIcon';
 import MainLayout from '@/components/MainLayout/minLayout';
 import useMenuUpdate from '@/hooks/useMenuUpdate';
 import EntityInfo from '@/components/Common/EntityInfo';
-import * as im from 'react-icons/im';
 import { MenuItemType, OperateMenuType } from 'typings/globelType';
 import IdentityForm from './subModal/IdentityForm';
 import SelectMember from '@/components/Common/SelectMember';
@@ -15,6 +14,7 @@ import { schema } from '@/ts/base';
 import { PersonColumns } from '@/config/column';
 import useObjectUpdate from '@/hooks/useObjectUpdate';
 import { Controller } from '@/ts/controller';
+import OrgIcons from '@/components/Common/GlobalComps/orgIcons';
 
 interface IProps {
   target: ITarget;
@@ -190,18 +190,18 @@ const loadMenus = (item: ITarget | IIdentity) => {
       items.push(
         {
           key: '分配成员',
-          icon: <im.ImUserPlus />,
+          icon: <OrgIcons type="/operate/pullMember" />,
           label: '分配成员',
           model: 'outside',
         },
         {
           key: '编辑',
-          icon: <im.ImCog />,
+          icon: <OrgIcons type="/toolbar/edit" />,
           label: '编辑角色',
         },
         {
           key: '删除',
-          icon: <im.ImBin />,
+          icon: <OrgIcons type="/toolbar/delete" />,
           label: '删除角色',
           beforeLoad: async () => {
             return await item.delete();
@@ -212,7 +212,7 @@ const loadMenus = (item: ITarget | IIdentity) => {
   } else if (item.hasRelationAuth()) {
     items.push({
       key: '新增',
-      icon: <im.ImPlus />,
+      icon: <OrgIcons type="/toolbar/add" />,
       label: '新增角色',
       model: 'outside',
     });

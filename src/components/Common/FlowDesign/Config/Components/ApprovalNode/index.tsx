@@ -28,18 +28,16 @@ interface IProps {
 
 const ApprovalNode: React.FC<IProps> = (props) => {
   const [executors, setExecutors] = useState<model.Executor[]>([]);
-  const [isOpen, setIsOpen] = useState<boolean>(false); // 打开弹窗
-  const [formModel, setFormModel] = useState<string>('');
-  const [primaryForms, setPrimaryForms] = useState<schema.XForm[]>();
+  const [openType, setOpenType] = useState<string>(''); // 打开弹窗
+  const [primaryForms, setPrimaryForms] = useState<schema.XForm[]>([]);
   const [radioValue, setRadioValue] = useState(1);
-  const [destType, setDestType] = useState(
-    props.current.destName !== '发起人' ? '1' : '2',
-  );
+  const [destType, setDestType] = useState<string>();
   const [currentData, setCurrentData] = useState<{ id: string; name: string }>();
   const [executorModal, setExecutorModal] = useState(false);
   useEffect(() => {
     props.current.primaryForms = props.current.primaryForms || [];
     props.current.executors = props.current.executors || [];
+    setDestType(props.current.destType ?? '身份');
     setExecutors(props.current.executors);
     setPrimaryForms(props.current.primaryForms);
     setRadioValue(props.current.num == 0 ? 1 : 2);
@@ -59,20 +57,9 @@ const ApprovalNode: React.FC<IProps> = (props) => {
 
   const loadDestType = () => {
     switch (destType) {
-      case '1': {
+      case '身份': {
         return (
           <>
-            {currentData && currentData.id != '1' && (
-              <ShareShowComp
-                departData={[currentData]}
-                deleteFuc={(_) => {
-                  props.current.destId = '';
-                  props.current.destName = '';
-                  setCurrentData(undefined);
-                  props.refresh();
-                }}
-              />
-            )}
             <Divider />
             <div className={cls['roval-node-select']}>
               <Col className={cls['roval-node-select-col']}></Col>
@@ -110,102 +97,102 @@ const ApprovalNode: React.FC<IProps> = (props) => {
           </>
         );
       }
-      case '2':
+      case '发起人':
         return <a>发起人</a>;
       default:
         return <></>;
     }
   };
 
-  return (
-    <div className={cls[`app-roval-node`]}>
-      <div className={cls[`roval-node`]}>
-        <Card
-          type="inner"
-          title="审批对象"
-          className={cls[`card-info`]}
-          extra={
-            <>
-              <SelectBox
-                value={destType}
-                valueExpr={'value'}
-                displayExpr={'label'}
-                style={{ width: 120, display: 'inline-block' }}
-                onSelectionChanged={(e) => {
-                  switch (e.selectedItem.value) {
-                    case '1':
-                      props.current.destType = '角色';
-                      setCurrentData(undefined);
-                      break;
-                    case '2':
-                      props.current.num = 1;
-                      props.current.destId = '1';
-                      props.current.destName = '发起人';
-                      props.current.destType = '人员';
-                      setCurrentData({ id: '1', name: '发起人' });
-                      break;
-                    default:
-                      break;
-                  }
-                  if (destType != e.selectedItem.value) {
-                    setDestType(e.selectedItem.value);
-                    props.refresh();
-                  }
-                }}
-                dataSource={[
-                  { value: '1', label: '指定角色' },
-                  { value: '2', label: '发起人' },
-                ]}
-              />
-              {destType == '1' && (
-                <a
-                  style={{ paddingLeft: 10, display: 'inline-block' }}
-                  onClick={() => {
-                    setIsOpen(true);
-                  }}>
-                  + 选择角色
-                </a>
-              )}
-            </>
-          }>
-          {loadDestType()}
-        </Card>
-        <Card
-          type="inner"
-          title="表单管理"
-          className={cls[`card-info`]}
-          extra={
-            <a
-              onClick={() => {
-                setFormModel('主表');
-              }}>
-              + 添加
-            </a>
-          }>
-          {primaryForms && primaryForms.length > 0 && (
-            <span>
-              <ShareShowComp
-                departData={primaryForms}
-                onClick={formViewer}
-                deleteFuc={(id: string) => {
-                  props.current.primaryForms = primaryForms?.filter((a) => a.id != id);
-                  props.current.forms = props.current.forms.filter((a) => {
-                    return !(a.typeName == '主表' && a.id == id);
-                  });
-                  setPrimaryForms(props.current.primaryForms);
-                }}
-                tags={(id) => {
-                  const info = props.current.forms.find(
-                    (a) => a.typeName == '主表' && a.id == id,
-                  );
-                  if (info) {
-                    return <FormOption operateRule={info} typeName="主表" />;
-                  }
-                }}
-              />
-            </span>
-          )}
-        </Card>
+  const loadDialog = () => {
+    switch (openType) {
+      case '身份':
+        return (
+          <SelectIdentity
+            open={openType == '身份'}
+            exclude={[]}
+            multiple={false}
+            space={props.belong}
+            finished={(selected) => {
+              if (selected.length > 0) {
+                const item = selected[0];
+                props.current.destType = '身份';
+                props.current.destId = item.id;
+                props.current.destName = item.name;
+                setCurrentData(item);
+                props.refresh();
+              }
+              setOpenType('');
+            }}
+          />
+        );
+      case '其他办事':
+        return (
+          <OpenFileDialog
+            title={'选中其它办事'}
+            rootKey={'disk'}
+            accepts={['办事']}
+            allowInherited
+            excludeIds={[props.work.id]}
+            onCancel={() => setOpenType('')}
+            onOk={(files) => {
+              if (files.length > 0) {
+                const work = files[0] as IWork;
+                let name = `${work.name} [${work.directory.target.name}]`;
+                props.current.destId = work.id;
+                props.current.destName = name;
+                setCurrentData({ id: work.id, name: name });
+              } else {
+                setCurrentData({
+                  id: '',
+                  name: '',
+                });
+              }
+              setOpenType('');
+              props.refresh();
+            }}
+          />
+        );
+      case '主表':
+      case '子表':
+        return (
+          <OpenFileDialog
+            multiple
+            title={`选择表单`}
+            rootKey={props.belong.directory.key}
+            accepts={['表单']}
+            excludeIds={primaryForms.map((i) => i.id)}
+            onCancel={() => setOpenType('')}
+            onOk={(files) => {
+              if (files.length > 0) {
+                const forms = (files as unknown[] as IForm[]).map((i) => i.metadata);
+                props.current.primaryForms.push(...forms);
+                setPrimaryForms(props.current.primaryForms);
+                props.current.forms = [
+                  ...props.current.forms,
+                  ...forms.map((item) => {
+                    return {
+                      id: item.id,
+                      typeName: openType,
+                      allowAdd: false,
+                      allowEdit: false,
+                      allowSelect: false,
+                    };
+                  }),
+                ];
+              }
+              setOpenType('');
+            }}
+          />
+        );
+      default:
+        return <></>;
+    }
+  };
+
+  const loadExecutor = () => {
+    return (
+      <>
         <Card
           type="inner"
           title={
@@ -241,81 +228,144 @@ const ApprovalNode: React.FC<IProps> = (props) => {
             </span>
           )}
         </Card>
+        {executorModal && (
+          <ExecutorConfigModal
+            refresh={(param) => {
+              console.log('params', param);
+              if (param) {
+                executors.push({
+                  id: getUuid(),
+                  trigger: param.trigger,
+                  funcName: param.funcName,
+                  changes: [],
+                  hookUrl: '',
+                  belongId: props.belong.id,
+                  acquires: [],
+                });
+                setExecutors([...executors]);
+                props.current.executors = executors;
+              }
+              setExecutorModal(false);
+            }}
+            current={props.current}
+          />
+        )}
+      </>
+    );
+  };
+
+  return (
+    <div className={cls[`app-roval-node`]}>
+      <div className={cls[`roval-node`]}>
+        <Card
+          type="inner"
+          title="审批对象"
+          className={cls[`card-info`]}
+          extra={
+            <>
+              <SelectBox
+                value={destType}
+                valueExpr={'value'}
+                displayExpr={'label'}
+                style={{ width: 120, display: 'inline-block' }}
+                onSelectionChanged={(e) => {
+                  switch (e.selectedItem.value) {
+                    case '身份':
+                      props.current.destType = '身份';
+                      setCurrentData(undefined);
+                      break;
+                    case '其他办事':
+                      props.current.destType = '其他办事';
+                      setCurrentData(undefined);
+                      break;
+                    case '发起人':
+                      props.current.num = 1;
+                      props.current.destId = '1';
+                      props.current.destName = '发起人';
+                      props.current.destType = '发起人';
+                      setCurrentData({ id: '1', name: '发起人' });
+                      break;
+                    default:
+                      break;
+                  }
+                  if (destType != e.selectedItem.value) {
+                    setDestType(e.selectedItem.value);
+                    props.refresh();
+                  }
+                }}
+                dataSource={[
+                  { value: '身份', label: '指定角色' },
+                  { value: '其他办事', label: '其他办事' },
+                  { value: '发起人', label: '发起人' },
+                ]}
+              />
+              {destType && destType !== '发起人' && (
+                <a
+                  style={{ paddingLeft: 10, display: 'inline-block' }}
+                  onClick={() => {
+                    setOpenType(destType);
+                  }}>
+                  {`+ 选择${destType === '身份' ? '角色' : destType}`}
+                </a>
+              )}
+            </>
+          }>
+          {currentData && currentData.id != '1' && (
+            <ShareShowComp
+              key={'审批对象'}
+              departData={[currentData]}
+              deleteFuc={(_) => {
+                props.current.destId = '';
+                props.current.destName = '';
+                setCurrentData(undefined);
+                props.refresh();
+              }}
+            />
+          )}
+          {loadDestType()}
+        </Card>
+        <Card
+          type="inner"
+          title="表单管理"
+          className={cls[`card-info`]}
+          extra={
+            <a
+              onClick={() => {
+                setOpenType('主表');
+              }}>
+              + 添加
+            </a>
+          }>
+          {primaryForms.length > 0 && (
+            <span>
+              <ShareShowComp
+                key={'表单'}
+                departData={primaryForms}
+                onClick={formViewer}
+                deleteFuc={(id: string) => {
+                  props.current.primaryForms = primaryForms.filter((a) => a.id != id);
+                  props.current.forms = props.current.forms.filter((a) => a.id != id);
+                  setPrimaryForms(props.current.primaryForms);
+                }}
+                tags={(id) => {
+                  const info = props.current.forms.find((a) => a.id == id);
+                  if (info) {
+                    return <FormOption operateRule={info} typeName="主表" />;
+                  }
+                }}
+              />
+            </span>
+          )}
+        </Card>
+        {loadExecutor()}
+        {loadDialog()}
         <Rule
           work={props.work}
           current={props.current}
-          primaryForms={primaryForms ?? []}
+          primaryForms={primaryForms}
           detailForms={[]}
         />
       </div>
-      <SelectIdentity
-        open={isOpen}
-        exclude={[]}
-        multiple={false}
-        space={props.belong}
-        finished={(selected) => {
-          if (selected.length > 0) {
-            const item = selected[0];
-            props.current.destType = '身份';
-            props.current.destId = item.id;
-            props.current.destName = item.name;
-            setCurrentData(item);
-            props.refresh();
-          }
-          setIsOpen(false);
-        }}
-      />
-      {formModel != '' && (
-        <OpenFileDialog
-          multiple
-          title={`选择表单`}
-          rootKey={props.belong.directory.key}
-          accepts={['表单']}
-          excludeIds={primaryForms?.map((i) => i.id)}
-          onCancel={() => setFormModel('')}
-          onOk={(files) => {
-            if (files.length > 0) {
-              const forms = (files as unknown[] as IForm[]).map((i) => i.metadata);
-              props.current.primaryForms.push(...forms);
-              setPrimaryForms(props.current.primaryForms);
-              props.current.forms = [
-                ...props.current.forms,
-                ...forms.map((item) => {
-                  return {
-                    id: item.id,
-                    typeName: formModel,
-                    allowAdd: false,
-                    allowEdit: false,
-                    allowSelect: false,
-                  };
-                }),
-              ];
-            }
-            setFormModel('');
-          }}
-        />
-      )}
-      {executorModal ? (
-        <ExecutorConfigModal
-          refresh={(param) => {
-            if (param) {
-              executors.push({
-                id: getUuid(),
-                trigger: param.trigger,
-                funcName: param.funcName,
-                changes: [],
-                hookUrl: '',
-                belongId: props.belong.id,
-                acquires: [],
-              });
-              setExecutors([...executors]);
-              props.current.executors = executors;
-            }
-            setExecutorModal(false);
-          }}
-          current={props.current}
-        />
-      ) : null}
     </div>
   );
 };

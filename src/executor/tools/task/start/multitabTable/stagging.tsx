@@ -14,6 +14,7 @@ interface IProps {
 
 /** 多tab表格 */
 const WorkStagging: React.FC<IProps> = ({ onShow, apply }) => {
+  const mainFormFields = apply.primaryForms![0]?.fields ?? [];
   const [key, forceUpdate] = useObjectUpdate(apply);
   const [selectStaggings, setSelectStaggings] = useState<schema.XWorkInstance[]>([]);
   const loadMenus = () => {
@@ -55,6 +56,7 @@ const WorkStagging: React.FC<IProps> = ({ onShow, apply }) => {
           visible: true,
         },
       },
+      ...mainFormFields,
     ] as model.FieldModel[];
   };
   return (

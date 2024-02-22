@@ -224,6 +224,7 @@ export type XFormFilter = {
   filterDisplay?: string;
   labels: XTagFilter[];
   species?: XSpeciesFilter[] | undefined;
+  speciesDisplay?: string;
 };
 export type XTagFilter = {
   id: string;

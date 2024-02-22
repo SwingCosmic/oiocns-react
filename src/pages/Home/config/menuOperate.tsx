@@ -38,6 +38,40 @@ const getCommons = async () => {
   };
 };
 
+/** 获取全部应用菜单 */
+const getAllApplication = async () => {
+  const apps = await orgCtrl.loadApplications();
+  const groupApps: any = {};
+  apps.forEach((item) => {
+    groupApps[item.target.space.name] = groupApps[item.target.space.name] || [];
+    groupApps[item.target.space.name].push(item);
+  });
+  return {
+    key: 'applications',
+    label: '全部应用',
+    itemType: '应用',
+    children: Object.keys(groupApps).map((typeName) => {
+      return {
+        key: typeName,
+        label: typeName,
+        itemType: typeName,
+        type: 'group',
+        children: groupApps[typeName].map((item: any) => {
+          return {
+            key: item.key,
+            item: item,
+            label: item.name,
+            itemType: item.typeName,
+            menus: loadFileMenus(item),
+            tag: [item.typeName],
+            icon: <EntityIcon entity={item.metadata} size={18} />,
+          };
+        }),
+      };
+    }),
+  };
+};
+
 /** 获取群动态 */
 const getCohortActivitys = () => {
   return {
@@ -66,6 +100,11 @@ export const loadBrowserMenu = async () => {
     itemType: 'Tab',
     item: 'disk',
     icon: <OrgIcons home />,
-    children: [await getCommons(), getCohortActivitys(), getFriendActivitys()],
+    children: [
+      await getCommons(),
+      await getAllApplication(),
+      getCohortActivitys(),
+      getFriendActivitys(),
+    ],
   };
 };

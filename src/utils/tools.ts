@@ -3,6 +3,7 @@ import moment from 'moment';
 import { message } from 'antd';
 import { formatDate } from '@/utils/index';
 import { DataType, MenuItemType, OperateMenuType, PageData } from 'typings/globelType';
+import { AddNodeType } from '@/components/Common/FlowDesign/processType';
 
 const dateFormat: string = 'YYYY-MM-DD';
 
@@ -344,6 +345,25 @@ const getNodeByNodeId = (
   }
 };
 
+const isHasApprovalNode = (node: model.WorkNodeModel | undefined): boolean => {
+  if (node) {
+    if (
+      [AddNodeType.APPROVAL, AddNodeType.CUSTOM, AddNodeType.GATEWAY].includes(
+        node.type as AddNodeType,
+      ) ||
+      isHasApprovalNode(node.children)
+    ) {
+      return true;
+    }
+    for (const subNode of node?.branches ?? []) {
+      if (isHasApprovalNode(subNode.children)) {
+        return true;
+      }
+    }
+  }
+  return false;
+};
+
 const loadGatewayNodes = (
   node: model.WorkNodeModel,
   memberNodes: model.WorkNodeModel[],
@@ -362,7 +382,7 @@ const loadGatewayNodes = (
   return memberNodes;
 };
 
-const jsonParse = (val: any, defaultVal: any = null) => {
+const jsonParse = (val: any, defaultVal = null) => {
   if (!val || typeof val !== 'string') {
     // console.warn('JSON.parse need string param');
     return defaultVal;
@@ -386,6 +406,7 @@ export {
   getNodeByNodeId,
   getUuid,
   handleFormatDate,
+  isHasApprovalNode,
   jsonParse,
   loadGatewayNodes,
   parseHtmlToText,

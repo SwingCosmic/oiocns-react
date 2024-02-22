@@ -26,7 +26,6 @@ export enum AddNodeType {
   'CONDITION' = '条件',
   'CONCURRENTS' = '全部',
   'ORGANIZATIONA' = '组织',
-  'CHILDWORK' = '子流程',
   'GATEWAY' = '网关',
   'END' = '结束',
 }
@@ -81,8 +80,6 @@ export const getNodeName = (type: AddNodeType) => {
       return '审批对象';
     case AddNodeType.CC:
       return '抄送对象';
-    case AddNodeType.CHILDWORK:
-      return '其他办事';
     case AddNodeType.CONDITION:
       return '条件分支';
     case AddNodeType.CONCURRENTS:
@@ -233,7 +230,6 @@ export const convertNode = (
         resource.destType = resource.destType ?? '人员';
         break;
       case AddNodeType.CC:
-      case AddNodeType.CHILDWORK:
       case AddNodeType.APPROVAL:
         if (!resource.destId || resource.destId == '') {
           message.warn(`${resource.name}节点缺少审批对象`);

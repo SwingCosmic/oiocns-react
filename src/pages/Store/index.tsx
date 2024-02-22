@@ -75,7 +75,7 @@ const FileBrowser: React.FC = () => {
         ) : (
           <>
             <OrgIcons type="navbar/store" />
-            <span style={{ paddingLeft: 6 }}>管理</span>
+            <span style={{ paddingLeft: 6 }}>数据</span>
           </>
         )}
       </div>
