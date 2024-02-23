@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { Card, Modal, Space } from 'antd';
+import { Card, Modal, Space, message as _message } from 'antd';
 import { Button, DataGrid, SelectBox, TextArea, TextBox } from 'devextreme-react';
 import { model, schema } from '@/ts/base';
 import { getUuid } from '@/utils/tools';
@@ -7,6 +7,7 @@ import CodeMirror from '@uiw/react-codemirror';
 import { javascript } from '@codemirror/lang-javascript';
 import VariableMapping from './VariableMapping';
 import { ErrorLevel } from '@/ts/base/model';
+import { transformExpression } from '@/utils/script';
 
 interface IProps {
   primarys: schema.XForm[];
@@ -105,6 +106,16 @@ export default function ValidateRuleModal(props: IProps)  {
       open={true}
       bodyStyle={{ border: 'none', padding: 0, marginLeft: '32px', marginRight: '32px' }}
       onOk={() => {
+        try {
+          transformExpression(formula!);
+        } catch (error) {
+          let msg = error instanceof Error ? error.message : String(error);
+          _message.error(<div>
+            <div>计算代码错误</div>
+            <pre style={{textAlign: 'left'}}><code>{msg}</code></pre>
+          </div>);
+          return;
+        }
         const trigger: string[] = [];
         mappingData!.forEach((a) => trigger.push(a.trigger));
         props.onOk(
