@@ -1,24 +1,23 @@
 import { RangePicker } from '@/components/Common/StringDatePickers/RangePicker';
-import OpenFileDialog from '@/components/OpenFileDialog';
-import SchemaForm from '@/components/SchemaForm';
-import { common, model, schema } from '@/ts/base';
+import { common, model } from '@/ts/base';
 import { Node } from '@/ts/base/common';
 import { IFinancial } from '@/ts/core';
 import { IPeriod } from '@/ts/core/work/financial/period';
 import { IQuery } from '@/ts/core/work/financial/statistics/query';
+import { SumItem } from '@/ts/core/work/financial/statistics/summary';
 import { formatNumber } from '@/utils';
 import {
-  ProFormColumnsType,
-  ProFormInstance,
-  ProTable,
+  ProTable
 } from '@ant-design/pro-components';
-import { Button, Input, Modal, Select, Space, Spin, Table } from 'antd';
+import { json } from '@codemirror/lang-json';
+import CodeMirror from '@uiw/react-codemirror';
+import { Button, Modal, Select, Space, Spin, Table, message } from 'antd';
 import { ColumnGroupType, ColumnType, ColumnsType } from 'antd/lib/table';
 import moment from 'moment';
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useEffect, useState } from 'react';
+import { FullScreen } from '..';
 import cls from './ledger.module.less';
 import { LedgerModal } from './ledgerModel';
-import { SumItem } from '@/ts/core/work/financial/statistics/summary';
 
 export interface SummaryColumn {
   label: string;
@@ -45,173 +44,36 @@ const columns: SummaryColumn[] = [
 ];
 
 interface FormProps {
-  current: IFinancial | IQuery;
+  current: IFinancial;
   formType: string;
   finished: () => void;
 }
 
 const QueryForm: React.FC<FormProps> = (props: FormProps) => {
-  const ref = useRef<ProFormInstance>();
-  const [needType, setNeedType] = useState<string>();
-  let initialValues: any = { dimensions: [], fields: [] };
-  switch (props.formType) {
-    case 'updateQuery':
-      initialValues = props.current.metadata as schema.XQuery;
-      break;
-  }
-  const columns: ProFormColumnsType<schema.XQuery>[] = [
-    {
-      title: '名称',
-      dataIndex: 'name',
-      formItemProps: {
-        rules: [{ required: true, message: '分类名称为必填项' }],
-      },
-    },
-    {
-      title: '代码',
-      dataIndex: 'code',
-      formItemProps: {
-        rules: [{ required: true, message: '分类代码为必填项' }],
-      },
-    },
-    {
-      title: '分类维度',
-      dataIndex: 'species',
-      formItemProps: {
-        rules: [{ required: true, message: '分类维度为必填项' }],
-      },
-      renderFormItem: (_, __, form) => {
-        return (
-          <Input
-            allowClear
-            onClick={() => setNeedType('species')}
-            value={form.getFieldValue('species')?.name}
-          />
-        );
-      },
-    },
-    {
-      title: '扩展维度',
-      dataIndex: 'dimensions',
-      renderFormItem: (_, __, form) => {
-        return (
-          <Input
-            allowClear
-            onClick={() => setNeedType('dimensions')}
-            value={(form.getFieldValue('dimensions') || [])
-              ?.map((item: any) => item.name)
-              .join('、')}
-          />
-        );
-      },
-    },
-    {
-      title: '统计字段',
-      dataIndex: 'fields',
-      formItemProps: {
-        rules: [{ required: true, message: '扩展维度为必填项' }],
-      },
-      renderFormItem: (_, __, form) => {
-        return (
-          <Input
-            allowClear
-            onClick={() => setNeedType('fields')}
-            value={(form.getFieldValue('fields') || [])
-              ?.map((item: any) => item.name)
-              .join('、')}
-          />
-        );
-      },
-    },
-    {
-      title: '备注信息',
-      dataIndex: 'remark',
-      valueType: 'textarea',
-      colProps: { span: 24 },
-      formItemProps: {
-        rules: [{ required: true, message: '备注信息为必填项' }],
-      },
-    },
-  ];
-  const accepts = (needType: string) => {
-    switch (needType) {
-      case 'dimensions':
-      case 'species':
-        return ['变更源'];
-      case 'fields':
-        return ['可记录的'];
-    }
-    return [];
-  };
+  const [data, setData] = useState<string>('{}');
   return (
-    <>
-      <SchemaForm<schema.XQuery>
-        open
-        title={'方案操作'}
-        width={640}
-        formRef={ref}
-        columns={columns}
-        initialValues={initialValues}
-        rowProps={{
-          gutter: [24, 0],
-        }}
-        layoutType="ModalForm"
-        onOpenChange={(open: boolean) => {
-          if (!open) {
-            props.finished();
-          }
-        }}
-        onFinish={async (values) => {
-          values.dimensions = values.dimensions || [];
-          values.fields = values.fields || [];
-          switch (props.formType) {
-            case 'updateQuery': {
-              const query = props.current as IQuery;
-              await query.update(values);
-              break;
-            }
-            case 'newQuery': {
-              const financial = props.current as IFinancial;
-              await financial.createQuery(values);
-              break;
-            }
-          }
+    <FullScreen
+      title={'查询方案配置'}
+      onFinished={props.finished}
+      onCancel={props.finished}
+      onSave={async () => {
+        try {
+          await props.current.createQuery(JSON.parse(data));
           props.finished();
+        } catch (e) {
+          message.error(`数据格式错误${data}`);
+        }
+      }}>
+      <CodeMirror
+        style={{ marginTop: 10 }}
+        value={data}
+        height={'90vh'}
+        extensions={[json()]}
+        onChange={(value) => {
+          setData(value);
         }}
       />
-      {needType && (
-        <OpenFileDialog
-          title={`选择属性`}
-          rootKey={props.current.space.directory.spaceKey}
-          accepts={accepts(needType)}
-          multiple={['dimensions', 'fields'].includes(needType)}
-          onCancel={() => setNeedType(undefined)}
-          onOk={(files) => {
-            if (files.length > 0) {
-              switch (needType) {
-                case 'dimensions':
-                  ref.current?.setFieldsValue({
-                    dimensions: files.map((item) => item.metadata),
-                  });
-                  break;
-                case 'fields':
-                  ref.current?.setFieldsValue({
-                    fields: files.map((item) => item.metadata),
-                  });
-                  break;
-                case 'species': {
-                  ref.current?.setFieldsValue({
-                    species: files[0].metadata,
-                  });
-                  break;
-                }
-              }
-            }
-            setNeedType(undefined);
-          }}
-        />
-      )}
-    </>
+    </FullScreen>
   );
 };
 
@@ -302,17 +164,7 @@ const QueryList: React.FC<QueryProps> = ({ financial, finished }) => {
                 valueType: 'option',
                 render: (_, record) => {
                   return [
-                    <a
-                      key="edit"
-                      onClick={() => {
-                        setCenter(
-                          <QueryForm
-                            current={record}
-                            formType="updateQuery"
-                            finished={() => setCenter(<></>)}
-                          />,
-                        );
-                      }}>
+                    <a key="edit" onClick={() => {}}>
                       更新
                     </a>,
                     <a key="remove" onClick={() => record.remove()}>
