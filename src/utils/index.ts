@@ -176,7 +176,7 @@ export function formatNumber(
   number: string | number | null | undefined,
   decimalPlaces: number | null = 2,
   showThousandSeparator = false,
-  asPercentage = false
+  asPercentage = false,
 ) {
   if (number === null || number === undefined || number === '') {
     return '';
@@ -193,8 +193,10 @@ export function formatNumber(
 
   let formatted = String(number);
 
-  if (typeof decimalPlaces === "number") {
-    formatted = (Math.round(number * 10 ** decimalPlaces) / 10 ** decimalPlaces).toFixed(decimalPlaces);
+  if (typeof decimalPlaces === 'number') {
+    formatted = (Math.round(number * 10 ** decimalPlaces) / 10 ** decimalPlaces).toFixed(
+      decimalPlaces,
+    );
   }
 
   if (showThousandSeparator) {

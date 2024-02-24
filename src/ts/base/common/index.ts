@@ -28,6 +28,7 @@ export {
   mixin,
   safeStringify,
 } from './objects';
+export { AggregateTree, Node, Tree } from './tree';
 export {
   isBoolean,
   isDefined,
@@ -44,7 +45,6 @@ export {
 } from './types';
 export { Constants, toUint8, toUint32 } from './uint';
 export { generateUuid, isUUID } from './uuid';
-export { Tree, AggregateTree, Node } from './tree';
 export function Sandbox(code: string) {
   code = 'with (sandbox) {' + code + '}';
   const fn = new Function('sandbox', code);

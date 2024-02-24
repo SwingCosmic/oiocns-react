@@ -70,7 +70,13 @@ const SearchTarget: React.FC<CompanySearchTableProps> = (props) => {
                 bordered
                 style={{ width: '100%' }}
                 className={`${styles.card}`}
-                avatar={<TeamIcon entityId={target.id} size={60} />}
+                avatar={
+                  <TeamIcon
+                    entity={target}
+                    disableInfo={target.typeName === '人员'}
+                    size={60}
+                  />
+                }
                 title={
                   <Space>
                     {target.name}

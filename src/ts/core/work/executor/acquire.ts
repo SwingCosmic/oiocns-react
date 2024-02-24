@@ -13,7 +13,7 @@ export class Acquire extends Executor {
    */
   async execute(): Promise<boolean> {
     if (!this.metadata.belongId) {
-      throw new Error("未设置数据源单位，迁移失败，请联系办事配置人员修改！");
+      throw new Error('未设置数据源单位，迁移失败，请联系办事配置人员修改！');
     }
     await this.task.loadInstance();
     const work = await this.task.findWorkById(this.task.taskdata.defineId);

@@ -7,6 +7,7 @@ import Emoji from '../components/emoji';
 import EntityIcon from '@/components/Common/GlobalComps/entityIcon';
 import OrgIcons from '@/components/Common/GlobalComps/orgIcons';
 import { TextBox } from 'devextreme-react';
+import UploadIcon from '@/components/Common/FileUpload/uploadIcon';
 const TextArea = Input.TextArea;
 /**
  * @description: 输入区域
@@ -104,7 +105,7 @@ const GroupInputBox = (props: IProps) => {
                   setAtShow(false);
                   setMessage((message) => message + i.name + ' ');
                 }}>
-                <EntityIcon disInfo entity={i} size={35} />
+                <EntityIcon disableInfo entity={i} size={35} />
                 <span>{i.name}</span>
               </div>
             );
@@ -159,7 +160,7 @@ const GroupInputBox = (props: IProps) => {
             }}
           />
         </div>
-        <OrgIcons type="/toolbar/setFull" size={26} notAvatar />
+        <OrgIcons type="/toolbar/setFull" size={22} notAvatar />
         <Popover
           content={
             <Emoji
@@ -172,16 +173,28 @@ const GroupInputBox = (props: IProps) => {
           open={openEmoji}
           trigger={['click', 'contextMenu']}
           onOpenChange={setOpenEmoji}>
-          <OrgIcons type="/toolbar/emoji" size={26} notAvatar />
+          <OrgIcons type="/toolbar/emoji" size={22} notAvatar />
         </Popover>
-        <OrgIcons type="/toolbar/audio" size={26} notAvatar />
+        <OrgIcons type="/toolbar/audio" size={22} notAvatar />
+        <UploadIcon
+          size={22}
+          onSelected={async (file) => {
+            let msgType = MessageType.File;
+            if (file.groupTags.includes('图片')) {
+              msgType = MessageType.Image;
+            } else if (file.groupTags.includes('视频')) {
+              msgType = MessageType.Video;
+            }
+            await props.chat.sendMessage(msgType, JSON.stringify(file.shareInfo()), []);
+          }}
+        />
         <OrgIcons
-          type="/toolbar/files"
-          size={26}
+          type="/toolbar/store"
+          size={22}
           onClick={() => setOpen(true)}
           notAvatar
         />
-        <OrgIcons type="/toolbar/video" size={26} notAvatar />
+        <OrgIcons type="/toolbar/video" size={22} notAvatar />
         <Button
           disabled={!message.length}
           size="middle"

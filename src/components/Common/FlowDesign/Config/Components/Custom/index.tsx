@@ -191,6 +191,8 @@ const CustomNode: React.FC<IProps> = (props) => {
                 funcName: param.funcName,
                 changes: [],
                 hookUrl: '',
+                belongId: props.belong.id,
+                acquires: [],
               });
               setExecutors([...executors]);
               props.current.executors = executors;

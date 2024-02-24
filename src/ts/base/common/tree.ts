@@ -87,7 +87,7 @@ export class Tree<T extends { [key: string]: any }> {
 export class AggregateTree<T extends { [key: string]: any }> extends Tree<T> {
   /**
    * 从低向上汇总一棵树数据
-   * @param binaryOperator 
+   * @param binaryOperator
    */
   summary(binaryOperator: (pre: T, cur: T, index: number, arr: T[]) => T) {
     let levels: Node<T>[][] = [];

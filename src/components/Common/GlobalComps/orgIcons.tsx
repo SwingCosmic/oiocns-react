@@ -2,22 +2,10 @@ import React from 'react';
 import { Avatar, Image } from 'antd';
 
 interface IProps {
-  chat?: boolean;
-  market?: boolean;
-  home?: boolean;
-  store?: boolean;
-  work?: boolean;
-  activity?: boolean;
-  exit?: boolean;
-  setting?: boolean;
-  relation?: boolean;
-  myWork?: boolean;
-  workDone?: boolean;
-  workStart?: boolean;
   selected?: boolean;
   size?: number;
   title?: string;
-  type?: string;
+  type: string;
   css?: React.CSSProperties;
   notAvatar?: boolean;
   className?: string;
@@ -28,32 +16,7 @@ interface IProps {
 
 const OrgIcons = (props: IProps) => {
   const size = props.size ?? 22;
-  let svgName = 'home';
-  if (props.chat) {
-    svgName = 'chat';
-  } else if (props.work) {
-    svgName = 'work';
-  } else if (props.setting) {
-    svgName = 'setting';
-  } else if (props.relation) {
-    svgName = 'relation';
-  } else if (props.exit) {
-    svgName = 'exit';
-  } else if (props.market) {
-    svgName = 'market';
-  } else if (props.store) {
-    svgName = 'store';
-  } else if (props.activity) {
-    svgName = 'activity';
-  } else if (props.workDone) {
-    svgName = 'workDone';
-  } else if (props.myWork) {
-    svgName = 'myWork';
-  } else if (props.workStart) {
-    svgName = 'workStart';
-  } else if (props.type) {
-    svgName = props.type;
-  }
+  let svgName = props.type;
   if (props.selected) {
     svgName += '-select';
   }
@@ -68,6 +31,8 @@ const OrgIcons = (props: IProps) => {
         src={`/svg/${svgName}.svg?v=1.0.1`}
         style={{
           cursor: 'pointer',
+          width: size,
+          height: size,
           ...props.css,
         }}
         onClick={props.onClick}

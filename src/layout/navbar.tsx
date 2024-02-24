@@ -94,7 +94,7 @@ const Navbar: React.FC = () => {
   return (
     <Layout.Sider className={styles.header} width={65}>
       <div onClick={() => setOnlineVisible(!onlineVisible)}>
-        <EntityIcon disInfo entity={orgCtrl.user.metadata} size={42} />
+        <EntityIcon disableInfo entity={orgCtrl.user.metadata} size={42} />
       </div>
       <Space direction="vertical" wrap align="center" size={6} className={styles.navbar}>
         {actions.map((item) => NavItem(item))}

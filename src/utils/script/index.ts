@@ -58,18 +58,3 @@ export function transformExpression(expression: string) {
   return result;
 
 }
-
-/**
- * 判断一个字符串能否作为合法的变量名
- * @param name 要判断的字符串
- * @returns 是否合法
- */
-export function isValidVariableName(name: string) {
-  try {
-    const expression = `let ${name};`;
-    transform(expression);
-    return true;
-  } catch (error) {
-    return false;
-  }
-}

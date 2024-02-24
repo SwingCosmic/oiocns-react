@@ -157,7 +157,7 @@ const DetailTable: React.FC<IProps> = (props) => {
                   name: '唯一标识',
                   code: 'id',
                   valueType: '描述型',
-                  remark: '唯一标识'
+                  remark: '唯一标识',
                 });
                 const excel = new el.Excel(el.getAnythingSheets(form, values));
                 const modal = Modal.info({

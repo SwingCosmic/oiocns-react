@@ -95,7 +95,7 @@ const RelationBrowser: React.FC = () => {
         )}
         {current != 'disk' ? (
           <>
-            <EntityIcon entity={current.metadata} disInfo size={22} />
+            <EntityIcon entity={current.metadata} disableInfo size={22} />
             <span style={{ paddingLeft: 6 }}>{current.name}</span>
           </>
         ) : (

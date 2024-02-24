@@ -252,7 +252,7 @@ export class Period extends Entity<schema.XPeriod> implements IPeriod {
     const speciesItems = await this.financial.loadSpeciesItems(accounting.speciesId);
     const start = this.financial.getOffsetPeriod(this.period, -1);
     for (const item of common.deepClone(closings)) {
-      const amountId = "T" + item.amount.id;
+      const amountId = 'T' + item.amount.id;
       const answer = await this.summary.summaries({
         speciesId: accounting.speciesId,
         speciesItems: { [accounting.speciesId]: speciesItems },
@@ -323,7 +323,7 @@ export class Period extends Entity<schema.XPeriod> implements IPeriod {
         ],
       });
       console.log(answer);
-    } 
+    }
     return result;
   }
 }
