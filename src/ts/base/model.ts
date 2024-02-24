@@ -821,7 +821,7 @@ export type Rule = {
   // 规则名称
   name: string;
   // 规则类型
-  type: 'show' | 'calc' | 'executor' | 'attribute' | 'condition';
+  type: 'show' | 'calc' | 'executor' | 'attribute' | 'condition' | 'validate';
   // 触发对象
   trigger: string[];
   // 备注
@@ -893,6 +893,20 @@ export type NodeExecutorRule = {
   // 方法
   function: string;
 } & Rule;
+
+export type ErrorLevel = 'info' | 'warning' | 'error';
+
+export type NodeValidateRule = {
+  // 键值对
+  mappingData: MappingData[];
+  /** 错误消息 */
+  message: string;
+  /** 错误级别 */
+  errorLevel: ErrorLevel;
+  // 表达式
+  formula: string;
+} & Rule;
+
 
 // 属性筛选
 export type AttributeFilterRule = {

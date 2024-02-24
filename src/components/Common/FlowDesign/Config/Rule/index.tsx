@@ -13,6 +13,7 @@ import useAsyncLoad from '@/hooks/useAsyncLoad';
 import ExecutorRuleModal from './modal/executor';
 import cls from './index.module.less';
 import { Theme } from '@/config/theme';
+import ValidateRuleModal from './modal/validate';
 interface IProps {
   work: IWork;
   current: WorkNodeModel;
@@ -101,6 +102,8 @@ const NodeRule: React.FC<IProps> = (props) => {
             return '渲染';
           case 'calc':
             return '计算';
+          case 'validate':
+            return '校验';
         }
       },
     },
@@ -131,7 +134,7 @@ const NodeRule: React.FC<IProps> = (props) => {
               className={cls['flowDesign-rule-edit']}
               onClick={() => {
                 setSelect(record);
-                setOpenType(record.type == 'show' ? 1 : 2);
+                setOpenType(record.type == 'show' ? 1 : record.type == 'calc' ? 2 : 4);
               }}>
               编辑
             </Button>
@@ -206,6 +209,23 @@ const NodeRule: React.FC<IProps> = (props) => {
             }}
           />
         );
+      case 4:
+        return (
+          <ValidateRuleModal
+            primarys={props.primaryForms}
+            details={detailForms}
+            onCancel={() => setOpenType(0)}
+            current={select as model.NodeValidateRule}
+            onOk={(rule) => {
+              setOpenType(0);
+              props.current.formRules = [
+                rule,
+                ...(formRules ?? []).filter((a) => a.id != rule.id),
+              ];
+              setFormRules([...props.current.formRules]);
+            }}
+          />
+        );
       default:
         return <></>;
     }
@@ -255,6 +275,15 @@ const NodeRule: React.FC<IProps> = (props) => {
                         setOpenType(2);
                       }}>
                       + 添加计算规则
+                    </a>
+                    <Divider style={{ margin: 6 }} />
+                    <a
+                      style={{ padding: 5 }}
+                      onClick={() => {
+                        setSelect(undefined);
+                        setOpenType(4);
+                      }}>
+                      + 添加校验规则
                     </a>
                   </>
                 )}

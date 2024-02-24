@@ -1,35 +1,39 @@
 import React, { useEffect, useState } from 'react';
-import { Card, Modal, Space, message } from 'antd';
+import { Card, Modal, Space, message as _message } from 'antd';
 import { Button, DataGrid, SelectBox, TextArea, TextBox } from 'devextreme-react';
 import { model, schema } from '@/ts/base';
 import { getUuid } from '@/utils/tools';
 import CodeMirror from '@uiw/react-codemirror';
 import { javascript } from '@codemirror/lang-javascript';
-import { Column, Editing, Paging } from 'devextreme-react/data-grid';
+import VariableMapping from './VariableMapping';
+import { ErrorLevel } from '@/ts/base/model';
 import { transformExpression } from '@/utils/script';
 
 interface IProps {
   primarys: schema.XForm[];
   details: schema.XForm[];
-  current?: model.NodeCalcRule;
-  onOk: (rule: model.NodeCalcRule) => void;
+  current?: model.NodeValidateRule;
+  onOk: (rule: model.NodeValidateRule) => void;
   onCancel: () => void;
 }
 
-const CalcRuleModal: React.FC<IProps> = (props) => {
-  const [name, setName] = useState<string>();
-  const [argsCode, setArgsCode] = useState<string>();
+export default function ValidateRuleModal(props: IProps)  {
+  const [name, setName] = useState<string>('');
+  const [message, setMessage] = useState<string>('校验失败');
+  const [errorLevel, setErrorLevel] = useState<ErrorLevel>('error');
+  // const [argsCode, setArgsCode] = useState<string>();
   const [triggers, setTriggers] = useState<model.MappingData[]>([]);
-  const [select, setSelect] = useState<model.MappingData>();
+  // const [select, setSelect] = useState<model.MappingData>();
   const [remark, setRemark] = useState<string>();
   const [formula, setFormula] = useState<string>();
   const [mappingData, setMappingData] = useState<model.MappingData[]>([]);
-  const [target, setTarget] = useState<model.MappingData>();
+  // const [target, setTarget] = useState<model.MappingData>();
   useEffect(() => {
     if (props.current) {
       setName(props.current.name);
+      setMessage(props.current.message);
+      setErrorLevel(props.current.errorLevel);
       setRemark(props.current.remark);
-      setTarget(props.current.target);
       setFormula(props.current.formula);
       setMappingData(props.current.mappingData);
     }
@@ -69,13 +73,14 @@ const CalcRuleModal: React.FC<IProps> = (props) => {
         }),
       );
     });
-    setTriggers(tgs.filter((a) => a.id != target?.id));
+    setTriggers(tgs);
   }, [props.details, props.primarys]);
 
   const vaildDisable = () => {
     return (
       name == undefined ||
-      target == undefined ||
+      message == undefined ||
+      errorLevel == undefined ||
       formula == undefined ||
       mappingData.length <= 0
     );
@@ -96,7 +101,7 @@ const CalcRuleModal: React.FC<IProps> = (props) => {
   return (
     <Modal
       destroyOnClose
-      title={'计算规则'}
+      title={'校验规则'}
       width={800}
       open={true}
       bodyStyle={{ border: 'none', padding: 0, marginLeft: '32px', marginRight: '32px' }}
@@ -105,7 +110,7 @@ const CalcRuleModal: React.FC<IProps> = (props) => {
           transformExpression(formula!);
         } catch (error) {
           let msg = error instanceof Error ? error.message : String(error);
-          message.error(<div>
+          _message.error(<div>
             <div>计算代码错误</div>
             <pre style={{textAlign: 'left'}}><code>{msg}</code></pre>
           </div>);
@@ -113,18 +118,19 @@ const CalcRuleModal: React.FC<IProps> = (props) => {
         }
         const trigger: string[] = [];
         mappingData!.forEach((a) => trigger.push(a.trigger));
-        props.onOk.apply(this, [
+        props.onOk(
           {
             id: props.current?.id ?? getUuid(),
-            name: name!,
+            name: name,
             remark: remark ?? '',
-            target: target!,
-            type: 'calc',
+            type: 'validate',
+            message: message,
+            errorLevel: errorLevel,
             trigger: trigger!,
             formula: formula!,
             mappingData: mappingData!,
           },
-        ]);
+        );
       }}
       onCancel={props.onCancel}
       okButtonProps={{
@@ -140,86 +146,43 @@ const CalcRuleModal: React.FC<IProps> = (props) => {
               setName(e);
             }}
           />
-          <SelectBox
-            valueExpr="key"
-            label="目标对象"
+          <TextArea
+            label="校验提示信息"
             labelMode="outside"
-            value={target?.key}
-            showClearButton
-            displayExpr={(item) => {
-              return item ? `[${item.formName}]${item.name}` : '';
-            }}
-            dataSource={triggers.filter((a) => a.typeName == '对象')}
-            onSelectionChanged={(e) => {
-              setTarget(e.selectedItem);
+            value={message}
+            onValueChange={(e) => {
+              setMessage(e);
             }}
           />
-          <Card
-            title={<div style={{ ...labelFontSize }}>变量维护</div>}
-            bordered={false}
-            headStyle={modalHeadStyl}
-            bodyStyle={{ ...bodyBorderStyl, paddingTop: '30px' }}>
-            <>
-              <TextBox
-                width={'30%'}
-                label="变量名称*"
-                labelMode="outside"
-                value={argsCode}
-                onValueChange={setArgsCode}
-                style={{ display: 'inline-block', margin: 2 }}
-              />
-              <SelectBox
-                width={'45%'}
-                label="变量对象*"
-                labelMode="outside"
-                valueExpr="key"
-                value={select?.key}
-                showClearButton
-                displayExpr={(item) => {
-                  return item ? `[${item.formName}]${item.name}` : '';
-                }}
-                dataSource={triggers.filter(
-                  (a) => !mappingData.find((s) => s.id == a.id),
-                )}
-                style={{ display: 'inline-block', margin: 2 }}
-                onSelectionChanged={(e) => {
-                  setSelect(e.selectedItem);
-                }}
-              />
-              <Button
-                width={'20%'}
-                style={{ display: 'inline-block', margin: 2 }}
-                onClick={() => {
-                  if (select && argsCode) {
-                    if (!mappingData.map((a) => a.code).includes(argsCode)) {
-                      setSelect(undefined);
-                      setArgsCode(undefined);
-                      setMappingData([{ ...select, code: argsCode }, ...mappingData]);
-                    }
-                  }
-                }}>
-                新增
-              </Button>
-            </>
-            <DataGrid
-              allowColumnResizing
-              keyExpr="id"
-              dataSource={mappingData}
-              onSaved={(e) => {
-                for (const change of e.changes) {
-                  if (change.type == 'remove') {
-                    setMappingData(mappingData.filter((a) => a.id != change.key));
-                  }
-                }
-              }}>
-              <Paging enabled={true} pageSize={10} />
-              <Editing mode="row" allowDeleting={true} texts={'删除'} />
-              <Column dataField="code" caption="变量代码" />
-              <Column dataField="typeName" caption="类型" />
-              <Column dataField="formName" caption="表单名称" />
-              <Column dataField="name" caption="对象名称" />
-            </DataGrid>
-          </Card>
+          <SelectBox
+            valueExpr="value"
+            label="校验错误类型"
+            labelMode="outside"
+            value={errorLevel}
+            displayExpr="name"
+            dataSource={[
+              {
+                name: '提示',
+                value: 'info',
+              },
+              {
+                name: '警告',
+                value: 'warning',
+              },
+              {
+                name: '错误',
+                value: 'error',
+              },
+            ]}
+            onSelectionChanged={(e) => {
+              setErrorLevel(e.selectedItem.value);
+            }}
+          />
+          <VariableMapping 
+            mappingData={mappingData}
+            onChange={v => setMappingData(v)}
+            triggers={triggers}
+          />
           <Card
             title={<div style={{ ...labelFontSize }}>计算代码</div>}
             bordered={false}
@@ -247,4 +210,3 @@ const CalcRuleModal: React.FC<IProps> = (props) => {
     </Modal>
   );
 };
-export default CalcRuleModal;
