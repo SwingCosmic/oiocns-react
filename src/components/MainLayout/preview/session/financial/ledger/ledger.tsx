@@ -6,9 +6,7 @@ import { IPeriod } from '@/ts/core/work/financial/period';
 import { IQuery } from '@/ts/core/work/financial/statistics/query';
 import { SumItem } from '@/ts/core/work/financial/statistics/summary';
 import { formatNumber } from '@/utils';
-import {
-  ProTable
-} from '@ant-design/pro-components';
+import { ProTable } from '@ant-design/pro-components';
 import { json } from '@codemirror/lang-json';
 import CodeMirror from '@uiw/react-codemirror';
 import { Button, Modal, Select, Space, Spin, Table, message } from 'antd';
@@ -164,9 +162,6 @@ const QueryList: React.FC<QueryProps> = ({ financial, finished }) => {
                 valueType: 'option',
                 render: (_, record) => {
                   return [
-                    <a key="edit" onClick={() => {}}>
-                      更新
-                    </a>,
                     <a key="remove" onClick={() => record.remove()}>
                       删除
                     </a>,
