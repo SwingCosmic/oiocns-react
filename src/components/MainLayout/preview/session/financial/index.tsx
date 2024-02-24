@@ -270,7 +270,7 @@ const Periods: React.FC<IProps> = ({ financial }) => {
                               <DepreciationTemplate
                                 financial={financial}
                                 onCancel={() => setCenter(<></>)}
-                                onSaved={() => start()}
+                                onSaved={() => setCenter(<></>)}
                               />,
                             );
                           }

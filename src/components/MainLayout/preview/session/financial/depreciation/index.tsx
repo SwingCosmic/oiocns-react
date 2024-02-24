@@ -108,6 +108,7 @@ const Depreciation: React.FC<IProps> = ({ financial, current, config }) => {
                     financial={financial}
                     onFinished={() => setCenter(<></>)}
                     onCancel={() => setCenter(<></>)}
+                    onSaved={() => setCenter(<></>)}
                   />,
                 )
               }>
